@@ -4,6 +4,18 @@ const path = require('path');
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const app = express();
+
+// CORS middleware
+app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, X-User-Id');
+    if (req.method === 'OPTIONS') {
+        res.sendStatus(200);
+    } else {
+        next();
+    }
+});
 const port = process.env.PORT || 3002;
 const saltRounds = 10;
 const adminEmail = process.env.ADMIN_EMAIL || '5v5.palestine@gmail.com';

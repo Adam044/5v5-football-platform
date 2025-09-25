@@ -337,7 +337,7 @@
                 
                 // Fetch field details to get the price and store field data
                 try {
-                    const response = await fetch(`http://localhost:3002/api/fields/${fieldId}?userId=${loggedInUserId}`);
+                    const response = await fetch(`/api/fields/${fieldId}?userId=${loggedInUserId}`);
                     
                     if (!response.ok) {
                         throw new Error(`HTTP error! status: ${response.status}`);
@@ -578,7 +578,7 @@
                 confirmBtn.disabled = true;
                 
                 try {
-                    const response = await fetch(`http://localhost:3002/api/availability/${selectedField}?date=${date}`);
+                    const response = await fetch(`/api/availability/${selectedField}?date=${date}`);
                     
                     if (!response.ok) {
                         throw new Error(`HTTP error! status: ${response.status}`);
@@ -693,7 +693,7 @@
                 try {
                     const userId = localStorage.getItem('userId');
                     if (userId) {
-                        const response = await fetch(`http://localhost:3002/api/user/${userId}`);
+                        const response = await fetch(`/api/user/${userId}`);
                         if (response.ok) {
                             const data = await response.json();
                             userName = data.user.name || userName;
@@ -773,7 +773,7 @@
                 return;
             }
             try {
-                const response = await fetch('http://localhost:3002/api/reserve', {
+                const response = await fetch('/api/reserve', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -808,7 +808,7 @@
             }
 
             try {
-                const response = await fetch('http://localhost:3002/api/matchmaking', {
+                const response = await fetch('/api/matchmaking', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -850,7 +850,7 @@
             try {
                 const userId = localStorage.getItem('userId');
                 if (userId) {
-                    const response = await fetch(`http://localhost:3002/api/user/${userId}`);
+                    const response = await fetch(`/api/user/${userId}`);
                     if (response.ok) {
                         const data = await response.json();
                         userName = data.user.name || userName;
@@ -978,7 +978,7 @@
             const container = document.getElementById('fields-container');
             container.innerHTML = ''; // Clear existing fields
             try {
-                const response = await fetch('http://localhost:3002/api/fields');
+                const response = await fetch('/api/fields');
                 const data = await response.json();
                 const fields = data.fields;
 

@@ -331,7 +331,7 @@
         // --- Fetch and Render Data ---
         async function fetchUserData() {
             try {
-                const response = await fetch(`http://localhost:3002/api/user/${userId}`);
+                const response = await fetch(`/api/user/${userId}`);
                 const data = await response.json();
                 if (response.ok) {
                     const user = data.user;
@@ -351,7 +351,7 @@
 
         async function fetchUserReservations() {
             try {
-                const response = await fetch(`http://localhost:3002/api/user/reservations/${userId}`);
+                const response = await fetch(`/api/user/reservations/${userId}`);
                 const data = await response.json();
                 if (response.ok) {
                     renderReservationsTable(data.reservations);

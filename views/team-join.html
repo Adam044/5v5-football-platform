@@ -457,7 +457,7 @@
                     teamMembers: bookingData.members || []
                 };
                 
-                const response = await fetch('http://localhost:3002/api/booking-requests', {
+                const response = await fetch('/api/booking-requests', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -508,7 +508,7 @@
                     needsReview: true
                 };
                 
-                const response = await fetch('http://localhost:3002/api/booking-requests', {
+                const response = await fetch('/api/booking-requests', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
