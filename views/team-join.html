@@ -645,6 +645,34 @@
         let selectedTeam = null;
         let invitationCode = null;
         
+        // Check user session on page load
+        function checkUserSession() {
+            const userId = localStorage.getItem('userId');
+            const userEmail = localStorage.getItem('userEmail');
+            const userName = localStorage.getItem('userName');
+            const isAdmin = localStorage.getItem('isAdmin');
+            
+            if (userId && userEmail && userName) {
+                currentUser = {
+                    id: userId,
+                    email: userEmail,
+                    name: userName,
+                    isAdmin: isAdmin === 'true'
+                };
+                console.log('User session found:', currentUser);
+                return true;
+            }
+            
+            console.log('No user session found');
+            return false;
+        }
+        
+        // Save current URL for redirect after login
+        function saveReturnUrl() {
+            const currentUrl = window.location.href;
+            localStorage.setItem('returnUrl', currentUrl);
+        }
+        
         // Extract parameters from URL
         urlParams = new URLSearchParams(window.location.search);
         
@@ -656,16 +684,13 @@
         
         // Load team details on page load
         document.addEventListener('DOMContentLoaded', function() {
-            checkUserAuth();
+            checkUserSession();
             loadTeamDetails();
         });
         
         // Check user authentication
         function checkUserAuth() {
-            const userData = localStorage.getItem('userData');
-            if (userData) {
-                currentUser = JSON.parse(userData);
-            }
+            return checkUserSession();
         }
         
         // Team building rules functions
@@ -1044,8 +1069,11 @@
         
         function redirectToAuth() {
             // Store the current URL to return after login
-            localStorage.setItem('returnUrl', window.location.href);
-            window.location.href = '/auth.html';
+            saveReturnUrl();
+            
+            // Add return URL as query parameter for better UX
+            const returnUrl = encodeURIComponent(window.location.href);
+            window.location.href = `/auth.html?returnUrl=${returnUrl}`;
         }
         
         function closeLoginModal() {

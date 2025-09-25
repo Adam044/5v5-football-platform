@@ -204,9 +204,18 @@
                     localStorage.setItem('userName', result.userName);
                     localStorage.setItem('isAdmin', result.isAdmin || false);
 
-                    // Redirect logic based on admin status
+                    // Redirect logic based on return URL or admin status
                     setTimeout(() => {
-                        if (result.isAdmin) {
+                        // Check for return URL in query parameters or localStorage
+                        const urlParams = new URLSearchParams(window.location.search);
+                        const returnUrl = urlParams.get('returnUrl') || localStorage.getItem('returnUrl');
+                        
+                        if (returnUrl && returnUrl !== window.location.href) {
+                            // Clear the stored return URL
+                            localStorage.removeItem('returnUrl');
+                            // Redirect to the original page
+                            window.location.href = decodeURIComponent(returnUrl);
+                        } else if (result.isAdmin) {
                             window.location.href = 'admin-dashboard.html';
                         } else {
                             window.location.href = 'index.html';
