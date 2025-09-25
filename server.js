@@ -122,6 +122,7 @@ const db = new sqlite3.Database(path.join(__dirname, '5v5.db'), (err) => {
             player_name TEXT NOT NULL,
             player_email TEXT,
             player_phone TEXT,
+            team TEXT DEFAULT 'A',
             is_creator INTEGER DEFAULT 0,
             joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (booking_request_id) REFERENCES booking_requests(id),

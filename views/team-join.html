@@ -553,23 +553,23 @@
             <div id="teams-container" class="teams-container" style="display: none;">
                 <div class="team-section team-a">
                     <div class="team-header">
-                        <div class="team-title">الفريق أ</div>
+                        <div class="team-title">Team A</div>
                         <div class="team-count" id="team-a-count">0/6 لاعبين</div>
                     </div>
                     <ul class="player-list" id="team-a-list"></ul>
                     <button class="join-team-btn team-a" id="join-team-a" onclick="showJoinModal('A')">
-                        <i class="fas fa-user-plus"></i> انضم للفريق أ
+                        <i class="fas fa-user-plus"></i> انضم لـ Team A
                     </button>
                 </div>
                 
                 <div class="team-section team-b">
                     <div class="team-header">
-                        <div class="team-title">الفريق ب</div>
+                        <div class="team-title">Team B</div>
                         <div class="team-count" id="team-b-count">0/6 لاعبين</div>
                     </div>
                     <ul class="player-list" id="team-b-list"></ul>
                     <button class="join-team-btn team-b" id="join-team-b" onclick="showJoinModal('B')">
-                        <i class="fas fa-user-plus"></i> انضم للفريق ب
+                        <i class="fas fa-user-plus"></i> انضم لـ Team B
                     </button>
                 </div>
             </div>
@@ -961,6 +961,7 @@
             
             // Update join button state
             if (joinButton) {
+                const teamName = teamLetter === 'A' ? 'Team A' : 'Team B';
                 if (userAlreadyJoined) {
                     joinButton.disabled = true;
                     joinButton.className = joinButton.className.replace('already-joined', '') + ' already-joined';
@@ -971,7 +972,7 @@
                 } else {
                     joinButton.disabled = false;
                     joinButton.className = joinButton.className.replace('already-joined', '');
-                    joinButton.innerHTML = `<i class="fas fa-user-plus"></i> انضم للفريق ${teamLetter}`;
+                    joinButton.innerHTML = `<i class="fas fa-user-plus"></i> انضم لـ ${teamName}`;
                 }
             }
         }
@@ -985,19 +986,21 @@
             qrCodeElement.innerHTML = '';
             
             try {
-                if (typeof QRCode !== 'undefined') {
+                // Check if QRCode library is loaded
+                if (typeof QRCode !== 'undefined' && QRCode) {
+                    // Create QR code with proper error handling
                     const qr = new QRCode(qrCodeElement, {
                         text: link,
                         width: 200,
                         height: 200,
                         colorDark: '#000000',
                         colorLight: '#ffffff',
-                        correctLevel: QRCode.CorrectLevel.M
+                        correctLevel: QRCode.CorrectLevel ? QRCode.CorrectLevel.M : 'M'
                     });
                     
                     // Style the QR code container after generation
                     setTimeout(() => {
-                        const qrImg = qrCodeElement.querySelector('img');
+                        const qrImg = qrCodeElement.querySelector('img') || qrCodeElement.querySelector('canvas');
                         if (qrImg) {
                             qrImg.style.borderRadius = '10px';
                             qrImg.style.boxShadow = '0 4px 8px rgba(0,0,0,0.1)';
@@ -1009,11 +1012,17 @@
                     }, 200);
                     
                 } else {
-                    throw new Error('QRCode library not loaded');
+                    // Fallback: Use online QR code service
+                    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(link)}`;
+                    qrCodeElement.innerHTML = `<img src="${qrUrl}" alt="QR Code" style="border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); max-width: 100%; height: auto;" />`;
+                    qrCodeElement.style.display = 'block';
                 }
             } catch (error) {
                 console.error('Error generating QR code:', error);
-                qrCodeElement.innerHTML = '<p style="color: #666; text-align: center; padding: 20px;"><i class="fas fa-exclamation-triangle"></i><br>خطأ في إنشاء رمز QR</p>';
+                // Fallback: Use online QR code service
+                const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(link)}`;
+                qrCodeElement.innerHTML = `<img src="${qrUrl}" alt="QR Code" style="border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); max-width: 100%; height: auto;" onerror="this.parentElement.innerHTML='<p style=\'color: #666; text-align: center; padding: 20px;\'><i class=\'fas fa-exclamation-triangle\'></i><br>خطأ في إنشاء رمز QR</p>'"/>`;
+                qrCodeElement.style.display = 'block';
             }
         }
         
