@@ -856,7 +856,8 @@
             document.getElementById('teams-container').style.display = 'grid';
             document.getElementById('single-team-container').style.display = 'none';
             
-            const teamA = members.filter(m => m.team === 'A' || m.is_creator);
+            // Properly filter teams - don't force creator to Team A
+            const teamA = members.filter(m => m.team === 'A' || (!m.team && m.is_creator));
             const teamB = members.filter(m => m.team === 'B');
             
             // Display Team A

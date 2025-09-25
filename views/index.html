@@ -530,6 +530,9 @@
             
             // Store validated player count
             window.selectedPlayerCount = playerCount || null;
+            
+            // Store reservation flow type for later use
+            window.reservationFlow = selectedReservationType === 'players_looking_for_team' && playerCount === 1 ? 'single_player_direct' : 'team_join_page';
 
             openModal('availability');
         }
@@ -726,19 +729,53 @@
                 else if (selectedReservationType === 'team-looking-players') serverBookingType = 'team_looking_players';
                 else if (selectedReservationType === 'players-looking-team') serverBookingType = 'players_looking_team';
 
-                // Redirect to team-join page with booking parameters
-                const params = new URLSearchParams({
-                    userId: loggedInUserId,
-                    fieldId: selectedField,
-                    slotDate: selectedDate,
-                    startTime: selectedSlotData.start_time,
-                    endTime: selectedSlotData.end_time,
-                    bookingType: serverBookingType,
-                    playerName: playerName,
-                    playersNeeded: window.selectedPlayerCount || 0
-                });
-                
-                window.location.href = `/team-join.html?${params.toString()}`;
+                // Check if this is a single player direct reservation
+                if (window.reservationFlow === 'single_player_direct') {
+                    // Handle single player direct reservation
+                    const response = await fetch('/api/team-building/create', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            userId: loggedInUserId,
+                            fieldId: selectedField,
+                            slotDate: selectedDate,
+                            startTime: selectedSlotData.start_time,
+                            endTime: selectedSlotData.end_time,
+                            bookingType: serverBookingType,
+                            playerName: playerName,
+                            playerEmail: userEmail.trim(),
+                            playerPhone: userPhone || '',
+                            playersNeeded: 1
+                        })
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        closeModal();
+                        showMessageBox(
+                            'تم إرسال طلبك بنجاح',
+                            'سيتم مراجعة طلبك من قبل الإدارة وسيتم إعلامك قريباً.',
+                            'success'
+                        );
+                    } else {
+                        const errorData = await response.json();
+                        showMessageBox('خطأ في إرسال الطلب', errorData.error || 'حدث خطأ غير متوقع');
+                    }
+                } else {
+                    // Redirect to team-join page with booking parameters
+                    const params = new URLSearchParams({
+                        userId: loggedInUserId,
+                        fieldId: selectedField,
+                        slotDate: selectedDate,
+                        startTime: selectedSlotData.start_time,
+                        endTime: selectedSlotData.end_time,
+                        bookingType: serverBookingType,
+                        playerName: playerName,
+                        playersNeeded: window.selectedPlayerCount || 0
+                    });
+                    
+                    window.location.href = `/team-join.html?${params.toString()}`;
+                }
             } catch (error) {
                 console.error('Team building initiation failed:', error);
                 
