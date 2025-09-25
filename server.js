@@ -1,0 +1,1285 @@
+const express = require('express');
+const sqlite3 = require('sqlite3').verbose();
+const path = require('path');
+const bcrypt = require('bcrypt');
+const crypto = require('crypto');
+const app = express();
+const port = process.env.PORT || 3002;
+const saltRounds = 10;
+const adminEmail = process.env.ADMIN_EMAIL || '5v5.palestine@gmail.com';
+
+// Increase the JSON body size limit to handle image uploads
+app.use(express.json({ limit: '50mb' }));
+
+// Connect to SQLite database
+const db = new sqlite3.Database(path.join(__dirname, '5v5.db'), (err) => {
+    if (err) {
+        return console.error(err.message);
+    }
+    console.log('Connected to the 5v5 SQLite database.');
+    db.exec(`
+        PRAGMA foreign_keys = ON;
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            email TEXT NOT NULL UNIQUE,
+            phone_number TEXT NOT NULL,
+            birthdate TEXT,
+            hashed_password TEXT NOT NULL,
+            is_admin INTEGER DEFAULT 0,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+        CREATE TABLE IF NOT EXISTS fields (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            description TEXT,
+            location TEXT,
+            image BLOB,
+            price_per_hour REAL
+        );
+        CREATE TABLE IF NOT EXISTS availability_slots (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            field_id INTEGER NOT NULL,
+            slot_date TEXT NOT NULL,
+            start_time TEXT NOT NULL,
+            end_time TEXT NOT NULL,
+            is_reserved INTEGER DEFAULT 0,
+            reservation_type TEXT,
+            user_id INTEGER,
+            FOREIGN KEY (field_id) REFERENCES fields(id),
+            FOREIGN KEY (user_id) REFERENCES users(id)
+        );
+        CREATE TABLE IF NOT EXISTS matchmaking_requests (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            field_id INTEGER NOT NULL,
+            slot_date TEXT NOT NULL,
+            start_time TEXT NOT NULL,
+            request_type TEXT NOT NULL, -- 'player_looking_for_team', 'team_looking_for_player'
+            status TEXT DEFAULT 'pending', -- 'pending', 'matched', 'completed'
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users(id),
+            FOREIGN KEY (field_id) REFERENCES fields(id)
+        );
+        -- Updated tournaments table to match the new schema
+        CREATE TABLE IF NOT EXISTS tournaments (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            field_id INTEGER NOT NULL,
+            tournament_date TEXT NOT NULL,
+            prize TEXT,
+            description TEXT,
+            image_data BLOB,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (field_id) REFERENCES fields(id)
+        );
+        CREATE TABLE IF NOT EXISTS tournament_participations (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            tournament_id INTEGER NOT NULL,
+            user_id INTEGER NOT NULL,
+            team_name TEXT NOT NULL,
+            captain_name TEXT NOT NULL,
+            contact_email TEXT NOT NULL,
+            status TEXT DEFAULT 'pending',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (tournament_id) REFERENCES tournaments(id),
+            FOREIGN KEY (user_id) REFERENCES users(id)
+        );
+        CREATE TABLE IF NOT EXISTS booking_requests (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            creator_user_id INTEGER NOT NULL,
+            field_id INTEGER NOT NULL,
+            slot_date TEXT NOT NULL,
+            start_time TEXT NOT NULL,
+            end_time TEXT NOT NULL,
+            booking_type TEXT NOT NULL,
+            players_needed INTEGER NOT NULL,
+            current_player_count INTEGER DEFAULT 1,
+            invitation_code TEXT UNIQUE NOT NULL,
+            qr_code_data TEXT,
+            status TEXT DEFAULT 'building_team',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            confirmed_at TIMESTAMP,
+            FOREIGN KEY (creator_user_id) REFERENCES users(id),
+            FOREIGN KEY (field_id) REFERENCES fields(id)
+        );
+        CREATE TABLE IF NOT EXISTS team_members (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            booking_request_id INTEGER NOT NULL,
+            user_id INTEGER,
+            player_name TEXT NOT NULL,
+            player_email TEXT,
+            player_phone TEXT,
+            is_creator INTEGER DEFAULT 0,
+            joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (booking_request_id) REFERENCES booking_requests(id),
+            FOREIGN KEY (user_id) REFERENCES users(id)
+        );
+    `);
+    
+    // Add is_admin column if it doesn't exist (for existing databases)
+    db.run(`ALTER TABLE users ADD COLUMN is_admin INTEGER DEFAULT 0`, (err) => {
+        if (err && !err.message.includes('duplicate column name')) {
+            console.error('Error adding is_admin column:', err);
+        }
+    });
+    
+    // Check if phone_number column exists, if not, add it (migration for existing databases)
+    db.run(`ALTER TABLE users ADD COLUMN phone_number TEXT`, (err) => {
+        if (err && !err.message.includes('duplicate column name')) {
+            // If phone column exists but phone_number doesn't, copy data
+            db.run(`UPDATE users SET phone_number = phone WHERE phone_number IS NULL`, (updateErr) => {
+                if (updateErr) {
+                    console.log('Phone number migration not needed or already completed');
+                }
+            });
+        }
+    });
+    
+    // Add image column to fields table if it doesn't exist (migration for existing databases)
+    db.run(`ALTER TABLE fields ADD COLUMN image BLOB`, (err) => {
+        if (err && !err.message.includes('duplicate column name')) {
+            console.log('Image column migration not needed or already exists');
+        }
+    });
+});
+
+// Middleware
+app.use(express.json());
+app.use(express.static(path.join(__dirname, 'views')));
+app.use(express.static(path.join(__dirname, 'components')));
+
+// Security middleware to check for admin
+const checkAdmin = (req, res, next) => {
+    // Defensive checks for request object properties
+    const query = req.query || {};
+    const body = req.body || {};
+    const headers = req.headers || {};
+    
+    const userId = query.userId || body.userId || headers['x-user-id'];
+    
+    if (!userId) {
+        return res.status(401).json({ error: 'Unauthorized. User ID is required.' });
+    }
+
+    const sql = `SELECT is_admin FROM users WHERE id = ?`;
+    db.get(sql, [userId], (err, row) => {
+        if (err) {
+            console.error('Database error in checkAdmin:', err);
+            return res.status(500).json({ error: 'Database error during authentication check.' });
+        }
+        if (!row) {
+            return res.status(401).json({ error: 'Unauthorized. User not found.' });
+        }
+        if (row.is_admin !== 1) {
+            return res.status(403).json({ error: 'Forbidden. You do not have administrator access.' });
+        }
+        next();
+    });
+};
+
+// API endpoint to get all fields
+app.get('/api/fields', (req, res) => {
+    const sql = `SELECT * FROM fields`;
+    db.all(sql, [], (err, rows) => {
+        if (err) {
+            return res.status(500).json({ error: err.message });
+        }
+        const fieldsWithBase64 = rows.map(field => {
+            if (field.image) {
+                field.image = Buffer.from(field.image).toString('base64');
+            }
+            return field;
+        });
+        res.json({ fields: fieldsWithBase64 });
+    });
+});
+
+// API endpoint to get a single field's details
+app.get('/api/fields/:fieldId', (req, res) => {
+    const { fieldId } = req.params;
+    const sql = `SELECT * FROM fields WHERE id = ?`;
+    db.get(sql, [fieldId], (err, row) => {
+        if (err) {
+            return res.status(500).json({ error: err.message });
+        }
+        if (!row) {
+            return res.status(404).json({ error: 'Field not found' });
+        }
+        if (row.image) {
+            row.image = Buffer.from(row.image).toString('base64');
+        }
+        res.json({ field: row });
+    });
+});
+
+// API endpoint to get availability for a specific field
+app.get('/api/availability/:fieldId', (req, res) => {
+    const { fieldId } = req.params;
+    const { date } = req.query; 
+    
+    if (!date) {
+        return res.status(400).json({ error: 'Date parameter is required.' });
+    }
+
+    const sql = `SELECT * FROM availability_slots WHERE field_id = ? AND slot_date = ? AND is_reserved = 0`;
+    db.all(sql, [fieldId, date], (err, rows) => {
+        if (err) {
+            return res.status(500).json({ error: err.message });
+        }
+        res.json({ availability: rows });
+    });
+});
+
+// API endpoint for user sign-up
+app.post('/api/signup', (req, res) => {
+    const { name, email, phone, password, is_admin } = req.body;
+
+    if (!name || !email || !phone || !password) {
+        return res.status(400).json({ error: 'Please provide all required fields.' });
+    }
+
+    bcrypt.hash(password, saltRounds, (err, hashedPassword) => {
+        if (err) {
+            console.error('Error hashing password:', err);
+            return res.status(500).json({ error: 'Could not create account.' });
+        }
+
+        const sql = `INSERT INTO users (name, email, phone_number, password, is_admin) VALUES (?, ?, ?, ?, ?)`;
+        db.run(sql, [name, email, phone, hashedPassword, is_admin ? 1 : 0], function (err) {
+            if (err) {
+                console.error('Error inserting user:', err);
+                if (err.message.includes('UNIQUE constraint failed')) {
+                    return res.status(409).json({ error: 'This email is already registered.' });
+                }
+                return res.status(500).json({ error: 'Could not create account.' });
+            }
+            res.status(201).json({ message: 'User created successfully.', userId: this.lastID });
+        });
+    });
+});
+
+// API endpoint for user login
+app.post('/api/login', (req, res) => {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+        return res.status(400).json({ error: 'Email and password are required.' });
+    }
+
+    const sql = `SELECT id, name, email, password, is_admin FROM users WHERE email = ?`;
+    db.get(sql, [email], (err, user) => {
+        if (err) {
+            console.error('Error fetching user:', err);
+            return res.status(500).json({ error: 'Server error. Please try again later.' });
+        }
+        if (!user) {
+            return res.status(401).json({ error: 'Invalid email or password.' });
+        }
+
+        bcrypt.compare(password, user.password, (err, result) => {
+            if (err) {
+                console.error('Error comparing passwords:', err);
+                return res.status(500).json({ error: 'Server error. Please try again later.' });
+            }
+            if (result) {
+                res.json({ 
+                    message: 'Login successful.', 
+                    userId: user.id, 
+                    userName: user.name, 
+                    email: user.email,
+                    isAdmin: user.is_admin === 1
+                });
+            } else {
+                res.status(401).json({ error: 'Invalid email or password.' });
+            }
+        });
+    });
+});
+
+// API endpoint to get user reservations
+app.get('/api/user/reservations/:userId', (req, res) => {
+    const { userId } = req.params;
+    if (!userId) {
+        return res.status(400).json({ error: 'User ID is required.' });
+    }
+    const sql = `
+        SELECT
+            r.slot_date,
+            r.start_time,
+            r.end_time,
+            CASE WHEN r.is_reserved = 1 THEN 'confirmed' ELSE 'pending' END as status,
+            f.name AS field_name,
+            f.price_per_hour
+        FROM availability_slots r
+        LEFT JOIN fields f ON r.field_id = f.id
+        WHERE r.user_id = ?
+        ORDER BY r.slot_date DESC, r.start_time DESC;
+    `;
+    db.all(sql, [userId], (err, rows) => {
+        if (err) {
+            console.error('Error fetching user reservations:', err);
+            return res.status(500).json({ error: err.message });
+        }
+        res.json({ reservations: rows });
+    });
+});
+
+// API endpoint to get a user's profile information
+app.get('/api/user/:userId', (req, res) => {
+    const { userId } = req.params;
+    const sql = `SELECT id, name, email, phone_number, is_admin FROM users WHERE id = ?`;
+    db.get(sql, [userId], (err, row) => {
+        if (err) {
+            console.error('Error fetching user:', err);
+            return res.status(500).json({ error: err.message });
+        }
+        if (!row) {
+            return res.status(404).json({ error: 'User not found.' });
+        }
+        res.json({ user: row });
+    });
+});
+
+// API for new reservations (full team)
+app.post('/api/reserve', (req, res) => {
+    const { userId, fieldId, slotId, paymentMethod } = req.body;
+    if (!userId || !fieldId || !slotId) {
+        return res.status(400).json({ error: 'All reservation details are required.' });
+    }
+    const sql = `UPDATE availability_slots SET is_reserved = 1, reservation_type = 'full_team', user_id = ? WHERE id = ? AND field_id = ? AND is_reserved = 0`;
+    db.run(sql, [userId, slotId, fieldId], function (err) {
+        if (err || this.changes === 0) {
+            return res.status(500).json({ error: 'Failed to reserve the slot. It may already be taken.' });
+        }
+        res.json({ message: 'Reservation confirmed successfully!' });
+    });
+});
+
+// API for matchmaking requests
+app.post('/api/matchmake', (req, res) => {
+    const { userId, fieldId, slotId, requestType } = req.body;
+    if (!userId || !fieldId || !slotId || !requestType) {
+        return res.status(400).json({ error: 'All matchmaking details are required.' });
+    }
+    const sql = `INSERT INTO matchmaking_requests (user_id, field_id, slot_date, start_time, request_type, status) VALUES (?, ?, ?, ?, ?, 'pending')`;
+    
+    // First, fetch the slot details to get date and time
+    const slotSql = `SELECT slot_date, start_time FROM availability_slots WHERE id = ?`;
+    db.get(slotSql, [slotId], (err, slot) => {
+        if (err || !slot) {
+            return res.status(500).json({ error: 'Failed to find the selected slot.' });
+        }
+
+        db.run(sql, [userId, fieldId, slot.slot_date, slot.start_time, requestType], function (err) {
+            if (err) {
+                console.error('Error inserting matchmaking request:', err);
+                return res.status(500).json({ error: err.message });
+            }
+            res.status(201).json({ message: 'Matchmaking request submitted successfully. We will review it shortly.' });
+        });
+    });
+});
+
+// Team-building reservation system - Four booking paths
+// Helper function to generate unique invitation code
+function generateInvitationCode() {
+    return crypto.randomBytes(6).toString('hex').toUpperCase();
+}
+
+// API to initiate team-building reservation (Four booking paths)
+app.post('/api/team-building/initiate', (req, res) => {
+    const { userId, fieldId, slotDate, startTime, endTime, bookingType, playerName, playersNeeded } = req.body;
+    
+    if (!userId || !fieldId || !slotDate || !startTime || !endTime || !bookingType || !playerName) {
+        return res.status(400).json({ error: 'All required fields must be provided.' });
+    }
+
+    // Define minimum and maximum players for each booking type
+    const bookingConfig = {
+        'full_field': { min: 12, max: 12, needsReview: false },
+        'team_vs_team': { min: 6, max: 6, needsReview: true },
+        'team_looking_players': { min: 4, max: 6, needsReview: true },
+        'players_looking_team': { min: 1, max: 3, needsReview: true }
+    };
+
+    const config = bookingConfig[bookingType];
+    if (!config) {
+        return res.status(400).json({ error: 'Invalid booking type.' });
+    }
+
+    const invitationCode = generateInvitationCode();
+    const qrCodeData = `${req.protocol}://${req.get('host')}/join/${invitationCode}`;
+
+    const sql = `INSERT INTO booking_requests 
+        (creator_user_id, field_id, slot_date, start_time, end_time, booking_type, players_needed, invitation_code, qr_code_data) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+
+    db.run(sql, [userId, fieldId, slotDate, startTime, endTime, bookingType, playersNeeded || 0, invitationCode, qrCodeData], function(err) {
+        if (err) {
+            console.error('Error creating booking request:', err);
+            return res.status(500).json({ error: 'Failed to create booking request.' });
+        }
+
+        // Add creator as first team member
+        const memberSql = `INSERT INTO team_members (booking_request_id, user_id, player_name, is_creator) VALUES (?, ?, ?, 1)`;
+        db.run(memberSql, [this.lastID, userId, playerName], (memberErr) => {
+            if (memberErr) {
+                console.error('Error adding creator to team:', memberErr);
+                return res.status(500).json({ error: 'Failed to add creator to team.' });
+            }
+
+            // Create invitation link record
+            const linkSql = `INSERT INTO invitation_links (booking_request_id, invitation_code, link_url, qr_code_url) VALUES (?, ?, ?, ?)`;
+            const linkUrl = `${req.protocol}://${req.get('host')}/join/${invitationCode}`;
+            
+            db.run(linkSql, [this.lastID, invitationCode, linkUrl, qrCodeData], (linkErr) => {
+                if (linkErr) {
+                    console.error('Error creating invitation link:', linkErr);
+                }
+
+                res.status(201).json({
+                    message: 'Team-building session initiated successfully!',
+                    bookingRequestId: this.lastID,
+                    invitationCode: invitationCode,
+                    invitationLink: linkUrl,
+                    qrCodeData: qrCodeData,
+                    minPlayers: config.min,
+                    maxPlayers: config.max,
+                    currentPlayers: 1
+                });
+            });
+        });
+    });
+});
+
+// API to join a team via invitation code
+app.post('/api/team-building/join/:invitationCode', (req, res) => {
+    const { invitationCode } = req.params;
+    const { playerName, playerEmail, playerPhone, userId } = req.body;
+
+    if (!playerName) {
+        return res.status(400).json({ error: 'Player name is required.' });
+    }
+
+    // First, get the booking request details
+    const bookingSql = `SELECT * FROM booking_requests WHERE invitation_code = ? AND status = 'building_team'`;
+    
+    db.get(bookingSql, [invitationCode], (err, booking) => {
+        if (err) {
+            console.error('Error finding booking request:', err);
+            return res.status(500).json({ error: 'Database error.' });
+        }
+        
+        if (!booking) {
+            return res.status(404).json({ error: 'Invalid invitation code or session expired.' });
+        }
+
+        // Get booking configuration
+        const bookingConfig = {
+            'full_field': { min: 12, max: 12, needsReview: false },
+            'team_vs_team': { min: 6, max: 6, needsReview: true },
+            'team_looking_players': { min: 4, max: 6, needsReview: true },
+            'players_looking_team': { min: 1, max: 3, needsReview: true }
+        };
+        const config = bookingConfig[booking.booking_type];
+        
+        // Check if team is full
+        if (booking.current_player_count >= config.max) {
+            return res.status(400).json({ error: 'Team is already full.' });
+        }
+
+        // Add player to team
+        const memberSql = `INSERT INTO team_members (booking_request_id, user_id, player_name, player_email, player_phone) VALUES (?, ?, ?, ?, ?)`;
+        
+        db.run(memberSql, [booking.id, userId, playerName, playerEmail, playerPhone], function(err) {
+            if (err) {
+                console.error('Error adding team member:', err);
+                return res.status(500).json({ error: 'Failed to join team.' });
+            }
+
+            // Update player count
+            const updateCountSql = `UPDATE booking_requests SET current_player_count = current_player_count + 1, 
+                                   status = CASE WHEN current_player_count + 1 >= ? THEN 'ready_for_confirmation' ELSE 'building_team' END 
+                                   WHERE id = ?`;
+            
+            db.run(updateCountSql, [config.min, booking.id], (updateErr) => {
+                if (updateErr) {
+                    console.error('Error updating player count:', updateErr);
+                    return res.status(500).json({ error: 'Failed to update team status.' });
+                }
+
+                res.json({
+                    message: 'Successfully joined the team!',
+                    currentPlayers: booking.current_player_count + 1,
+                    maxPlayers: config.max,
+                    minPlayers: config.min,
+                    canConfirm: (booking.current_player_count + 1) >= config.min
+                });
+            });
+        });
+    });
+});
+
+// API to get team roster and booking details
+app.get('/api/team-building/:invitationCode', (req, res) => {
+    const { invitationCode } = req.params;
+
+    const sql = `SELECT br.*, f.name as field_name, f.location as field_location 
+                 FROM booking_requests br 
+                 JOIN fields f ON br.field_id = f.id 
+                 WHERE br.invitation_code = ?`;
+    
+    db.get(sql, [invitationCode], (err, booking) => {
+        if (err) {
+            console.error('Error fetching booking details:', err);
+            return res.status(500).json({ error: 'Database error.' });
+        }
+        
+        if (!booking) {
+            return res.status(404).json({ error: 'Booking not found.' });
+        }
+
+        // Get booking configuration
+        const bookingConfig = {
+            'full_field': { min: 12, max: 12, needsReview: false },
+            'team_vs_team': { min: 6, max: 6, needsReview: true },
+            'team_looking_players': { min: 4, max: 6, needsReview: true },
+            'players_looking_team': { min: 1, max: 3, needsReview: true }
+        };
+        const config = bookingConfig[booking.booking_type];
+
+        // Get team members
+        const membersSql = `SELECT player_name, player_email, is_creator, joined_at FROM team_members WHERE booking_request_id = ? ORDER BY is_creator DESC, joined_at ASC`;
+        
+        db.all(membersSql, [booking.id], (membersErr, members) => {
+            if (membersErr) {
+                console.error('Error fetching team members:', membersErr);
+                return res.status(500).json({ error: 'Failed to fetch team members.' });
+            }
+
+            res.json({
+                booking: booking,
+                members: members,
+                canConfirm: booking.current_player_count >= config.min,
+                needsReview: booking.booking_type !== 'full_field'
+            });
+        });
+    });
+});
+
+// API to confirm reservation (for full field) or submit for review (other types)
+app.post('/api/team-building/confirm/:invitationCode', (req, res) => {
+    const { invitationCode } = req.params;
+    const { userId } = req.body;
+
+    // Get booking details and verify user is creator
+    const sql = `SELECT * FROM booking_requests WHERE invitation_code = ? AND creator_user_id = ?`;
+    
+    db.get(sql, [invitationCode, userId], (err, booking) => {
+        if (err) {
+            console.error('Error fetching booking:', err);
+            return res.status(500).json({ error: 'Database error.' });
+        }
+        
+        if (!booking) {
+            return res.status(403).json({ error: 'Unauthorized or booking not found.' });
+        }
+
+        // Get booking configuration
+        const bookingConfig = {
+            'full_field': { min: 12, max: 12, needsReview: false },
+            'team_vs_team': { min: 6, max: 6, needsReview: true },
+            'team_looking_players': { min: 4, max: 6, needsReview: true },
+            'players_looking_team': { min: 1, max: 3, needsReview: true }
+        };
+        const config = bookingConfig[booking.booking_type];
+
+        if (booking.current_player_count < config.min) {
+            return res.status(400).json({ error: 'Minimum player requirement not met.' });
+        }
+
+        let newStatus, message;
+        if (booking.booking_type === 'full_field') {
+            newStatus = 'confirmed';
+            message = 'Reservation confirmed successfully!';
+            
+            // Also update the availability slot
+            const slotSql = `UPDATE availability_slots SET is_reserved = 1, reservation_type = 'team_building' 
+                            WHERE field_id = ? AND slot_date = ? AND start_time = ? AND is_reserved = 0`;
+            
+            db.run(slotSql, [booking.field_id, booking.slot_date, booking.start_time], (slotErr) => {
+                if (slotErr) {
+                    console.error('Error updating availability slot:', slotErr);
+                }
+            });
+        } else {
+            newStatus = 'submitted_for_review';
+            message = 'Request submitted for admin review. You will be notified once approved.';
+        }
+
+        const updateSql = `UPDATE booking_requests SET status = ?, confirmed_at = CURRENT_TIMESTAMP WHERE id = ?`;
+        
+        db.run(updateSql, [newStatus, booking.id], (updateErr) => {
+            if (updateErr) {
+                console.error('Error updating booking status:', updateErr);
+                return res.status(500).json({ error: 'Failed to process confirmation.' });
+            }
+
+            res.json({ message: message, status: newStatus });
+        });
+    });
+});
+
+
+// Admin API endpoints (with security middleware)
+app.get('/api/admin/fields', checkAdmin, (req, res) => {
+    const sql = `SELECT id, name, description, location, image, price_per_hour FROM fields`;
+    db.all(sql, [], (err, rows) => {
+        if (err) {
+            return res.status(500).json({ error: err.message });
+        }
+        const fieldsWithBase64 = rows.map(field => {
+            if (field.image) {
+                field.image = Buffer.from(field.image).toString('base64');
+            }
+            return field;
+        });
+        res.json({ fields: fieldsWithBase64 });
+    });
+});
+
+// Endpoint to get all availability slots (for admin view)
+app.get('/api/admin/availability', checkAdmin, (req, res) => {
+    const { fieldId, date } = req.query;
+    
+    let sql = `
+        SELECT
+            r.*,
+            u.name as user_name,
+            f.name as field_name,
+            f.price_per_hour as field_price
+        FROM availability_slots r
+        LEFT JOIN users u ON r.user_id = u.id
+        LEFT JOIN fields f ON r.field_id = f.id
+    `;
+    
+    let params = [];
+    let conditions = [];
+    
+    if (fieldId) {
+        conditions.push('r.field_id = ?');
+        params.push(fieldId);
+    }
+    
+    if (date) {
+        conditions.push('r.slot_date = ?');
+        params.push(date);
+    }
+    
+    if (conditions.length > 0) {
+        sql += ' WHERE ' + conditions.join(' AND ');
+    }
+    
+    sql += ' ORDER BY r.slot_date DESC, r.start_time ASC';
+    
+    db.all(sql, params, (err, rows) => {
+        if (err) {
+            return res.status(500).json({ error: err.message });
+        }
+        res.json({ availability: rows });
+    });
+});
+
+// Endpoint to get all availability slots for a given field and date (for admin view)
+app.get('/api/admin/availability/:fieldId', checkAdmin, (req, res) => {
+    const { fieldId } = req.params;
+    const { date } = req.query;
+    if (!fieldId || !date) {
+        return res.status(400).json({ error: 'Field ID and date are required.' });
+    }
+    const sql = `
+        SELECT
+            r.*,
+            u.name as user_name,
+            f.name as field_name,
+            f.price_per_hour as field_price
+        FROM availability_slots r
+        LEFT JOIN users u ON r.user_id = u.id
+        LEFT JOIN fields f ON r.field_id = f.id
+        WHERE r.field_id = ? AND r.slot_date = ?
+        ORDER BY r.start_time ASC;
+    `;
+    db.all(sql, [fieldId, date], (err, rows) => {
+        if (err) {
+            return res.status(500).json({ error: err.message });
+        }
+        res.json({ availability: rows });
+    });
+});
+
+app.post('/api/admin/fields', checkAdmin, (req, res) => {
+    const { name, description, location, image, pricePerHour } = req.body;
+    if (!name || !location || !pricePerHour) {
+        return res.status(400).json({ error: 'Name, location, and price per hour are required.' });
+    }
+    const sql = `INSERT INTO fields (name, description, location, image, price_per_hour) VALUES (?, ?, ?, ?, ?)`;
+    // Decode Base64 string to a Buffer before storing
+    const imageData = Buffer.from(image.split(',')[1], 'base64');
+    db.run(sql, [name, description, location, imageData, pricePerHour], function (err) {
+        if (err) {
+            return res.status(500).json({ error: err.message });
+        }
+        res.status(201).json({ message: 'Field added successfully', fieldId: this.lastID });
+    });
+});
+
+app.put('/api/admin/fields/:fieldId', checkAdmin, (req, res) => {
+    const { fieldId } = req.params;
+    const { name, description, location, image, pricePerHour } = req.body;
+    if (!name || !location || !pricePerHour) {
+        return res.status(400).json({ error: 'All fields are required to update.' });
+    }
+    const sql = `UPDATE fields SET name = ?, description = ?, location = ?, image = ?, price_per_hour = ? WHERE id = ?`;
+    // Decode Base64 string to a Buffer before storing
+    const imageData = Buffer.from(image.split(',')[1], 'base64');
+    db.run(sql, [name, description, location, imageData, pricePerHour, fieldId], function (err) {
+        if (err || this.changes === 0) {
+            return res.status(500).json({ error: 'Failed to update field.' });
+        }
+        res.json({ message: 'Field updated successfully.' });
+    });
+});
+
+app.delete('/api/admin/fields/:fieldId', checkAdmin, (req, res) => {
+    const { fieldId } = req.params;
+    db.run(`DELETE FROM fields WHERE id = ?`, [fieldId], function (err) {
+        if (err || this.changes === 0) {
+            return res.status(500).json({ error: 'Failed to delete field.' });
+        }
+        res.json({ message: 'Field deleted successfully.' });
+    });
+});
+
+
+app.post('/api/admin/availability', checkAdmin, (req, res) => {
+    const { fieldId, date, slots } = req.body;
+    if (!fieldId || !date || !slots || !Array.isArray(slots) || slots.length === 0) {
+        return res.status(400).json({ error: 'Field ID, date, and a non-empty array of slots are required.' });
+    }
+    
+    db.serialize(() => {
+        db.run("BEGIN TRANSACTION;");
+        const stmt = db.prepare(`INSERT INTO availability_slots (field_id, slot_date, start_time, end_time) VALUES (?, ?, ?, ?)`);
+        slots.forEach(slot => {
+            stmt.run(fieldId, date, slot.start, slot.end);
+        });
+        stmt.finalize();
+        db.run("COMMIT;", (err) => {
+            if (err) {
+                return res.status(500).json({ error: err.message });
+            }
+            res.status(201).json({ message: 'Availability slots added successfully.' });
+        });
+    });
+});
+
+app.get('/api/admin/reservations', checkAdmin, (req, res) => {
+    const sql = `
+        SELECT
+            r.id,
+            u.name AS user_name,
+            f.name AS field_name,
+            r.slot_date,
+            r.start_time,
+            r.end_time,
+            r.reservation_type,
+            f.price_per_hour
+        FROM availability_slots r
+        JOIN fields f ON r.field_id = f.id
+        JOIN users u ON r.user_id = u.id
+        WHERE r.is_reserved = 1
+        ORDER BY r.slot_date DESC, r.start_time DESC;
+    `;
+    db.all(sql, [], (err, rows) => {
+        if (err) {
+            return res.status(500).json({ error: err.message });
+        }
+        res.json({ reservations: rows });
+    });
+});
+
+// Approve reservation request (Admin only)
+app.put('/api/admin/reservations/:id/approve', checkAdmin, (req, res) => {
+    const reservationId = req.params.id;
+    
+    // Since there's no reservation_status column, we'll just confirm the reservation exists
+    const query = 'SELECT * FROM availability_slots WHERE id = ? AND is_reserved = 1';
+    
+    db.get(query, [reservationId], function(err, row) {
+        if (err) {
+            console.error('Database error:', err);
+            return res.status(500).json({ error: 'Database error' });
+        }
+        
+        if (!row) {
+            return res.status(404).json({ error: 'Reservation not found or already processed' });
+        }
+        
+        res.json({ message: 'Reservation approved successfully' });
+    });
+});
+
+// Reject reservation request (Admin only)
+app.put('/api/admin/reservations/:id/reject', checkAdmin, (req, res) => {
+    const reservationId = req.params.id;
+    
+    const query = 'UPDATE availability_slots SET is_reserved = 0, user_id = NULL, reservation_type = NULL WHERE id = ? AND is_reserved = 1';
+    
+    db.run(query, [reservationId], function(err) {
+        if (err) {
+            console.error('Database error:', err);
+            return res.status(500).json({ error: 'Database error' });
+        }
+        
+        if (this.changes === 0) {
+            return res.status(404).json({ error: 'Reservation not found or already processed' });
+        }
+        
+        res.json({ message: 'Reservation rejected successfully' });
+    });
+});
+
+// Cancel confirmed reservation (Admin only)
+app.put('/api/admin/reservations/:id/cancel', checkAdmin, (req, res) => {
+    const reservationId = req.params.id;
+    
+    const query = 'UPDATE availability_slots SET is_reserved = 0, user_id = NULL, reservation_type = NULL WHERE id = ? AND is_reserved = 1';
+    
+    db.run(query, [reservationId], function(err) {
+        if (err) {
+            console.error('Database error:', err);
+            return res.status(500).json({ error: 'Database error' });
+        }
+        
+        if (this.changes === 0) {
+            return res.status(404).json({ error: 'Reservation not found or not confirmed' });
+        }
+        
+        res.json({ message: 'Reservation cancelled successfully' });
+    });
+});
+
+// Delete availability slot (Admin only)
+app.delete('/api/admin/availability/:id', checkAdmin, (req, res) => {
+    const slotId = req.params.id;
+    
+    const query = 'DELETE FROM availability_slots WHERE id = ?';
+    
+    db.run(query, [slotId], function(err) {
+        if (err) {
+            console.error('Database error:', err);
+            return res.status(500).json({ error: 'Database error' });
+        }
+        
+        if (this.changes === 0) {
+            return res.status(404).json({ error: 'Availability slot not found' });
+        }
+        
+        res.json({ message: 'Availability slot deleted successfully' });
+    });
+});
+
+// Update availability slot (Admin only)
+app.put('/api/admin/availability/:id', checkAdmin, (req, res) => {
+    const slotId = req.params.id;
+    const { start_time, end_time, slot_date, field_id } = req.body;
+    
+    if (!start_time || !end_time || !slot_date || !field_id) {
+        return res.status(400).json({ error: 'All fields are required: start_time, end_time, slot_date, field_id' });
+    }
+    
+    // Check if the slot is reserved before updating
+    const checkQuery = 'SELECT is_reserved FROM availability_slots WHERE id = ?';
+    
+    db.get(checkQuery, [slotId], (err, row) => {
+        if (err) {
+            console.error('Database error:', err);
+            return res.status(500).json({ error: 'Database error' });
+        }
+        
+        if (!row) {
+            return res.status(404).json({ error: 'Availability slot not found' });
+        }
+        
+        if (row.is_reserved) {
+            return res.status(400).json({ error: 'Cannot update a reserved slot' });
+        }
+        
+        // Update the slot
+        const updateQuery = 'UPDATE availability_slots SET start_time = ?, end_time = ?, slot_date = ?, field_id = ? WHERE id = ?';
+        
+        db.run(updateQuery, [start_time, end_time, slot_date, field_id, slotId], function(err) {
+            if (err) {
+                console.error('Database error:', err);
+                return res.status(500).json({ error: 'Database error' });
+            }
+            
+            if (this.changes === 0) {
+                return res.status(404).json({ error: 'Availability slot not found' });
+            }
+            
+            res.json({ message: 'Availability slot updated successfully' });
+        });
+    });
+});
+
+// API endpoint for matchmaking suggestions (fixed logic)
+app.get('/api/admin/matchmaking/suggestions', checkAdmin, (req, res) => {
+    const sql = `
+        SELECT
+            p.user_id AS player_id,
+            player_user.name AS player_name,
+            t.user_id AS team_id,
+            team_user.name AS team_name,
+            p.slot_date,
+            p.start_time,
+            field.name AS field_name
+        FROM matchmaking_requests p
+        INNER JOIN matchmaking_requests t
+            ON p.slot_date = t.slot_date
+            AND p.field_id = t.field_id
+        INNER JOIN users AS player_user
+            ON p.user_id = player_user.id
+        INNER JOIN users AS team_user
+            ON t.user_id = team_user.id
+        INNER JOIN fields AS field
+            ON p.field_id = field.id
+        WHERE p.request_type = 'player_looking_for_team'
+            AND t.request_type = 'team_looking_for_player'
+            AND p.status = 'pending'
+            AND t.status = 'pending'
+    `;
+    db.all(sql, [], (err, rows) => {
+        if (err) {
+            console.error('Error fetching matchmaking suggestions:', err);
+            return res.status(500).json({ error: err.message });
+        }
+        res.json({ suggestions: rows });
+    });
+});
+
+
+app.get('/api/admin/matchmaking-requests', checkAdmin, (req, res) => {
+    const sql = `
+        SELECT
+            m.id,
+            u.name AS user_name,
+            f.name AS field_name,
+            m.slot_date,
+            m.start_time,
+            m.request_type,
+            m.status
+        FROM matchmaking_requests m
+        JOIN users u ON m.user_id = u.id
+        JOIN fields f ON m.field_id = f.id
+        ORDER BY m.created_at DESC;
+    `;
+    db.all(sql, [], (err, rows) => {
+        if (err) {
+            return res.status(500).json({ error: err.message });
+        }
+        res.json({ requests: rows });
+    });
+});
+
+// API endpoints for Tournaments
+// Get all tournaments
+app.get('/api/tournaments', (req, res) => {
+    const sql = `
+        SELECT
+            t.id,
+            t.name,
+            t.tournament_date,
+            t.prize,
+            t.description,
+            t.image_data,
+            f.name AS field_name,
+            f.image as field_image
+        FROM tournaments t
+        JOIN fields f ON t.field_id = f.id
+        ORDER BY t.tournament_date ASC;
+    `;
+    db.all(sql, [], (err, rows) => {
+        if (err) {
+            return res.status(500).json({ error: err.message });
+        }
+        const tournamentsWithBase64 = rows.map(t => {
+            if (t.image_data) {
+                t.image = Buffer.from(t.image_data).toString('base64');
+            }
+            if (t.field_image) {
+                t.field_image = Buffer.from(t.field_image).toString('base64');
+            }
+            return t;
+        });
+        res.json({ tournaments: tournamentsWithBase64 });
+    });
+});
+
+app.get('/api/admin/tournaments', checkAdmin, (req, res) => {
+    const sql = `
+        SELECT
+            t.id,
+            t.name,
+            t.tournament_date,
+            t.prize,
+            t.description,
+            t.image_data,
+            f.name AS field_name
+        FROM tournaments t
+        JOIN fields f ON t.field_id = f.id
+        ORDER BY t.tournament_date ASC;
+    `;
+    db.all(sql, [], (err, rows) => {
+        if (err) {
+            return res.status(500).json({ error: err.message });
+        }
+        const tournamentsWithBase64 = rows.map(t => {
+            if (t.image_data) {
+                t.image_data = Buffer.from(t.image_data).toString('base64');
+            }
+            return t;
+        });
+        res.json({ tournaments: tournamentsWithBase64 });
+    });
+});
+
+
+app.post('/api/admin/tournaments', checkAdmin, (req, res) => {
+    const { name, fieldId, date, prize, image, description } = req.body;
+    if (!name || !fieldId || !date || !prize || !image) {
+        return res.status(400).json({ error: 'Tournament name, field, date, prize, and image are required.' });
+    }
+    const sql = `INSERT INTO tournaments (name, field_id, tournament_date, prize, image_data, description) VALUES (?, ?, ?, ?, ?, ?)`;
+    // Decode Base64 string to a Buffer before storing
+    const imageData = Buffer.from(image.split(',')[1], 'base64');
+    db.run(sql, [name, fieldId, date, prize, imageData, description], function (err) {
+        if (err) {
+            return res.status(500).json({ error: err.message });
+        }
+        res.status(201).json({ message: 'Tournament added successfully', tournamentId: this.lastID });
+    });
+});
+
+app.delete('/api/admin/tournaments/:tournamentId', checkAdmin, (req, res) => {
+    const { tournamentId } = req.params;
+    const sql = `DELETE FROM tournaments WHERE id = ?`;
+    db.run(sql, [tournamentId], function (err) {
+        if (err || this.changes === 0) {
+            return res.status(500).json({ error: 'Failed to delete tournament.' });
+        }
+        res.json({ message: 'Tournament deleted successfully!' });
+    });
+});
+
+// Admin analytics endpoints
+app.get('/api/admin/analytics', checkAdmin, (req, res) => {
+    const queries = {
+        totalUsers: `SELECT COUNT(*) as count FROM users`,
+        totalReservations: `SELECT COUNT(*) as count FROM availability_slots WHERE is_reserved = 1`,
+        totalEarnings: `SELECT SUM(f.price_per_hour) as total FROM availability_slots a JOIN fields f ON a.field_id = f.id WHERE a.is_reserved = 1`,
+        totalFields: `SELECT COUNT(*) as count FROM fields`,
+        pendingRequests: `SELECT COUNT(*) as count FROM booking_requests WHERE status = 'submitted_for_review'`,
+        recentReservations: `
+            SELECT 
+                a.slot_date,
+                a.start_time,
+                u.name as user_name,
+                f.name as field_name,
+                f.price_per_hour
+            FROM availability_slots a
+            JOIN users u ON a.user_id = u.id
+            JOIN fields f ON a.field_id = f.id
+            WHERE a.is_reserved = 1
+            ORDER BY a.slot_date DESC, a.start_time DESC
+            LIMIT 5
+        `
+    };
+
+    const results = {};
+    let completed = 0;
+    const total = Object.keys(queries).length;
+
+    Object.entries(queries).forEach(([key, query]) => {
+        if (key === 'recentReservations') {
+            db.all(query, [], (err, rows) => {
+                if (err) {
+                    console.error(`Error in ${key}:`, err);
+                    results[key] = key === 'recentReservations' ? [] : 0;
+                } else {
+                    results[key] = rows;
+                }
+                completed++;
+                if (completed === total) {
+                    res.json(results);
+                }
+            });
+        } else {
+            db.get(query, [], (err, row) => {
+                if (err) {
+                    console.error(`Error in ${key}:`, err);
+                    results[key] = 0;
+                } else {
+                    results[key] = row.count || row.total || 0;
+                }
+                completed++;
+                if (completed === total) {
+                    res.json(results);
+                }
+            });
+        }
+    });
+});
+
+// Admin endpoints for team-building requests
+app.get('/api/admin/team-building-requests', checkAdmin, (req, res) => {
+    const sql = `
+        SELECT 
+            br.id,
+            br.booking_type,
+            br.slot_date,
+            br.start_time,
+            br.end_time,
+            br.current_player_count,
+            br.status,
+            br.created_at,
+            f.name as field_name,
+            f.location as field_location,
+            tm.player_name as creator_name
+        FROM booking_requests br
+        JOIN fields f ON br.field_id = f.id
+        LEFT JOIN team_members tm ON br.id = tm.booking_request_id AND tm.is_creator = 1
+        WHERE br.status IN ('submitted_for_review', 'approved', 'rejected')
+        ORDER BY br.created_at DESC
+    `;
+    
+    db.all(sql, [], (err, requests) => {
+        if (err) {
+            console.error('Error fetching team-building requests:', err);
+            return res.status(500).json({ error: 'Failed to fetch requests.' });
+        }
+        
+        res.json({ requests: requests });
+    });
+});
+
+app.get('/api/admin/team-building-requests/:requestId/members', checkAdmin, (req, res) => {
+    const { requestId } = req.params;
+    
+    const sql = `SELECT player_name, player_email, player_phone, is_creator, joined_at 
+                 FROM team_members 
+                 WHERE booking_request_id = ? 
+                 ORDER BY is_creator DESC, joined_at ASC`;
+    
+    db.all(sql, [requestId], (err, members) => {
+        if (err) {
+            console.error('Error fetching team members:', err);
+            return res.status(500).json({ error: 'Failed to fetch team members.' });
+        }
+        
+        res.json({ members: members });
+    });
+});
+
+app.post('/api/admin/team-building-requests/:requestId/approve', checkAdmin, (req, res) => {
+    const { requestId } = req.params;
+    
+    // Get booking request details
+    const getBookingSql = `SELECT * FROM booking_requests WHERE id = ?`;
+    
+    db.get(getBookingSql, [requestId], (err, booking) => {
+        if (err || !booking) {
+            return res.status(404).json({ error: 'Booking request not found.' });
+        }
+        
+        // Update booking status
+        const updateBookingSql = `UPDATE booking_requests SET status = 'approved' WHERE id = ?`;
+        
+        db.run(updateBookingSql, [requestId], (updateErr) => {
+            if (updateErr) {
+                console.error('Error approving booking:', updateErr);
+                return res.status(500).json({ error: 'Failed to approve booking.' });
+            }
+            
+            // Update availability slot
+            const slotSql = `UPDATE availability_slots SET is_reserved = 1, reservation_type = 'team_building' 
+                            WHERE field_id = ? AND slot_date = ? AND start_time = ? AND is_reserved = 0`;
+            
+            db.run(slotSql, [booking.field_id, booking.slot_date, booking.start_time], (slotErr) => {
+                if (slotErr) {
+                    console.error('Error updating availability slot:', slotErr);
+                    return res.status(500).json({ error: 'Failed to reserve slot.' });
+                }
+                
+                res.json({ message: 'Booking request approved successfully!' });
+            });
+        });
+    });
+});
+
+app.post('/api/admin/team-building-requests/:requestId/reject', checkAdmin, (req, res) => {
+    const { requestId } = req.params;
+    const { reason } = req.body;
+    
+    const sql = `UPDATE booking_requests SET status = 'rejected' WHERE id = ?`;
+    
+    db.run(sql, [requestId], function(err) {
+        if (err) {
+            console.error('Error rejecting booking:', err);
+            return res.status(500).json({ error: 'Failed to reject booking.' });
+        }
+        
+        if (this.changes === 0) {
+            return res.status(404).json({ error: 'Booking request not found.' });
+        }
+        
+        res.json({ message: 'Booking request rejected successfully!' });
+    });
+});
+
+// Route to serve invitation join page
+app.get('/join/:invitationCode', (req, res) => {
+    res.sendFile(path.join(__dirname, 'views', 'team-join.html'));
+});
+
+
+// Serve main pages
+app.get('/index.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+app.get('/auth.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'auth.html'));
+});
+
+app.get('/admin-dashboard.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'admin-dashboard.html'));
+});
+
+app.get('/user-dashboard.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'user-dashboard.html'));
+});
+
+app.get('/tournaments.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'tournaments.html'));
+});
+
+app.get('/team-join.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'views', 'team-join.html'));
+});
+
+// Start the server
+app.listen(port, () => {
+    console.log(`Server is running at http://localhost:${port}`);
+});

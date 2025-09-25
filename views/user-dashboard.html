@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة تحكم المستخدم</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap');
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: #f0f4f8;
+            color: #2c3e50;
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f0f4f8;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #aab8c2;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #8899a6;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- Global Header Placeholder -->
+    <div id="global-header"></div>
+
+    <!-- User Dashboard Content -->
+    <main class="flex-grow container mx-auto px-6 py-20 animate-fade-in">
+        <h3 class="text-5xl font-extrabold text-center mb-16 text-gray-900 leading-tight">
+            مرحباً بك، <span id="user-name" class="text-green-600">...</span>!
+        </h3>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-10 mb-12">
+            <!-- Summary Card: Upcoming Reservations -->
+            <div class="bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-2xl shadow-xl p-8 flex flex-col justify-between h-48 transform hover:scale-105 hover:-translate-y-2 transition-all duration-500 relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-20 h-20 bg-white bg-opacity-10 rounded-full -mr-10 -mt-10"></div>
+                <div class="absolute bottom-0 left-0 w-16 h-16 bg-white bg-opacity-10 rounded-full -ml-8 -mb-8"></div>
+                <div class="flex justify-between items-center mb-4 relative z-10">
+                    <h4 class="text-2xl font-bold">حجوزاتي القادمة</h4>
+                    <div class="bg-white bg-opacity-20 p-3 rounded-2xl backdrop-blur-sm">
+                        <i class="fa-solid fa-calendar-check text-white text-2xl"></i>
+                    </div>
+                </div>
+                <p id="upcoming-reservations" class="text-5xl font-extrabold text-white mb-2 relative z-10">...</p>
+                <div class="flex justify-between items-center relative z-10">
+                    <p class="text-blue-200 text-xs">حجز نشط</p>
+                    <a href="#reservations" class="text-sm font-semibold text-white text-opacity-80 hover:text-white underline">عرض التفاصيل</a>
+                </div>
+            </div>
+
+            <!-- Summary Card: Total Played Hours -->
+            <div class="bg-gradient-to-br from-green-500 to-green-600 text-white rounded-2xl shadow-xl p-8 flex flex-col justify-between h-48 transform hover:scale-105 hover:-translate-y-2 transition-all duration-500 relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-20 h-20 bg-white bg-opacity-10 rounded-full -mr-10 -mt-10"></div>
+                <div class="absolute bottom-0 left-0 w-16 h-16 bg-white bg-opacity-10 rounded-full -ml-8 -mb-8"></div>
+                <div class="flex justify-between items-center mb-4 relative z-10">
+                    <h4 class="text-2xl font-bold">إجمالي ساعات اللعب</h4>
+                    <div class="bg-white bg-opacity-20 p-3 rounded-2xl backdrop-blur-sm">
+                        <i class="fa-solid fa-clock text-white text-2xl"></i>
+                    </div>
+                </div>
+                <p id="total-hours" class="text-5xl font-extrabold text-white mb-2 relative z-10">...</p>
+                <div class="flex justify-between items-center relative z-10">
+                    <p class="text-green-200 text-xs">وقت مكتمل</p>
+                    <a href="#reservations" class="text-sm font-semibold text-white text-opacity-80 hover:text-white underline">عرض السجل</a>
+                </div>
+            </div>
+
+            <!-- Summary Card: Favorite Field -->
+            <div class="bg-gradient-to-br from-purple-500 to-purple-600 text-white rounded-2xl shadow-xl p-8 flex flex-col justify-between h-48 transform hover:scale-105 hover:-translate-y-2 transition-all duration-500 relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-20 h-20 bg-white bg-opacity-10 rounded-full -mr-10 -mt-10"></div>
+                <div class="absolute bottom-0 left-0 w-16 h-16 bg-white bg-opacity-10 rounded-full -ml-8 -mb-8"></div>
+                <div class="flex justify-between items-center mb-4 relative z-10">
+                    <h4 class="text-2xl font-bold">ملعبك المفضل</h4>
+                    <div class="bg-white bg-opacity-20 p-3 rounded-2xl backdrop-blur-sm">
+                        <i class="fa-solid fa-heart text-white text-2xl"></i>
+                    </div>
+                </div>
+                <p id="favorite-field" class="text-3xl font-extrabold text-white mb-2 relative z-10">...</p>
+                <div class="flex justify-between items-center relative z-10">
+                    <p class="text-purple-200 text-xs">الأكثر حجزاً</p>
+                    <a href="index.html" class="text-sm font-semibold text-white text-opacity-80 hover:text-white underline">عرض الملاعب</a>
+                </div>
+            </div>
+        </div>
+
+                    <!-- Quick Actions Section -->
+                    <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 mb-8">
+                        <h3 class="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-3">
+                            <i class="fa-solid fa-bolt text-yellow-500"></i>
+                            إجراءات سريعة
+                        </h3>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <a href="index.html" class="bg-gradient-to-br from-blue-500 to-blue-600 text-white p-4 rounded-xl hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 text-center group">
+                                <div class="bg-white bg-opacity-20 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform duration-300">
+                                    <i class="fa-solid fa-plus text-xl"></i>
+                                </div>
+                                <p class="font-semibold text-sm">حجز جديد</p>
+                            </a>
+                            <button onclick="scrollToReservations()" class="bg-gradient-to-br from-green-500 to-green-600 text-white p-4 rounded-xl hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 text-center group">
+                                <div class="bg-white bg-opacity-20 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform duration-300">
+                                    <i class="fa-solid fa-calendar-check text-xl"></i>
+                                </div>
+                                <p class="font-semibold text-sm">حجوزاتي</p>
+                            </button>
+                            <a href="tournaments.html" class="bg-gradient-to-br from-purple-500 to-purple-600 text-white p-4 rounded-xl hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 text-center group">
+                                <div class="bg-white bg-opacity-20 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform duration-300">
+                                    <i class="fa-solid fa-trophy text-xl"></i>
+                                </div>
+                                <p class="font-semibold text-sm">البطولات</p>
+                            </a>
+                            <button onclick="scrollToProfile()" class="bg-gradient-to-br from-orange-500 to-orange-600 text-white p-4 rounded-xl hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 text-center group">
+                                <div class="bg-white bg-opacity-20 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform duration-300">
+                                    <i class="fa-solid fa-user text-xl"></i>
+                                </div>
+                                <p class="font-semibold text-sm">الملف الشخصي</p>
+                            </button>
+                        </div>
+                    </div>
+
+
+
+                    <!-- Latest Reservations Section -->
+        <section id="reservations" class="bg-white rounded-2xl shadow-xl p-8 mb-12 border-t-4 border-green-500 relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-green-50 rounded-full -mr-16 -mt-16 opacity-50"></div>
+            <div class="absolute bottom-0 left-0 w-24 h-24 bg-blue-50 rounded-full -ml-12 -mb-12 opacity-50"></div>
+            <div class="relative z-10">
+                <h4 class="text-3xl font-bold text-gray-900 mb-8 flex items-center gap-3">
+                    <div class="bg-green-100 p-3 rounded-full">
+                        <i class="fa-solid fa-calendar-alt text-green-600 text-xl"></i>
+                    </div>
+                    آخر حجوزاتك
+                    <div class="bg-green-500 text-white px-3 py-1 rounded-full text-sm font-medium ml-auto">
+                        محدث الآن
+                    </div>
+                </h4>
+            
+            <!-- Desktop Table View -->
+            <div class="overflow-x-auto hidden lg:block rounded-xl border border-gray-200">
+                <table class="min-w-full bg-white rounded-lg overflow-hidden">
+                    <thead>
+                        <tr class="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
+                            <th class="py-4 px-6 text-right font-bold text-gray-800 text-sm uppercase tracking-wide">
+                                <div class="flex items-center gap-2">
+                                    <i class="fa-solid fa-futbol text-green-600"></i>
+                                    الملعب
+                                </div>
+                            </th>
+                            <th class="py-4 px-6 text-right font-bold text-gray-800 text-sm uppercase tracking-wide">
+                                <div class="flex items-center gap-2">
+                                    <i class="fa-solid fa-calendar text-blue-600"></i>
+                                    التاريخ
+                                </div>
+                            </th>
+                            <th class="py-4 px-6 text-right font-bold text-gray-800 text-sm uppercase tracking-wide">
+                                <div class="flex items-center gap-2">
+                                    <i class="fa-solid fa-clock text-purple-600"></i>
+                                    الوقت
+                                </div>
+                            </th>
+                            <th class="py-4 px-6 text-right font-bold text-gray-800 text-sm uppercase tracking-wide">
+                                <div class="flex items-center gap-2">
+                                    <i class="fa-solid fa-hourglass-half text-orange-600"></i>
+                                    المدة
+                                </div>
+                            </th>
+                            <th class="py-4 px-6 text-right font-bold text-gray-800 text-sm uppercase tracking-wide">
+                                <div class="flex items-center gap-2">
+                                    <i class="fa-solid fa-money-bill text-green-600"></i>
+                                    السعر
+                                </div>
+                            </th>
+                            <th class="py-4 px-6 text-right font-bold text-gray-800 text-sm uppercase tracking-wide">
+                                <div class="flex items-center gap-2">
+                                    <i class="fa-solid fa-info-circle text-indigo-600"></i>
+                                    الحالة
+                                </div>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody id="reservations-table-body" class="text-gray-600 text-sm font-light divide-y divide-gray-100">
+                        <!-- Reservations will be injected here via JavaScript from the server -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Mobile Card View -->
+            <div id="reservations-card-container" class="lg:hidden space-y-6">
+                 <!-- Reservation cards will be injected here for mobile -->
+            </div>
+
+        </section>
+
+        <!-- Profile Settings Section -->
+        <section id="profile" class="bg-white rounded-2xl shadow-xl p-8 border-b-4 border-blue-500">
+            <h4 class="text-3xl font-bold text-gray-900 mb-8 flex items-center gap-3">
+                <i class="fa-solid fa-user-gear text-blue-600"></i>
+                إعدادات الملف الشخصي
+            </h4>
+            <form class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label for="username" class="block text-gray-700 text-lg font-medium mb-2">اسم المستخدم</label>
+                    <input type="text" id="username" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-right bg-gray-50 text-gray-700 cursor-not-allowed" disabled required/>
+                    <div id="username-error" class="text-red-500 text-sm mt-1 hidden"></div>
+                </div>
+                <div>
+                    <label for="email" class="block text-gray-700 text-lg font-medium mb-2">البريد الإلكتروني</label>
+                    <input type="email" id="email" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-right bg-gray-50 text-gray-700 cursor-not-allowed" disabled required/>
+                    <div id="email-error" class="text-red-500 text-sm mt-1 hidden"></div>
+                </div>
+                <div>
+                    <label for="phone" class="block text-gray-700 text-lg font-medium mb-2">رقم الهاتف</label>
+                    <input type="tel" id="phone" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-right bg-gray-50 text-gray-700 cursor-not-allowed" disabled/>
+                    <div id="phone-error" class="text-red-500 text-sm mt-1 hidden"></div>
+                </div>
+                <div>
+                    <label for="birthdate" class="block text-gray-700 text-lg font-medium mb-2">تاريخ الميلاد</label>
+                    <input type="date" id="birthdate" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-right bg-gray-50 text-gray-700 cursor-not-allowed" disabled/>
+                </div>
+                <div class="md:col-span-2 mt-6 flex justify-center gap-3">
+
+                    <button type="button" onclick="handleLogout()" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-all duration-300 shadow-md text-sm font-medium">
+                        <i class="fa-solid fa-arrow-right-from-bracket ml-2"></i>
+                        تسجيل الخروج
+                    </button>
+                </div>
+            </form>
+        </section>
+    </main>
+
+    <!-- Message Box (replaces alert) -->
+    <div id="message-box" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50 animate-fade-in">
+        <div class="bg-white rounded-2xl shadow-3xl p-8 w-full max-w-sm relative animate-scale-in-up text-center border-t-4 border-red-500">
+            <h4 id="message-box-title" class="text-2xl font-bold mb-4 text-gray-900 flex items-center justify-center gap-2"></h4>
+            <p id="message-box-content" class="text-gray-700 mb-6 text-lg"></p>
+            <button onclick="closeMessageBox()" class="bg-red-600 text-white px-7 py-3 rounded-xl hover:bg-red-700 transition-all duration-300 shadow-md text-lg">
+                حسناً
+            </button>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-gray-200 py-10 mt-auto">
+        <div class="container mx-auto px-6 text-center">
+            <p class="mb-5 text-lg">&copy; 2025 5ع5. جميع الحقوق محفوظة.</p>
+            <div class="flex justify-center space-x-6 space-x-reverse text-md">
+                <a href="#" class="text-gray-400 hover:text-white transition-colors duration-300">سياسة الخصوصية</a>
+                <a href="#" class="text-gray-400 hover:text-white transition-colors duration-300">شروط الخدمة</a>
+                <a href="#" class="text-gray-400 hover:text-white transition-colors duration-300">الأسئلة الشائعة</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Notification Toast Container -->
+    <div id="notification-container" class="fixed top-4 right-4 z-50 space-y-2">
+        <!-- Notifications will be dynamically added here -->
+    </div>
+
+
+
+    <script src="header.js"></script>
+    <script>
+        // Redirect to login if not authenticated
+        const userId = localStorage.getItem('userId');
+        if (!userId) {
+            window.location.href = 'auth.html';
+        }
+        
+        // --- Helper functions ---
+        function showMessageBox(title, content, type = 'error') {
+            const msgBox = document.getElementById('message-box');
+            const msgTitle = document.getElementById('message-box-title');
+            const msgContent = document.getElementById('message-box-content');
+            const msgButton = msgBox.querySelector('button');
+
+            msgTitle.innerHTML = '';
+            msgBox.className = 'hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50 animate-fade-in';
+            msgBox.querySelector('.bg-white').className = 'bg-white rounded-2xl shadow-3xl p-8 w-full max-w-sm relative animate-scale-in-up text-center';
+
+            if (type === 'error') {
+                msgTitle.innerHTML = `<i class="fa-solid fa-octagon-xmark text-red-500 ml-2"></i>${title}`;
+                msgBox.querySelector('.bg-white').classList.add('border-t-4', 'border-red-500');
+                msgButton.className = 'bg-red-600 text-white px-7 py-3 rounded-xl hover:bg-red-700 transition-all duration-300 shadow-md text-lg';
+            } else if (type === 'success') {
+                msgTitle.innerHTML = `<i class="fa-solid fa-circle-check text-green-600 ml-2"></i>${title}`;
+                msgBox.querySelector('.bg-white').classList.add('border-t-4', 'border-green-600');
+                msgButton.className = 'bg-green-600 text-white px-7 py-3 rounded-xl hover:bg-green-700 transition-all duration-300 shadow-md text-lg';
+            } else { // info
+                msgTitle.innerHTML = `<i class="fa-solid fa-circle-info text-blue-500 ml-2"></i>${title}`;
+                msgBox.querySelector('.bg-white').classList.add('border-t-4', 'border-blue-500');
+                msgButton.className = 'bg-blue-600 text-white px-7 py-3 rounded-xl hover:bg-blue-700 transition-all duration-300 shadow-md text-lg';
+            }
+            msgContent.innerText = content;
+            msgBox.classList.remove('hidden');
+        }
+
+        function closeMessageBox() {
+            document.getElementById('message-box').classList.add('hidden');
+        }
+
+        function getStatusBadge(status) {
+            const statusMap = {
+                'pending': { text: 'قيد الانتظار', color: 'bg-yellow-200 text-yellow-800' },
+                'confirmed': { text: 'مؤكد', color: 'bg-green-200 text-green-800' },
+                'completed': { text: 'مكتمل', color: 'bg-green-200 text-green-800' },
+                'declined': { text: 'مرفوض', color: 'bg-red-200 text-red-800' }
+            };
+            // Add null check for status
+            const badge = status && statusMap[status.toLowerCase()] ? statusMap[status.toLowerCase()] : { text: 'غير محدد', color: 'bg-gray-400 text-gray-800' };
+            return `<span class="${badge.color} py-1 px-3 rounded-full text-xs font-semibold">${badge.text}</span>`;
+        }
+
+        // --- Fetch and Render Data ---
+        async function fetchUserData() {
+            try {
+                const response = await fetch(`http://localhost:3002/api/user/${userId}`);
+                const data = await response.json();
+                if (response.ok) {
+                    const user = data.user;
+                    document.getElementById('user-name').innerText = user.name;
+                    document.getElementById('username').value = user.name;
+                    document.getElementById('email').value = user.email;
+                    document.getElementById('phone').value = user.phone_number;
+                    document.getElementById('birthdate').value = user.birthdate;
+                } else {
+                    showMessageBox('خطأ في البيانات', 'تعذر تحميل بيانات المستخدم.', 'error');
+                }
+            } catch (error) {
+                console.error('Failed to fetch user data:', error);
+                showMessageBox('خطأ في الاتصال', 'فشل تحميل بيانات المستخدم. يرجى التأكد من تشغيل الخادم.', 'error');
+            }
+        }
+
+        async function fetchUserReservations() {
+            try {
+                const response = await fetch(`http://localhost:3002/api/user/reservations/${userId}`);
+                const data = await response.json();
+                if (response.ok) {
+                    renderReservationsTable(data.reservations);
+                updateSummaryCards(data.reservations);
+                } else {
+                    showMessageBox('خطأ في البيانات', 'تعذر تحميل حجوزاتك.', 'error');
+                }
+            } catch (error) {
+                console.error('Failed to fetch user reservations:', error);
+                showMessageBox('خطأ في الاتصال', 'فشل تحميل الحجوزات. يرجى التأكد من تشغيل الخادم.', 'error');
+            }
+        }
+
+        function renderReservationsTable(reservations) {
+            const tableBody = document.getElementById('reservations-table-body');
+            const cardContainer = document.getElementById('reservations-card-container');
+            
+            tableBody.innerHTML = '';
+            cardContainer.innerHTML = '';
+
+            if (reservations && reservations.length > 0) {
+                reservations.forEach(res => {
+                    const durationHours = (new Date(`1970/01/01 ${res.end_time}`) - new Date(`1970/01/01 ${res.start_time}`)) / 3600000;
+                    
+                    // Render for Desktop Table
+                    const tableRow = document.createElement('tr');
+                    tableRow.className = 'border-b border-gray-200 hover:bg-gray-50';
+                    tableRow.innerHTML = `
+                        <td class="py-3 px-6 text-right">${res.field_name}</td>
+                        <td class="py-3 px-6 text-right">${res.slot_date}</td>
+                        <td class="py-3 px-6 text-right">${res.start_time} - ${res.end_time}</td>
+                        <td class="py-3 px-6 text-right">${durationHours} ساعة</td>
+                        <td class="py-3 px-6 text-right">${res.price_per_hour * durationHours} شيكل</td>
+                        <td class="py-3 px-6 text-right">${getStatusBadge(res.status)}</td>
+                    `;
+                    tableBody.appendChild(tableRow);
+
+                    // Render for Mobile Cards
+                    const card = document.createElement('div');
+                    card.className = 'bg-gradient-to-br from-white to-gray-50 p-6 rounded-2xl shadow-lg border border-gray-200 space-y-5 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1';
+                    card.innerHTML = `
+                        <div class="flex items-center justify-between border-b border-gray-200 pb-4">
+                            <div class="flex items-center gap-3">
+                                <div class="bg-green-100 p-2 rounded-full">
+                                    <i class="fa-solid fa-futbol text-green-600 text-lg"></i>
+                                </div>
+                                <span class="text-xl font-bold text-gray-900">${res.field_name}</span>
+                            </div>
+                            ${getStatusBadge(res.status)}
+                        </div>
+                        <div class="grid grid-cols-2 gap-6 text-sm">
+                            <div class="flex flex-col items-end space-y-2">
+                                <div class="flex items-center gap-2 text-blue-600">
+                                    <i class="fa-solid fa-calendar text-sm"></i>
+                                    <span class="font-bold text-gray-800">التاريخ</span>
+                                </div>
+                                <span class="text-gray-700 font-medium bg-blue-50 px-3 py-1 rounded-lg">${res.slot_date}</span>
+                            </div>
+                            <div class="flex flex-col items-end space-y-2">
+                                <div class="flex items-center gap-2 text-purple-600">
+                                    <i class="fa-solid fa-clock text-sm"></i>
+                                    <span class="font-bold text-gray-800">الوقت</span>
+                                </div>
+                                <span class="text-gray-700 font-medium bg-purple-50 px-3 py-1 rounded-lg">${res.start_time} - ${res.end_time}</span>
+                            </div>
+                            <div class="flex flex-col items-end space-y-2">
+                                <div class="flex items-center gap-2 text-orange-600">
+                                    <i class="fa-solid fa-hourglass-half text-sm"></i>
+                                    <span class="font-bold text-gray-800">المدة</span>
+                                </div>
+                                <span class="text-gray-700 font-medium bg-orange-50 px-3 py-1 rounded-lg">${durationHours} ساعة</span>
+                            </div>
+                            <div class="flex flex-col items-end space-y-2">
+                                <div class="flex items-center gap-2 text-green-600">
+                                    <i class="fa-solid fa-money-bill text-sm"></i>
+                                    <span class="font-bold text-gray-800">السعر</span>
+                                </div>
+                                <span class="text-gray-700 font-bold bg-green-50 px-3 py-1 rounded-lg text-lg">${res.price_per_hour * durationHours} شيكل</span>
+                            </div>
+                        </div>
+                    `;
+                    cardContainer.appendChild(card);
+                });
+            } else {
+                tableBody.innerHTML = '<tr><td colspan="6" class="py-8 text-center text-gray-500 text-lg">لا توجد حجوزات حتى الآن.</td></tr>';
+                cardContainer.innerHTML = '<p class="text-center text-gray-500 text-lg">لا توجد حجوزات حتى الآن.</p>';
+            }
+        }
+
+        function updateSummaryCards(reservations) {
+            const upcomingCount = reservations.filter(res => res.status === 'confirmed' || res.status === 'pending').length;
+            const totalHours = reservations.reduce((total, res) => {
+                if (res.status === 'completed') {
+                    const durationHours = (new Date(`1970/01/01 ${res.end_time}`) - new Date(`1970/01/01 ${res.start_time}`)) / 3600000;
+                    return total + durationHours;
+                }
+                return total;
+            }, 0);
+            const favoriteField = getFavoriteField(reservations);
+            
+            document.getElementById('upcoming-reservations').innerText = upcomingCount;
+            document.getElementById('total-hours').innerText = `${totalHours} س`;
+            document.getElementById('favorite-field').innerText = favoriteField || 'لا يوجد';
+        }
+
+        function getFavoriteField(reservations) {
+            const fieldCounts = reservations.reduce((counts, res) => {
+                counts[res.field_name] = (counts[res.field_name] || 0) + 1;
+                return counts;
+            }, {});
+            const sortedFields = Object.keys(fieldCounts).sort((a, b) => fieldCounts[b] - fieldCounts[a]);
+            return sortedFields[0];
+        }
+        
+        // Profile editing functions
+
+
+        function handleLogout() {
+            localStorage.removeItem('userId');
+            localStorage.removeItem('userEmail');
+            window.location.href = 'index.html';
+        }
+
+        // Utility functions
+        function scrollToReservations() {
+            document.getElementById('reservations').scrollIntoView({ 
+                behavior: 'smooth',
+                block: 'start'
+            });
+        }
+
+        function scrollToProfile() {
+            document.getElementById('profile').scrollIntoView({ 
+                behavior: 'smooth',
+                block: 'start'
+            });
+        }
+
+        // Loading states
+        function showLoadingState() {
+            const loadingHTML = `
+                <div class="flex items-center justify-center py-12">
+                    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                    <span class="mr-3 text-gray-600 text-lg">جاري التحميل...</span>
+                </div>
+            `;
+            document.getElementById('reservations-table-body').innerHTML = loadingHTML;
+            document.getElementById('reservations-card-container').innerHTML = loadingHTML;
+        }
+
+        // Notification System
+        function showNotification(title, message, type = 'info', duration = 5000) {
+            const container = document.getElementById('notification-container');
+            const notificationId = 'notification-' + Date.now();
+            
+            const typeStyles = {
+                success: 'bg-green-500 border-green-600',
+                error: 'bg-red-500 border-red-600',
+                warning: 'bg-yellow-500 border-yellow-600',
+                info: 'bg-blue-500 border-blue-600'
+            };
+            
+            const typeIcons = {
+                success: 'fa-check-circle',
+                error: 'fa-exclamation-circle',
+                warning: 'fa-exclamation-triangle',
+                info: 'fa-info-circle'
+            };
+            
+            const notification = document.createElement('div');
+            notification.id = notificationId;
+            notification.className = `${typeStyles[type]} text-white p-4 rounded-lg shadow-lg border-l-4 max-w-sm transform translate-x-full transition-transform duration-300 ease-out`;
+            notification.innerHTML = `
+                <div class="flex items-start gap-3">
+                    <i class="fa-solid ${typeIcons[type]} text-lg mt-0.5"></i>
+                    <div class="flex-1">
+                        <h4 class="font-bold text-sm">${title}</h4>
+                        <p class="text-sm opacity-90 mt-1">${message}</p>
+                    </div>
+                    <button onclick="removeNotification('${notificationId}')" class="text-white hover:text-gray-200 transition-colors">
+                        <i class="fa-solid fa-times"></i>
+                    </button>
+                </div>
+            `;
+            
+            container.appendChild(notification);
+            
+            // Animate in
+            setTimeout(() => {
+                notification.classList.remove('translate-x-full');
+            }, 100);
+            
+            // Auto remove
+            if (duration > 0) {
+                setTimeout(() => {
+                    removeNotification(notificationId);
+                }, duration);
+            }
+        }
+        
+        function removeNotification(notificationId) {
+            const notification = document.getElementById(notificationId);
+            if (notification) {
+                notification.classList.add('translate-x-full');
+                setTimeout(() => {
+                    notification.remove();
+                }, 300);
+            }
+        }
+        
+        // Welcome notification
+        function showWelcomeNotification() {
+            setTimeout(() => {
+                showNotification('مرحباً بك!', 'تم تحديث لوحة التحكم بنجاح', 'success');
+            }, 2000);
+        }
+        
+        // Enhanced fetch functions with notifications
+        async function fetchUserDataWithNotifications() {
+            try {
+                await fetchUserData();
+            } catch (error) {
+                showNotification('خطأ في التحميل', 'تعذر تحميل بيانات المستخدم', 'error');
+            }
+        }
+        
+        async function fetchUserReservationsWithNotifications() {
+            try {
+                await fetchUserReservations();
+            } catch (error) {
+                showNotification('خطأ في التحميل', 'تعذر تحميل الحجوزات', 'error');
+            }
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            showLoadingState();
+            fetchUserDataWithNotifications();
+            fetchUserReservationsWithNotifications();
+            showWelcomeNotification();
+        });
+    </script>
+</body>
+</html>

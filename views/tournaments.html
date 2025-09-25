@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>البطولات</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap');
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: #f0f4f8;
+            color: #2c3e50;
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+        .animate-scale-in-up {
+            animation: scaleInUp 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes scaleInUp {
+            from { transform: translateY(30px) scale(0.95); opacity: 0; }
+            to { transform: translateY(0) scale(1); opacity: 1; }
+        }
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f0f4f8;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #aab8c2;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #8899a6;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- Global Header Placeholder -->
+    <div id="global-header"></div>
+
+    <!-- Hero Section for Tournaments -->
+    <section class="relative bg-gradient-to-br from-purple-600 to-pink-500 text-white py-28 text-center shadow-2xl overflow-hidden">
+        <div class="absolute inset-0 bg-cover bg-center opacity-10" style="background-image: url('images/tournaments_hero.jpg');"></div>
+        <div class="container mx-auto px-6 relative z-10 animate-fade-in">
+            <h2 class="text-5xl md:text-7xl font-extrabold mb-6 leading-tight drop-shadow-lg">
+                انضم إلى <span class="text-yellow-200">الحدَث</span> الرياضي الأكبر!
+            </h2>
+            <p class="text-xl md:text-3xl mb-10 opacity-95 drop-shadow">
+                اكتشف البطولات القادمة، سجل فريقك، وتنافس للفوز بالجوائز الكبرى.
+            </p>
+            <button
+                onclick="document.getElementById('upcoming-tournaments').scrollIntoView({ behavior: 'smooth' })"
+                class="bg-white text-purple-700 font-bold px-10 py-5 rounded-full shadow-2xl hover:bg-gray-100 transform hover:scale-105 transition-all duration-300 text-lg"
+            >
+                شاهد البطولات
+                <i class="fa-solid fa-trophy mr-2"></i>
+            </button>
+        </div>
+    </section>
+
+    <!-- Main Content for Tournaments -->
+    <main class="flex-grow container mx-auto px-6 py-20">
+        <section id="upcoming-tournaments" class="mb-20">
+            <h3 class="text-5xl font-extrabold text-center mb-16 text-gray-900 leading-tight">
+                البطولات <span class="text-purple-600">القادمة</span>
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10" id="upcoming-tournaments-container">
+                <p class="col-span-full text-center text-gray-500 text-lg">لا توجد بطولات قادمة.</p>
+            </div>
+        </section>
+
+        <section id="past-tournaments">
+            <h3 class="text-5xl font-extrabold text-center mb-16 text-gray-900 leading-tight">
+                البطولات <span class="text-blue-600">المنتهية</span>
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10" id="past-tournaments-container">
+                <p class="col-span-full text-center text-gray-500 text-lg">لا توجد بطولات منتهية.</p>
+            </div>
+        </section>
+    </main>
+
+    <!-- Tournament Participation Modal -->
+    <div id="participation-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50 animate-fade-in">
+        <div class="bg-white rounded-2xl shadow-3xl p-8 w-full max-w-lg relative animate-scale-in-up border-b-4 border-blue-600">
+            <button onclick="closeParticipationModal()" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 transition-colors duration-300 rounded-full bg-gray-100 p-2 hover:bg-gray-200">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <h3 class="text-4xl font-bold mb-8 text-center text-gray-900 flex items-center justify-center gap-3">
+                <i class="fa-solid fa-clipboard-check text-blue-600"></i>
+                سجل لفريقك في البطولة
+            </h3>
+
+            <div class="mb-8 space-y-5">
+                <div class="flex items-center text-xl text-gray-700 bg-gray-50 p-4 rounded-lg shadow-sm">
+                    <span class="font-semibold w-32 text-gray-800 flex items-center gap-2">
+                        <i class="fa-solid fa-trophy text-purple-500"></i> البطولة:
+                    </span>
+                    <span id="modal-tournament-name" class="font-medium"></span>
+                </div>
+                <div class="flex items-center text-xl text-gray-700 bg-gray-50 p-4 rounded-lg shadow-sm">
+                    <span class="font-semibold w-32 text-gray-800 flex items-center gap-2">
+                        <i class="fa-solid fa-map-pin text-orange-500"></i> الملعب:
+                    </span>
+                    <span id="modal-tournament-field" class="font-medium"></span>
+                </div>
+
+                <div>
+                    <label for="team-name" class="block text-gray-700 font-semibold mb-2 flex items-center gap-2">
+                        <i class="fa-solid fa-users text-green-500"></i> اسم فريقك
+                    </label>
+                    <input
+                        type="text"
+                        id="team-name"
+                        name="teamName"
+                        placeholder="أدخل اسم الفريق"
+                        class="p-3 border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-right bg-white"
+                        required
+                    />
+                </div>
+                <div>
+                    <label for="captain-name" class="block text-gray-700 font-semibold mb-2 flex items-center gap-2">
+                        <i class="fa-solid fa-user text-blue-500"></i> اسم قائد الفريق
+                    </label>
+                    <input
+                        type="text"
+                        id="captain-name"
+                        name="captainName"
+                        placeholder="أدخل اسم قائد الفريق"
+                        class="p-3 border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-right bg-white"
+                        required
+                    />
+                </div>
+                <div>
+                    <label for="contact-email" class="block text-gray-700 font-semibold mb-2 flex items-center gap-2">
+                        <i class="fa-solid fa-envelope text-purple-500"></i> البريد الإلكتروني للتواصل
+                    </label>
+                    <input
+                        type="email"
+                        id="contact-email"
+                        name="contactEmail"
+                        placeholder="أدخل البريد الإلكتروني"
+                        class="p-3 border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-right bg-white"
+                        required
+                    />
+                </div>
+            </div>
+
+            <div class="border-t border-gray-200 pt-6 mt-6">
+                <button
+                    onclick="submitParticipation()"
+                    class="bg-gradient-to-r from-blue-600 to-blue-500 text-white font-bold px-8 py-4 rounded-xl w-full hover:from-blue-700 hover:to-blue-600 transition-all duration-300 shadow-lg transform hover:-translate-y-1 text-xl flex items-center justify-center gap-3"
+                >
+                    <i class="fa-solid fa-paper-plane"></i>
+                    إرسال طلب المشاركة
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Message Box (replaces alert) -->
+    <div id="message-box" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50 animate-fade-in">
+        <div class="bg-white rounded-2xl shadow-3xl p-8 w-full max-w-sm relative animate-scale-in-up text-center border-t-4 border-red-500">
+            <h4 id="message-box-title" class="text-2xl font-bold mb-4 text-gray-900 flex items-center justify-center gap-2"></h4>
+            <p id="message-box-content" class="text-gray-700 mb-6 text-lg"></p>
+            <button onclick="closeMessageBox()" class="bg-red-600 text-white px-7 py-3 rounded-xl hover:bg-red-700 transition-all duration-300 shadow-md text-lg">
+                حسناً
+            </button>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-gray-200 py-10 mt-auto">
+        <div class="container mx-auto px-6 text-center">
+            <p class="mb-5 text-lg">&copy; 2025 5ع5. جميع الحقوق محفوظة.</p>
+            <div class="flex justify-center space-x-6 space-x-reverse text-md">
+                <a href="#" class="text-gray-400 hover:text-white transition-colors duration-300">سياسة الخصوصية</a>
+                <a href="#" class="text-gray-400 hover:text-white transition-colors duration-300">شروط الخدمة</a>
+                <a href="#" class="text-gray-400 hover:text-white transition-colors duration-300">الأسئلة الشائعة</a>
+            </div>
+        </div>
+    </footer>
+
+    <script src="header.js"></script>
+    <script>
+        // --- Utility Functions for Modals ---
+        function showMessageBox(title, content, type = 'error') {
+            const msgBox = document.getElementById('message-box');
+            const msgTitle = document.getElementById('message-box-title');
+            const msgContent = document.getElementById('message-box-content');
+            const msgButton = msgBox.querySelector('button');
+
+            msgTitle.innerHTML = '';
+            msgBox.className = 'hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50 animate-fade-in';
+            msgBox.querySelector('.bg-white').className = 'bg-white rounded-2xl shadow-3xl p-8 w-full max-w-sm relative animate-scale-in-up text-center';
+
+            if (type === 'error') {
+                msgTitle.innerHTML = `<i class="fa-solid fa-octagon-xmark text-red-500 ml-2"></i>${title}`;
+                msgBox.querySelector('.bg-white').classList.add('border-t-4', 'border-red-500');
+                msgButton.className = 'bg-red-600 text-white px-7 py-3 rounded-xl hover:bg-red-700 transition-all duration-300 shadow-md text-lg';
+            } else if (type === 'success') {
+                msgTitle.innerHTML = `<i class="fa-solid fa-circle-check text-green-600 ml-2"></i>${title}`;
+                msgBox.querySelector('.bg-white').classList.add('border-t-4', 'border-green-600');
+                msgButton.className = 'bg-green-600 text-white px-7 py-3 rounded-xl hover:bg-green-700 transition-all duration-300 shadow-md text-lg';
+            } else { // info
+                msgTitle.innerHTML = `<i class="fa-solid fa-circle-info text-blue-500 ml-2"></i>${title}`;
+                msgBox.querySelector('.bg-white').classList.add('border-t-4', 'border-blue-500');
+                msgButton.className = 'bg-blue-600 text-white px-7 py-3 rounded-xl hover:bg-blue-700 transition-all duration-300 shadow-md text-lg';
+            }
+            msgContent.innerText = content;
+            msgBox.classList.remove('hidden');
+        }
+
+        function closeMessageBox() {
+            document.getElementById('message-box').classList.add('hidden');
+        }
+
+        let selectedTournament = null;
+
+        // --- Render Tournaments ---
+        async function fetchAndRenderTournaments() {
+            const upcomingContainer = document.getElementById('upcoming-tournaments-container');
+            const pastContainer = document.getElementById('past-tournaments-container');
+            upcomingContainer.innerHTML = '<p class="col-span-full text-center text-gray-500 text-lg">جاري تحميل البطولات...</p>';
+            pastContainer.innerHTML = '';
+
+            try {
+                const response = await fetch('http://localhost:3002/api/tournaments');
+                const data = await response.json();
+                const tournaments = data.tournaments;
+
+                if (!tournaments || tournaments.length === 0) {
+                    upcomingContainer.innerHTML = '<p class="col-span-full text-center text-gray-500 text-lg">لا توجد بطولات قادمة.</p>';
+                    return;
+                }
+
+                const upcoming = tournaments.filter(t => new Date(t.tournament_date) >= new Date());
+                const past = tournaments.filter(t => new Date(t.tournament_date) < new Date());
+
+                if (upcoming.length > 0) {
+                    upcomingContainer.innerHTML = '';
+                    upcoming.forEach(tournament => {
+                        const tournamentCard = createTournamentCard(tournament, 'upcoming');
+                        upcomingContainer.appendChild(tournamentCard);
+                    });
+                } else {
+                     upcomingContainer.innerHTML = '<p class="col-span-full text-center text-gray-500 text-lg">لا توجد بطولات قادمة.</p>';
+                }
+
+                if (past.length > 0) {
+                    pastContainer.innerHTML = '';
+                    past.forEach(tournament => {
+                        const tournamentCard = createTournamentCard(tournament, 'past');
+                        pastContainer.appendChild(tournamentCard);
+                    });
+                } else {
+                     pastContainer.innerHTML = '<p class="col-span-full text-center text-gray-500 text-lg">لا توجد بطولات منتهية.</p>';
+                }
+
+            } catch (error) {
+                console.error('Failed to fetch tournaments:', error);
+                upcomingContainer.innerHTML = '<p class="col-span-full text-center text-red-500 text-xl">حدث خطأ في تحميل البطولات. يرجى التأكد من تشغيل الخادم.</p>';
+                pastContainer.innerHTML = '';
+            }
+        }
+
+        function createTournamentCard(tournament, status) {
+            const tournamentCard = document.createElement('div');
+            tournamentCard.className = 'bg-white rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden transform hover:-translate-y-2 border border-gray-100';
+
+            const buttonHtml = (status === 'upcoming') ? `
+                <button
+                    onclick="openParticipationModal(${tournament.id})"
+                    class="bg-gradient-to-r from-blue-600 to-blue-500 text-white px-8 py-3 rounded-xl hover:from-blue-700 hover:to-blue-600 transition-all duration-300 shadow-lg w-full text-lg transform hover:-translate-y-1 flex items-center justify-center gap-2"
+                >
+                    <i class="fa-solid fa-user-plus ml-2"></i> سجل فريقك الآن
+                </button>
+            ` : `
+                <button class="bg-gray-300 text-gray-700 px-8 py-3 rounded-xl cursor-not-allowed w-full text-lg flex items-center justify-center gap-2" disabled>
+                    <i class="fa-solid fa-circle-check ml-2"></i> انتهت البطولة
+                </button>
+            `;
+            const imageUrl = tournament.image ? `data:image/jpeg;base64,${tournament.image}` : (tournament.field_image ? `data:image/jpeg;base64,${tournament.field_image}` : `https://placehold.co/600x400/8b5cf6/ffffff?text=${tournament.name.replace(/\s/g, '+')}`);
+
+
+            tournamentCard.innerHTML = `
+                <img
+                    src="${imageUrl}"
+                    alt="${tournament.name}"
+                    class="w-full h-56 object-cover"
+                    onerror="this.onerror=null;this.src='https://placehold.co/600x400/8b5cf6/ffffff?text=${tournament.name.replace(/\s/g, '+')}'"
+                />
+                <div class="p-6">
+                    <h4 class="text-2xl font-bold mb-2 text-gray-900 flex items-center gap-2">
+                        <i class="fa-solid fa-trophy text-purple-600"></i>
+                        ${tournament.name}
+                    </h4>
+                    <p class="text-gray-600 flex items-center gap-2 mb-2">
+                        <i class="fa-solid fa-map-pin text-orange-500"></i> ${tournament.field_name}
+                    </p>
+                    <p class="text-gray-700 text-sm mb-4 leading-relaxed">${tournament.description || 'لا يوجد وصف.'}</p>
+                    <div class="flex flex-wrap gap-2 mb-4 text-gray-700">
+                        <span class="bg-gray-100 px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1">
+                            <i class="fa-solid fa-calendar-alt text-blue-500"></i> ${tournament.tournament_date}
+                        </span>
+                        <span class="bg-gray-100 px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1">
+                            <i class="fa-solid fa-award text-yellow-500"></i> ${tournament.prize || 'غير محددة'}
+                        </span>
+                    </div>
+                    <div class="mt-4">
+                        ${buttonHtml}
+                    </div>
+                </div>
+            `;
+            return tournamentCard;
+        }
+
+        // --- Participation Modal Functions ---
+        function openParticipationModal(tournamentId) {
+            const loggedInUserId = localStorage.getItem('userId');
+            if (!loggedInUserId) {
+                 showMessageBox(
+                    'تسجيل الدخول مطلوب',
+                    'للمشاركة في البطولة، يرجى تسجيل الدخول أولاً.',
+                    'error'
+                );
+                return;
+            }
+
+            // Find the tournament from the list that was fetched
+            const allTournaments = [...document.querySelectorAll('#upcoming-tournaments-container .bg-white')];
+            const tournamentElement = allTournaments.find(el => el.getAttribute('onclick').includes(tournamentId));
+            
+            // This is a simple mock, a real implementation would fetch a single tournament from the API
+            const tournamentName = tournamentElement.querySelector('h4').innerText.trim();
+            const tournamentField = tournamentElement.querySelector('p').innerText.replace(' الملعب: ', '').trim();
+            
+            document.getElementById('modal-tournament-name').innerText = tournamentName;
+            document.getElementById('modal-tournament-field').innerText = tournamentField;
+
+            document.getElementById('participation-modal').classList.remove('hidden');
+        }
+
+        function closeParticipationModal() {
+            document.getElementById('participation-modal').classList.add('hidden');
+        }
+
+        function submitParticipation() {
+            const teamName = document.getElementById('team-name').value;
+            const captainName = document.getElementById('captain-name').value;
+            const contactEmail = document.getElementById('contact-email').value;
+
+            if (!teamName || !captainName || !contactEmail) {
+                showMessageBox('خطأ في البيانات', 'الرجاء تعبئة جميع حقول المشاركة.', 'error');
+                return;
+            }
+
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(contactEmail)) {
+                showMessageBox('بريد إلكتروني غير صالح', 'الرجاء إدخال بريد إلكتروني صحيح.', 'error');
+                return;
+            }
+
+            showMessageBox('تم استلام طلبك', `شكراً لفريق ${teamName} على اهتمامكم بالبطولة. سنتواصل معكم قريباً!`, 'success');
+            closeParticipationModal();
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchAndRenderTournaments();
+        });
+    </script>
+</body>
+</html>

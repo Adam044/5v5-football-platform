@@ -1,0 +1,60 @@
+/*
+    A single, unified stylesheet for all pages.
+    This approach is better for maintenance and performance.
+*/
+
+/* Font Import */
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap');
+
+/* Base Styles */
+body {
+    font-family: 'Cairo', sans-serif;
+    background-color: #f0f4f8; /* Softer, healthier background */
+    color: #2c3e50; /* Darker, more professional text */
+}
+
+/* Animations */
+.animate-fade-in {
+    animation: fadeIn 0.8s ease-out forwards;
+}
+
+.animate-scale-in-up {
+    animation: scaleInUp 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes scaleInUp {
+    from { transform: translateY(30px) scale(0.95); opacity: 0; }
+    to { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+/* Custom scrollbar for a cleaner look */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f0f4f8;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #aab8c2;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #8899a6;
+}
+
+/* Specific component styles not covered by Tailwind */
+.text-gradient {
+    background-image: linear-gradient(to right, #10b981, #34d399);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}

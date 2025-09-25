@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>5ع5 - تسجيل الدخول</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap');
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: #f0f4f8;
+            color: #2c3e50;
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+        .animate-scale-in-up {
+            animation: scaleInUp 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes scaleInUp {
+            from { transform: translateY(30px) scale(0.95); opacity: 0; }
+            to { transform: translateY(0) scale(1); opacity: 1; }
+        }
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f0f4f8;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #aab8c2;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #8899a6;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- Global Header Placeholder -->
+    <div id="global-header"></div>
+    
+    <!-- Auth Card -->
+    <div class="flex-grow flex items-center justify-center w-full">
+        <div class="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md animate-scale-in-up text-center border-b-4 border-green-600">
+            <h1 class="text-4xl font-extrabold text-green-700 mb-6">5ع5</h1>
+            
+            <!-- Sign In Form -->
+            <div id="sign-in-form" class="animate-fade-in">
+                <h2 class="text-3xl font-bold mb-8 text-gray-900 flex items-center justify-center gap-3">
+                    <i class="fa-solid fa-right-to-bracket text-green-600"></i> تسجيل الدخول
+                </h2>
+                <form onsubmit="event.preventDefault(); handleSignIn();">
+                    <div class="mb-5 text-right">
+                        <label for="signin-email" class="block text-gray-700 font-semibold mb-2">البريد الإلكتروني</label>
+                        <input type="email" id="signin-email" class="p-3 border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 text-right bg-white" required>
+                    </div>
+                    <div class="mb-8 text-right">
+                        <label for="signin-password" class="block text-gray-700 font-semibold mb-2">كلمة المرور</label>
+                        <input type="password" id="signin-password" class="p-3 border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 text-right bg-white" required>
+                    </div>
+                    <button type="submit" class="bg-gradient-to-r from-green-600 to-green-500 text-white font-bold px-8 py-4 rounded-xl w-full hover:from-green-700 hover:to-green-600 transition-all duration-300 shadow-lg text-xl flex items-center justify-center gap-3">
+                        <i class="fa-solid fa-key text-white"></i> تسجيل الدخول
+                    </button>
+                </form>
+                <p class="mt-6 text-sm text-gray-600">
+                    ليس لديك حساب؟
+                    <a href="#" onclick="toggleForm('sign-up')" class="text-green-600 hover:underline font-bold">إنشاء حساب جديد</a>
+                </p>
+            </div>
+    
+            <!-- Sign Up Form (hidden by default) -->
+            <div id="sign-up-form" class="hidden animate-fade-in">
+                <h2 class="text-3xl font-bold mb-8 text-gray-900 flex items-center justify-center gap-3">
+                    <i class="fa-solid fa-user-plus text-blue-600"></i> إنشاء حساب
+                </h2>
+                <form onsubmit="event.preventDefault(); handleSignUp();">
+                    <div class="mb-5 text-right">
+                        <label for="signup-name" class="block text-gray-700 font-semibold mb-2">الاسم الكامل</label>
+                        <input type="text" id="signup-name" class="p-3 border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-right bg-white" required>
+                    </div>
+                    <div class="mb-5 text-right">
+                        <label for="signup-email" class="block text-gray-700 font-semibold mb-2">البريد الإلكتروني</label>
+                        <input type="email" id="signup-email" class="p-3 border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-right bg-white" required>
+                    </div>
+                    <div class="mb-5 text-right">
+                        <label for="signup-phone" class="block text-gray-700 font-semibold mb-2">رقم الهاتف</label>
+                        <div class="flex">
+                            <input type="tel" id="signup-phone" class="p-3 border border-gray-300 rounded-l-lg w-full focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-right bg-white" required>
+                            <select id="country-code" class="p-3 border border-gray-300 rounded-r-lg bg-gray-100 text-gray-700 focus:outline-none">
+                                <option value="+970">+970</option>
+                                <option value="+972">+972</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-5 text-right">
+                        <label for="signup-password" class="block text-gray-700 font-semibold mb-2">كلمة المرور</label>
+                        <input type="password" id="signup-password" class="p-3 border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-right bg-white" required>
+                    </div>
+                    <div class="mb-8 text-right">
+                        <label for="signup-confirm-password" class="block text-gray-700 font-semibold mb-2">تأكيد كلمة المرور</label>
+                        <input type="password" id="signup-confirm-password" class="p-3 border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-right bg-white" required>
+                    </div>
+
+                    <button type="submit" class="bg-gradient-to-r from-blue-600 to-blue-500 text-white font-bold px-8 py-4 rounded-xl w-full hover:from-blue-700 hover:to-blue-600 transition-all duration-300 shadow-lg text-xl flex items-center justify-center gap-3">
+                        <i class="fa-solid fa-check-circle text-white"></i> إنشاء الحساب
+                    </button>
+                </form>
+                <p class="mt-6 text-sm text-gray-600">
+                    لديك حساب بالفعل؟
+                    <a href="#" onclick="toggleForm('sign-in')" class="text-blue-600 hover:underline font-bold">تسجيل الدخول</a>
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Message Box (replaces alert) -->
+    <div id="message-box" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50 animate-fade-in">
+        <div class="bg-white rounded-2xl shadow-3xl p-8 w-full max-w-sm relative animate-scale-in-up text-center border-t-4 border-red-500">
+            <h4 id="message-box-title" class="text-2xl font-bold mb-4 text-gray-900 flex items-center justify-center gap-2"></h4>
+            <p id="message-box-content" class="text-gray-700 mb-6 text-lg"></p>
+            <button onclick="closeMessageBox()" class="bg-red-600 text-white px-7 py-3 rounded-xl hover:bg-red-700 transition-all duration-300 shadow-md text-lg">
+                حسناً
+            </button>
+        </div>
+    </div>
+    
+    <script src="header.js"></script>
+    <script>
+        function showMessageBox(title, content, type = 'error') {
+            const msgBox = document.getElementById('message-box');
+            const msgTitle = document.getElementById('message-box-title');
+            const msgContent = document.getElementById('message-box-content');
+            const msgButton = msgBox.querySelector('button');
+
+            msgTitle.innerHTML = '';
+            msgBox.className = 'hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50 animate-fade-in';
+            msgBox.querySelector('.bg-white').className = 'bg-white rounded-2xl shadow-3xl p-8 w-full max-w-sm relative animate-scale-in-up text-center';
+
+            if (type === 'error') {
+                msgTitle.innerHTML = `<i class="fa-solid fa-octagon-xmark text-red-500 ml-2"></i>${title}`;
+                msgBox.querySelector('.bg-white').classList.add('border-t-4', 'border-red-500');
+                msgButton.className = 'bg-red-600 text-white px-7 py-3 rounded-xl hover:bg-red-700 transition-all duration-300 shadow-md text-lg';
+            } else if (type === 'success') {
+                msgTitle.innerHTML = `<i class="fa-solid fa-circle-check text-green-600 ml-2"></i>${title}`;
+                msgBox.querySelector('.bg-white').classList.add('border-t-4', 'border-green-600');
+                msgButton.className = 'bg-green-600 text-white px-7 py-3 rounded-xl hover:bg-green-700 transition-all duration-300 shadow-md text-lg';
+            } else { // info
+                msgTitle.innerHTML = `<i class="fa-solid fa-circle-info text-blue-500 ml-2"></i>${title}`;
+                msgBox.querySelector('.bg-white').classList.add('border-t-4', 'border-blue-500');
+                msgButton.className = 'bg-blue-600 text-white px-7 py-3 rounded-xl hover:bg-blue-700 transition-all duration-300 shadow-md text-lg';
+            }
+            msgContent.innerText = content;
+            msgBox.classList.remove('hidden');
+        }
+
+        function closeMessageBox() {
+            document.getElementById('message-box').classList.add('hidden');
+        }
+        
+        function toggleForm(formType) {
+            const signInForm = document.getElementById('sign-in-form');
+            const signUpForm = document.getElementById('sign-up-form');
+
+            signInForm.classList.add('hidden');
+            signUpForm.classList.add('hidden');
+
+            if (formType === 'sign-in') {
+                signInForm.classList.remove('hidden');
+            } else if (formType === 'sign-up') {
+                signUpForm.classList.remove('hidden');
+            }
+        }
+        
+        async function handleSignIn() {
+            const email = document.getElementById('signin-email').value;
+            const password = document.getElementById('signin-password').value;
+
+            try {
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email, password }),
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    showMessageBox('تسجيل الدخول', result.message, 'success');
+                    localStorage.setItem('userId', result.userId);
+                    localStorage.setItem('userEmail', result.email);
+                    localStorage.setItem('userName', result.userName);
+                    localStorage.setItem('isAdmin', result.isAdmin || false);
+
+                    // Redirect logic based on admin status
+                    setTimeout(() => {
+                        if (result.isAdmin) {
+                            window.location.href = 'admin-dashboard.html';
+                        } else {
+                            window.location.href = 'index.html';
+                        }
+                    }, 1500);
+                } else {
+                    showMessageBox('خطأ في تسجيل الدخول', result.error, 'error');
+                }
+            } catch (error) {
+                console.error('Network or server error:', error);
+                showMessageBox('خطأ في الاتصال', 'تعذر الاتصال بالخادم. يرجى المحاولة لاحقاً.', 'error');
+            }
+        }
+
+        async function handleSignUp() {
+            const name = document.getElementById('signup-name').value;
+            const email = document.getElementById('signup-email').value;
+            const phone = document.getElementById('signup-phone').value;
+            const countryCode = document.getElementById('country-code').value;
+            const password = document.getElementById('signup-password').value;
+            const confirmPassword = document.getElementById('signup-confirm-password').value;
+            const isAdmin = false;
+
+            if (password !== confirmPassword) {
+                showMessageBox('خطأ في كلمة المرور', 'كلمة المرور وتأكيدها غير متطابقين.', 'error');
+                return;
+            }
+            
+            const phoneNumber = countryCode + phone;
+
+            try {
+                const response = await fetch('/api/signup', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ name, email, phone: phoneNumber, password, is_admin: isAdmin }),
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    const accountType = isAdmin ? 'مدير' : 'مستخدم';
+                    showMessageBox('إنشاء حساب', `تم إنشاء حساب ${accountType} بنجاح يا ${name}. يمكنك الآن تسجيل الدخول.`, 'success');
+                    setTimeout(() => {
+                        toggleForm('sign-in');
+                    }, 2000);
+                } else {
+                    showMessageBox('خطأ في إنشاء الحساب', result.error, 'error');
+                }
+            } catch (error) {
+                console.error('Network or server error:', error);
+                showMessageBox('خطأ في الاتصال', 'تعذر الاتصال بالخادم. يرجى المحاولة لاحقاً.', 'error');
+            }
+        }
+    </script>
+</body>
+</html>

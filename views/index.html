@@ -1,0 +1,1028 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>5ع5 - حجز الملاعب</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap');
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: #f0f4f8; /* Softer, healthier background */
+            color: #2c3e50; /* Darker, more professional text */
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+        .animate-scale-in-up {
+            animation: scaleInUp 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes scaleInUp {
+            from { transform: translateY(30px) scale(0.95); opacity: 0; }
+            to { transform: translateY(0) scale(1); opacity: 1; }
+        }
+        /* Custom scrollbar for a cleaner look */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f0f4f8;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #aab8c2;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #8899a6;
+        }
+        .radio-card {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            border-radius: 0.75rem;
+            background-color: #f3f4f6;
+            border: 2px solid #e5e7eb;
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+        }
+        .radio-card input[type="radio"] {
+            display: none;
+        }
+        .radio-card input[type="radio"]:checked + .checkmark {
+            background-color: #10b981;
+            border-color: #10b981;
+        }
+        .radio-card input[type="radio"]:checked + .checkmark::after {
+            transform: scale(1);
+            opacity: 1;
+        }
+        .radio-card:hover {
+            border-color: #34d399;
+            transform: scale(1.02);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .checkmark {
+            width: 1.5rem;
+            height: 1.5rem;
+            border-radius: 50%;
+            border: 2px solid #d1d5db;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            margin-left: 0.75rem;
+            flex-shrink: 0;
+        }
+        .checkmark::after {
+            content: '';
+            width: 0.75rem;
+            height: 0.75rem;
+            background-color: white;
+            border-radius: 50%;
+            transform: scale(0);
+            opacity: 0;
+            transition: transform 0.2s ease-in-out, opacity 0.2s ease-in-out;
+        }
+        
+        /* Modal Animation Classes */
+        .animate-fadeIn {
+            animation: modalFadeIn 0.3s ease-out;
+        }
+        
+        .animate-spin {
+            animation: spin 1s linear infinite;
+        }
+        
+        /* Enhanced Modal Styles */
+        .modal {
+            backdrop-filter: blur(5px);
+        }
+        
+        .modal-content {
+            transform: scale(0.9);
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        
+        .modal:not(.hidden) .modal-content {
+            transform: scale(1);
+        }
+        
+        /* Enhanced Button Styles */
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        /* Loading Spinner */
+        .loading-spinner {
+            border: 3px solid #f3f4f6;
+            border-top: 3px solid #3b82f6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        /* Keyframes */
+        @keyframes modalFadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9) translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+        
+        @keyframes spin {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- Global Header Placeholder -->
+    <div id="global-header"></div>
+
+    <!-- Hero Section -->
+    <section class="relative text-white py-28 text-center shadow-2xl overflow-hidden bg-cover bg-center" style="background-image: url('images/hero.jpg');">
+        <!-- Subtle dark overlay for text readability, adjust opacity as needed -->
+        <div class="absolute inset-0 bg-black opacity-40"></div>
+        <div class="container mx-auto px-6 relative z-10">
+            <h2 class="text-5xl md:text-7xl font-extrabold mb-6 leading-tight drop-shadow-lg animate-fade-in">
+                احجز ملعبك <span class="text-yellow-200">الأفضل</span> الآن!
+            </h2>
+            <p class="text-xl md:text-3xl mb-10 opacity-95 drop-shadow animate-fade-in delay-100">
+                اكتشف أرقى الملاعب، احجز بكل سهولة، وشارك اللعب مع مجتمعنا.
+            </p>
+            <button
+                onclick="document.getElementById('fields-section').scrollIntoView({ behavior: 'smooth' })"
+                class="bg-white text-green-700 font-bold px-10 py-5 rounded-full shadow-2xl hover:bg-gray-100 transform hover:scale-105 transition-all duration-300 text-lg animate-fade-in delay-200"
+            >
+                استكشف الملاعب
+                <i class="fa-solid fa-arrow-down mr-2"></i>
+            </button>
+        </div>
+    </section>
+
+    <!-- Fields Section -->
+    <main class="flex-grow container mx-auto px-6 py-20">
+        <section id="fields-section">
+            <h3 class="text-5xl font-extrabold text-center mb-16 text-gray-900 leading-tight">
+                ملاعبنا <span class="text-green-600">المختارة</span> بعناية
+            </h3>
+            <div id="fields-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-10">
+                <!-- Fields will be injected here by JavaScript -->
+            </div>
+        </section>
+    </main>
+
+    <!-- Main Modal (Used for Field Details and Booking) -->
+    <div id="main-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50 animate-fade-in">
+        <div class="bg-white rounded-2xl shadow-3xl p-8 w-full max-w-lg relative animate-scale-in-up border-b-4 border-green-600 max-h-[90vh] overflow-y-auto">
+            <button onclick="closeModal()" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 transition-colors duration-300 rounded-full bg-gray-100 p-2 hover:bg-gray-200">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div id="modal-content-container">
+                <!-- Content will be injected here dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Message Box (replaces alert) -->
+    <div id="message-box" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50 animate-fade-in">
+        <div class="bg-white rounded-2xl shadow-3xl p-8 w-full max-w-sm relative animate-scale-in-up text-center border-t-4 border-red-500">
+            <h4 id="message-box-title" class="text-2xl font-bold mb-4 text-gray-900 flex items-center justify-center gap-2"></h4>
+            <p id="message-box-content" class="text-gray-700 mb-6 text-lg"></p>
+            <button onclick="closeMessageBox()" class="bg-red-600 text-white px-7 py-3 rounded-xl hover:bg-red-700 transition-all duration-300 shadow-md text-lg">
+                حسناً
+            </button>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-gray-200 py-10 mt-auto">
+        <div class="container mx-auto px-6 text-center">
+            <p class="mb-5 text-lg">&copy; 2025 5ع5. جميع الحقوق محفوظة.</p>
+            <div class="flex justify-center space-x-6 space-x-reverse text-md">
+                <a href="#" class="text-gray-400 hover:text-white transition-colors duration-300">سياسة الخصوصية</a>
+                <a href="#" class="text-gray-400 hover:text-white transition-colors duration-300">شروط الخدمة</a>
+                <a href="#" class="text-gray-400 hover:text-white transition-colors duration-300">الأسئلة الشائعة</a>
+            </div>
+        </div>
+    </footer>
+
+    <script src="header.js"></script>
+    <script>
+        let selectedField = null;
+        let selectedFieldPrice = null;
+        let selectedReservationType = null;
+        let selectedDate = null;
+        let selectedSlotId = null;
+        let selectedSlotData = null;
+
+        const loggedInUserId = localStorage.getItem('userId');
+
+        // --- Utility Functions for Modals ---
+        function showMessageBox(title, content, type = 'error', callback = null) {
+            const msgBox = document.getElementById('message-box');
+            const msgTitle = document.getElementById('message-box-title');
+            const msgContent = document.getElementById('message-box-content');
+            const msgButton = msgBox.querySelector('button');
+
+            msgTitle.innerHTML = '';
+            msgBox.className = 'hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50 animate-fade-in';
+            msgBox.querySelector('.bg-white').className = 'bg-white rounded-2xl shadow-3xl p-8 w-full max-w-sm relative animate-scale-in-up text-center';
+
+            if (type === 'error') {
+                msgTitle.innerHTML = `<i class="fa-solid fa-octagon-xmark text-red-500 ml-2"></i>${title}`;
+                msgBox.querySelector('.bg-white').classList.add('border-t-4', 'border-red-500');
+                msgButton.className = 'bg-red-600 text-white px-7 py-3 rounded-xl hover:bg-red-700 transition-all duration-300 shadow-md text-lg';
+                msgButton.textContent = 'حسناً';
+            } else if (type === 'success') {
+                msgTitle.innerHTML = `<i class="fa-solid fa-circle-check text-green-600 ml-2"></i>${title}`;
+                msgBox.querySelector('.bg-white').classList.add('border-t-4', 'border-green-600');
+                msgButton.className = 'bg-green-600 text-white px-7 py-3 rounded-xl hover:bg-green-700 transition-all duration-300 shadow-md text-lg';
+                msgButton.textContent = 'رائع!';
+            } else if (type === 'warning') {
+                msgTitle.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-yellow-500 ml-2"></i>${title}`;
+                msgBox.querySelector('.bg-white').classList.add('border-t-4', 'border-yellow-500');
+                msgButton.className = 'bg-yellow-600 text-white px-7 py-3 rounded-xl hover:bg-yellow-700 transition-all duration-300 shadow-md text-lg';
+                msgButton.textContent = 'حسناً';
+            } else { // info
+                msgTitle.innerHTML = `<i class="fa-solid fa-circle-info text-blue-500 ml-2"></i>${title}`;
+                msgBox.querySelector('.bg-white').classList.add('border-t-4', 'border-blue-500');
+                msgButton.className = 'bg-blue-600 text-white px-7 py-3 rounded-xl hover:bg-blue-700 transition-all duration-300 shadow-md text-lg';
+                msgButton.textContent = 'حسناً';
+            }
+            msgContent.innerText = content;
+            
+            // Store callback for button click
+            msgButton.onclick = function() {
+                closeMessageBox();
+                if (callback && typeof callback === 'function') {
+                    callback();
+                }
+            };
+            
+            msgBox.classList.remove('hidden');
+        }
+
+        function closeMessageBox() {
+            document.getElementById('message-box').classList.add('hidden');
+        }
+
+        // --- Main Modal Functions ---
+        async function openModal(step, fieldId = null) {
+            const modal = document.getElementById('main-modal');
+            const contentContainer = document.getElementById('modal-content-container');
+            
+            // Show modal with smooth animation
+            modal.classList.remove('hidden');
+            modal.classList.add('animate-fadeIn');
+            setTimeout(() => modal.classList.remove('animate-fadeIn'), 300);
+
+            // Show loading state while processing
+            contentContainer.innerHTML = `
+                <div class="flex flex-col items-center justify-center py-16">
+                    <div class="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mb-6"></div>
+                    <h4 class="text-2xl font-bold text-gray-900 mb-2">جاري التحميل...</h4>
+                    <p class="text-gray-600 text-center">يرجى الانتظار</p>
+                </div>
+            `;
+
+            if (step === 'field-details') {
+                if (!loggedInUserId) {
+                    closeModal();
+                    showMessageBox(
+                        'تسجيل الدخول مطلوب',
+                        'للمتابعة، يرجى تسجيل الدخول أو إنشاء حساب جديد.',
+                        'warning',
+                        () => {
+                            setTimeout(() => {
+                                window.location.href = 'auth.html';
+                            }, 1000);
+                        }
+                    );
+                    return;
+                }
+
+                selectedField = fieldId;
+                
+                // Show field loading state
+                contentContainer.innerHTML = `
+                    <div class="flex flex-col items-center justify-center py-16">
+                        <div class="animate-spin rounded-full h-16 w-16 border-b-2 border-green-600 mb-6"></div>
+                        <h4 class="text-2xl font-bold text-gray-900 mb-2">جاري تحميل تفاصيل الملعب...</h4>
+                        <p class="text-gray-600 text-center">نحضر لك أفضل الخيارات</p>
+                    </div>
+                `;
+                
+                // Fetch field details to get the price and store field data
+                try {
+                    const response = await fetch(`http://localhost:3002/api/fields/${fieldId}?userId=${loggedInUserId}`);
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    
+                    const data = await response.json();
+                    if (data.field) {
+                        selectedFieldPrice = data.field.price_per_hour;
+                        // Store complete field data for later use
+                        window.selectedFieldData = data.field;
+                    }
+                    
+                    // Add slight delay for better UX
+                    setTimeout(() => {
+                        renderMatchmakingChoices();
+                    }, 500);
+                } catch (error) {
+                    console.error('Failed to fetch field details:', error);
+                    selectedFieldPrice = 0; // Default fallback
+                    
+                    // Show error state with retry option
+                    contentContainer.innerHTML = `
+                        <div class="text-center py-8">
+                            <i class="fa-solid fa-exclamation-triangle text-red-500 text-4xl mb-4"></i>
+                            <h4 class="text-2xl font-bold text-gray-900 mb-2">فشل في تحميل تفاصيل الملعب</h4>
+                            <p class="text-gray-600 mb-6">حدث خطأ في الاتصال بالخادم</p>
+                            <div class="space-y-3">
+                                <button onclick="openModal('field-details', ${fieldId})" class="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition-colors w-full">
+                                    <i class="fa-solid fa-refresh ml-2"></i> إعادة المحاولة
+                                </button>
+                                <button onclick="closeModal()" class="bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-700 transition-colors w-full">
+                                    <i class="fa-solid fa-times ml-2"></i> إغلاق
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }
+            } else if (step === 'availability') {
+                contentContainer.innerHTML = `
+                    <div class="flex flex-col items-center justify-center py-16">
+                        <div class="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mb-6"></div>
+                        <h4 class="text-2xl font-bold text-gray-900 mb-2">جاري تحميل المواعيد المتاحة...</h4>
+                        <p class="text-gray-600 text-center">نبحث عن أفضل الأوقات المتاحة</p>
+                    </div>
+                `;
+                setTimeout(async () => {
+                    await renderAvailabilityModal();
+                }, 300);
+            } else if (step === 'confirm') {
+                contentContainer.innerHTML = `
+                    <div class="flex flex-col items-center justify-center py-16">
+                        <div class="animate-spin rounded-full h-16 w-16 border-b-2 border-green-600 mb-6"></div>
+                        <h4 class="text-2xl font-bold text-gray-900 mb-2">جاري تحضير ملخص الحجز...</h4>
+                        <p class="text-gray-600 text-center">مراجعة أخيرة قبل التأكيد</p>
+                    </div>
+                `;
+                setTimeout(() => {
+                    renderConfirmationStep();
+                }, 300);
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('main-modal').classList.add('hidden');
+            selectedField = null;
+            selectedFieldPrice = null;
+            selectedReservationType = null;
+            selectedDate = null;
+            selectedSlotId = null;
+            window.selectedFieldData = null;
+            window.playerDetails = null;
+        }
+        
+        // Step 1: Choose reservation type (New Team-Building System)
+        function renderMatchmakingChoices() {
+            const contentContainer = document.getElementById('modal-content-container');
+            contentContainer.innerHTML = `
+                <h4 class="text-3xl font-bold text-gray-900 mb-8 text-center">
+                    <i class="fa-solid fa-people-group text-green-600"></i> نوع الحجز
+                </h4>
+                <p class="text-gray-600 mb-8 text-center">اختر الأنسب لك للمتابعة وبناء فريقك.</p>
+                <form id="reservation-type-form" onsubmit="event.preventDefault(); proceedToNextStep();">
+                    <div class="space-y-4 mb-8">
+                        <label for="full_field" class="radio-card">
+                            <input type="radio" id="full_field" name="reservation_type" value="full_field" class="hidden">
+                            <span class="checkmark"></span>
+                            <div class="flex flex-col">
+                                <span class="text-xl font-bold text-gray-800">حجز ملعب كامل</span>
+                                <span class="text-gray-500 text-sm">لديك فريقان كاملان جاهزان للعب (12 لاعب)</span>
+                                <span class="text-xs text-green-600 font-semibold">الحد الأدنى: 12 لاعب</span>
+                            </div>
+                        </label>
+                        <label for="team_vs_team" class="radio-card">
+                            <input type="radio" id="team_vs_team" name="reservation_type" value="team_vs_team" class="hidden">
+                            <span class="checkmark"></span>
+                            <div class="flex flex-col">
+                                <span class="text-xl font-bold text-gray-800">فريق ضد فريق آخر</span>
+                                <span class="text-gray-500 text-sm">لديك فريق كامل وتبحث عن منافس (6 لاعبين)</span>
+                                <span class="text-xs text-blue-600 font-semibold">الحد الأدنى: 6 لاعبين</span>
+                            </div>
+                        </label>
+                        <label for="team_looking_for_players" class="radio-card">
+                            <input type="radio" id="team_looking_for_players" name="reservation_type" value="team_looking_for_players" class="hidden">
+                            <span class="checkmark"></span>
+                            <div class="flex flex-col">
+                                <span class="text-xl font-bold text-gray-800">فريق يبحث عن لاعبين</span>
+                                <span class="text-gray-500 text-sm">فريقك غير مكتمل ويحتاج المزيد من اللاعبين</span>
+                                <span class="text-xs text-purple-600 font-semibold">الحد الأدنى: 4 لاعبين</span>
+                            </div>
+                        </label>
+                        <label for="players_looking_for_team" class="radio-card">
+                            <input type="radio" id="players_looking_for_team" name="reservation_type" value="players_looking_for_team" class="hidden">
+                            <span class="checkmark"></span>
+                            <div class="flex flex-col">
+                                <span class="text-xl font-bold text-gray-800">لاعبون يبحثون عن فريق</span>
+                                <span class="text-gray-500 text-sm">مجموعة من 1-3 لاعبين تريد الانضمام لفريق</span>
+                                <span class="text-xs text-orange-600 font-semibold">1-3 لاعبين</span>
+                            </div>
+                        </label>
+                    </div>
+                    <div id="player-count-input" class="mb-6 hidden">
+                        <label for="player-count" class="block text-gray-700 font-semibold mb-2 text-right">عدد اللاعبين</label>
+                        <input type="number" id="player-count" name="player_count" min="1" max="12" class="p-3 border border-gray-300 rounded-lg w-full text-right" placeholder="أدخل عدد اللاعبين">
+                    </div>
+                    <button type="submit" class="bg-green-600 text-white font-bold py-4 px-8 rounded-xl w-full hover:bg-green-700 transition-all duration-300 shadow-lg text-lg">
+                        <i class="fa-solid fa-arrow-left ml-2"></i> التالي
+                    </button>
+                </form>
+            `;
+            
+            // Add event listeners for showing/hiding player count input
+            const radioButtons = document.querySelectorAll('input[name="reservation_type"]');
+            const playerCountInput = document.getElementById('player-count-input');
+            const playerCountField = document.getElementById('player-count');
+            
+            radioButtons.forEach(radio => {
+                radio.addEventListener('change', function() {
+                    if (this.value === 'team_looking_for_players' || this.value === 'players_looking_for_team') {
+                        playerCountInput.classList.remove('hidden');
+                        playerCountField.required = true;
+                        
+                        if (this.value === 'team_looking_for_players') {
+                            playerCountField.min = 4;
+                            playerCountField.max = 11;
+                            playerCountField.placeholder = 'أدخل عدد اللاعبين الحاليين (4-11)';
+                        } else {
+                            playerCountField.min = 1;
+                            playerCountField.max = 3;
+                            playerCountField.placeholder = 'أدخل عدد اللاعبين (1-3)';
+                        }
+                    } else {
+                        playerCountInput.classList.add('hidden');
+                        playerCountField.required = false;
+                    }
+                });
+            });
+        }
+
+        function proceedToNextStep() {
+            const form = document.getElementById('reservation-type-form');
+            const formData = new FormData(form);
+            selectedReservationType = formData.get('reservation_type');
+            const playerCount = parseInt(formData.get('player_count'));
+
+            if (!selectedReservationType) {
+                showMessageBox('خطأ في التحقق', 'يرجى اختيار نوع الحجز للمتابعة.', 'error');
+                return;
+            }
+            
+            // Enhanced validation for player count
+            if (selectedReservationType === 'team_looking_for_players' || selectedReservationType === 'players_looking_for_team') {
+                if (!playerCount || isNaN(playerCount)) {
+                    showMessageBox('خطأ في التحقق', 'يرجى إدخال عدد اللاعبين للمتابعة.', 'error');
+                    return;
+                }
+                
+                // Validate player count ranges
+                if (selectedReservationType === 'team_looking_for_players') {
+                    if (playerCount < 4 || playerCount > 11) {
+                        showMessageBox('خطأ في عدد اللاعبين', 'عدد اللاعبين يجب أن يكون بين 4 و 11 لاعب.', 'error');
+                        return;
+                    }
+                } else if (selectedReservationType === 'players_looking_for_team') {
+                    if (playerCount < 1 || playerCount > 3) {
+                        showMessageBox('خطأ في عدد اللاعبين', 'عدد اللاعبين يجب أن يكون بين 1 و 3 لاعبين.', 'error');
+                        return;
+                    }
+                }
+            }
+            
+            // Store validated player count
+            window.selectedPlayerCount = playerCount || null;
+
+            openModal('availability');
+        }
+
+        // Step 2: Show availability
+        async function renderAvailabilityModal() {
+            const contentContainer = document.getElementById('modal-content-container');
+            contentContainer.innerHTML = `
+                <h4 class="text-3xl font-bold text-gray-900 mb-8 text-center">
+                    <i class="fa-solid fa-calendar-alt text-green-600"></i> اختر الموعد
+                </h4>
+                <form id="availability-form" onsubmit="event.preventDefault(); openModal('confirm');">
+                    <div class="mb-6">
+                        <label for="date-dropdown" class="block text-gray-700 font-semibold mb-2 text-right">اختر التاريخ</label>
+                        <select id="date-dropdown" class="p-3 border border-gray-300 rounded-lg w-full text-right" required></select>
+                    </div>
+                    <div class="mb-6">
+                        <label for="time-slots-container" class="block text-gray-700 font-semibold mb-2 text-right">اختر الوقت</label>
+                        <div id="time-slots-container" class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                            <!-- Time slots will be loaded dynamically -->
+                        </div>
+                    </div>
+                    <div id="price-display" class="bg-gray-100 p-4 rounded-lg text-center font-bold text-gray-800 text-lg mb-6">
+                        السعر: -- شيكل
+                    </div>
+                    <button type="submit" id="confirm-availability-btn" class="bg-green-600 text-white font-bold py-4 px-8 rounded-xl w-full hover:bg-green-700 transition-all duration-300 shadow-lg text-lg" disabled>
+                        <i class="fa-solid fa-check-circle ml-2"></i> تأكيد الحجز
+                    </button>
+                </form>
+            `;
+
+            const dateDropdown = document.getElementById('date-dropdown');
+            const timeSlotsContainer = document.getElementById('time-slots-container');
+            const priceDisplay = document.getElementById('price-display');
+            const confirmBtn = document.getElementById('confirm-availability-btn');
+            
+            async function fetchAvailability(date) {
+                // Show loading state with better UI
+                timeSlotsContainer.innerHTML = `
+                    <div class="col-span-full flex flex-col items-center justify-center py-8">
+                        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mb-3"></div>
+                        <p class="text-gray-600">جاري تحميل المواعيد المتاحة...</p>
+                    </div>
+                `;
+                selectedSlotId = null;
+                confirmBtn.disabled = true;
+                
+                try {
+                    const response = await fetch(`http://localhost:3002/api/availability/${selectedField}?date=${date}`);
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    
+                    const data = await response.json();
+                    
+                    if (data.availability && data.availability.length > 0) {
+                        timeSlotsContainer.innerHTML = '';
+                        data.availability.forEach(slot => {
+                            const slotBtn = document.createElement('button');
+                            slotBtn.type = 'button';
+                            slotBtn.className = 'bg-gray-200 text-gray-800 py-3 px-2 rounded-xl text-center font-semibold hover:bg-gray-300 transition-colors duration-200';
+                            slotBtn.innerHTML = `${slot.start_time} - ${slot.end_time}`;
+                            slotBtn.onclick = () => {
+                                selectedSlotId = slot.id;
+                                selectedSlotData = slot; // Store complete slot data
+                                // Deselect all other buttons
+                                document.querySelectorAll('#time-slots-container button').forEach(btn => {
+                                    btn.classList.remove('bg-green-600', 'text-white');
+                                    btn.classList.add('bg-gray-200', 'text-gray-800');
+                                });
+                                // Select current one
+                                slotBtn.classList.add('bg-green-600', 'text-white');
+                                slotBtn.classList.remove('bg-gray-200', 'text-gray-800');
+
+                                // Calculate duration and price
+                                const startHour = parseInt(slot.start_time.split(':')[0]);
+                                const endHour = parseInt(slot.end_time.split(':')[0]);
+                                const duration = endHour - startHour;
+                                const totalPrice = duration * selectedFieldPrice;
+                                priceDisplay.innerText = `السعر: ${totalPrice} شيكل (${duration} ساعة × ${selectedFieldPrice} شيكل/ساعة)`;
+                                confirmBtn.disabled = false;
+                            };
+                            timeSlotsContainer.appendChild(slotBtn);
+                        });
+                    } else {
+                        timeSlotsContainer.innerHTML = `
+                            <div class="col-span-full text-center py-8">
+                                <i class="fa-solid fa-calendar-xmark text-yellow-500 text-4xl mb-4"></i>
+                                <p class="text-gray-600 text-lg mb-2">لا توجد مواعيد متاحة في هذا اليوم</p>
+                                <p class="text-gray-500 text-sm">يرجى اختيار تاريخ آخر</p>
+                            </div>
+                        `;
+                    }
+                } catch (error) {
+                    console.error('Failed to fetch availability:', error);
+                    timeSlotsContainer.innerHTML = `
+                        <div class="col-span-full text-center py-8">
+                            <i class="fa-solid fa-wifi text-red-500 text-4xl mb-4"></i>
+                            <p class="text-red-600 text-lg mb-2">حدث خطأ في الاتصال بالخادم</p>
+                            <p class="text-gray-500 text-sm mb-4">يرجى التحقق من اتصال الإنترنت والمحاولة مرة أخرى</p>
+                            <button onclick="fetchAvailability('${date}')" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors">
+                                <i class="fa-solid fa-refresh ml-2"></i> إعادة المحاولة
+                            </button>
+                        </div>
+                    `;
+                }
+            }
+
+            // Generate dates for the next 7 days
+            const dates = [];
+            const today = new Date();
+            for (let i = 0; i < 7; i++) {
+                const d = new Date(today);
+                d.setDate(today.getDate() + i);
+                const dayName = new Intl.DateTimeFormat('ar-EG', { weekday: 'long' }).format(d);
+                const dateString = d.toISOString().split('T')[0];
+                dates.push({ date: dateString, display: `${d.toLocaleDateString('ar-EG')} - ${dayName}` });
+            }
+
+            dateDropdown.innerHTML = dates.map(d => `<option value="${d.date}">${d.display}</option>`).join('');
+            selectedDate = dateDropdown.value;
+            fetchAvailability(selectedDate);
+
+            dateDropdown.addEventListener('change', (e) => {
+                selectedDate = e.target.value;
+                fetchAvailability(selectedDate);
+            });
+
+            // Update button text and action for new team-building system
+            confirmBtn.onclick = () => {
+                openModal('confirm');
+            };
+            confirmBtn.innerHTML = '<i class="fa-solid fa-users ml-2"></i> اختيار نوع الحجز';
+            confirmBtn.className = 'bg-blue-600 text-white font-bold py-4 px-8 rounded-xl w-full hover:bg-blue-700 transition-all duration-300 shadow-lg text-lg';
+        }
+
+        // New Team-Building Initiation Function
+        async function initiateTeamBuilding() {
+            if (!selectedSlotId) {
+                showMessageBox('خطأ', 'يرجى اختيار موعد أولاً.');
+                return;
+            }
+
+            // Show loading state
+            const contentContainer = document.getElementById('modal-content-container');
+            contentContainer.innerHTML = `
+                <div class="flex flex-col items-center justify-center py-16">
+                    <div class="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mb-6"></div>
+                    <h4 class="text-2xl font-bold text-gray-900 mb-2">جاري إنشاء الفريق...</h4>
+                    <p class="text-gray-600 text-center">يرجى الانتظار بينما نقوم بإعداد فريقك</p>
+                </div>
+            `;
+
+            try {
+                // Get player details from localStorage and API
+                let userName = localStorage.getItem('userName') || '';
+                let userEmail = localStorage.getItem('userEmail') || '';
+                let userPhone = '';
+                
+                try {
+                    const userId = localStorage.getItem('userId');
+                    if (userId) {
+                        const response = await fetch(`http://localhost:3002/api/user/${userId}`);
+                        if (response.ok) {
+                            const data = await response.json();
+                            userName = data.user.name || userName;
+                            userEmail = data.user.email || userEmail;
+                            userPhone = data.user.phone_number || '';
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error fetching user data:', error);
+                }
+                
+                if (!userName || userName.trim() === '') {
+                    showMessageBox('خطأ', 'لا يمكن العثور على بيانات المستخدم. يرجى تسجيل الدخول مرة أخرى.', 'error');
+                    return;
+                }
+                
+                // Store player details for compatibility
+                window.playerDetails = {
+                    name: userName.trim(),
+                    email: userEmail.trim(),
+                    phone: userPhone || ''
+                };
+                
+                const playerName = userName.trim();
+
+                // Convert booking type to match server expectations
+                let serverBookingType = selectedReservationType;
+                if (selectedReservationType === 'full-field') serverBookingType = 'full_field';
+                else if (selectedReservationType === 'team-vs-team') serverBookingType = 'team_vs_team';
+                else if (selectedReservationType === 'team-looking-players') serverBookingType = 'team_looking_players';
+                else if (selectedReservationType === 'players-looking-team') serverBookingType = 'players_looking_team';
+
+                // Redirect to team-join page with booking parameters
+                const params = new URLSearchParams({
+                    userId: loggedInUserId,
+                    fieldId: selectedField,
+                    slotDate: selectedDate,
+                    startTime: selectedSlotData.start_time,
+                    endTime: selectedSlotData.end_time,
+                    bookingType: serverBookingType,
+                    playerName: playerName,
+                    playersNeeded: window.selectedPlayerCount || 0
+                });
+                
+                window.location.href = `/team-join.html?${params.toString()}`;
+            } catch (error) {
+                console.error('Team building initiation failed:', error);
+                
+                // Show error state with retry option
+                contentContainer.innerHTML = `
+                    <div class="text-center py-8">
+                        <i class="fa-solid fa-exclamation-triangle text-red-500 text-4xl mb-4"></i>
+                        <h4 class="text-2xl font-bold text-gray-900 mb-2">فشل في إنشاء الفريق</h4>
+                        <p class="text-gray-600 mb-6">${error.message || 'حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.'}</p>
+                        <div class="space-y-3">
+                            <button onclick="initiateTeamBuilding()" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors w-full">
+                                <i class="fa-solid fa-refresh ml-2"></i> إعادة المحاولة
+                            </button>
+                            <button onclick="openModal('availability')" class="bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-700 transition-colors w-full">
+                                <i class="fa-solid fa-arrow-right ml-2"></i> العودة للمواعيد
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        // Team building interface removed - now redirects to team-join.html
+
+        // Team building support functions removed - handled in team-join.html
+
+        // --- Handle Reservation and Matchmaking ---
+        async function handleFullTeamReservation() {
+            // This logic is for a full team reservation, which will directly book the slot
+            if (!selectedSlotId) {
+                showMessageBox('خطأ', 'يرجى اختيار موعد أولاً.');
+                return;
+            }
+            try {
+                const response = await fetch('http://localhost:3002/api/reserve', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        userId: loggedInUserId,
+                        slotId: selectedSlotId,
+                        reservationType: 'full_team'
+                    })
+                });
+
+                if (response.ok) {
+                    closeModal();
+                    showMessageBox(
+                        'حجز ناجح',
+                        'تم تأكيد حجزك. نراك قريباً في الملعب!',
+                        'success'
+                    );
+                } else {
+                    const errorData = await response.json();
+                    showMessageBox('خطأ', errorData.error);
+                }
+            } catch (error) {
+                console.error('Reservation failed:', error);
+                showMessageBox('خطأ في الشبكة', 'فشل الاتصال بالخادم. يرجى المحاولة لاحقاً.');
+            }
+        }
+
+        async function handleMatchmakingRequest() {
+            // This logic is for matchmaking, which sends a request to the admin
+            if (!selectedSlotId) {
+                showMessageBox('خطأ', 'يرجى اختيار موعد أولاً.');
+                return;
+            }
+
+            try {
+                const response = await fetch('http://localhost:3002/api/matchmaking', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        userId: loggedInUserId,
+                        fieldId: selectedField,
+                        slotId: selectedSlotId,
+                        requestType: selectedReservationType
+                    })
+                });
+
+                if (response.ok) {
+                    closeModal();
+                    showMessageBox(
+                        'تم إرسال طلبك',
+                        'سيتم مراجعة طلبك من قبل الإدارة وسيتم إعلامك عند العثور على شريك.',
+                        'success'
+                    );
+                } else {
+                    const errorData = await response.json();
+                    showMessageBox('خطأ', errorData.error);
+                }
+            } catch (error) {
+                console.error('Matchmaking request failed:', error);
+                showMessageBox('خطأ في الشبكة', 'فشل الاتصال بالخادم. يرجى المحاولة لاحقاً.');
+            }
+        }
+
+        // Player details form and proceedToConfirmation functions removed - now using direct user data
+
+        // Step 4: Confirmation step
+        async function renderConfirmationStep() {
+            const contentContainer = document.getElementById('modal-content-container');
+            
+            // Fetch user data directly
+            let userName = localStorage.getItem('userName') || 'غير محدد';
+            let userEmail = localStorage.getItem('userEmail') || 'غير محدد';
+            let userPhone = 'غير محدد';
+            
+            try {
+                const userId = localStorage.getItem('userId');
+                if (userId) {
+                    const response = await fetch(`http://localhost:3002/api/user/${userId}`);
+                    if (response.ok) {
+                        const data = await response.json();
+                        userName = data.user.name || userName;
+                        userEmail = data.user.email || userEmail;
+                        userPhone = data.user.phone_number || 'غير محدد';
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching user data:', error);
+                // Continue with localStorage data if API fails
+            }
+            
+            // Get field details for display
+            const fieldName = window.selectedFieldData ? window.selectedFieldData.name : 'ملعب غير محدد';
+            const fieldLocation = window.selectedFieldData ? window.selectedFieldData.location : 'موقع غير محدد';
+            const fieldPrice = window.selectedFieldData ? window.selectedFieldData.price_per_hour : 'غير محدد';
+            const slotTime = selectedSlotData ? `${selectedSlotData.start_time} - ${selectedSlotData.end_time}` : 'وقت غير محدد';
+            const bookingTypeText = {
+                'full_field': 'حجز ملعب كامل',
+                'team_vs_team': 'فريق ضد فريق',
+                'team_looking_for_players': 'فريق يبحث عن لاعبين',
+                'players_looking_for_team': 'لاعبين يبحثون عن فريق'
+            }[selectedReservationType] || selectedReservationType;
+            
+            contentContainer.innerHTML = `
+                <h4 class="text-3xl font-bold text-gray-900 mb-8 text-center">
+                    <i class="fa-solid fa-check-circle text-green-600"></i> تأكيد الحجز
+                </h4>
+                
+                <!-- Player Details Section -->
+                <div class="bg-blue-50 rounded-lg p-6 mb-6 border border-blue-200">
+                    <h5 class="text-xl font-bold text-blue-800 mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-user text-blue-600"></i> بيانات اللاعب
+                    </h5>
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center">
+                            <span class="text-blue-700 flex items-center gap-2">
+                                <i class="fa-solid fa-signature text-sm"></i> الاسم:
+                            </span>
+                            <span class="font-semibold text-blue-900">${userName}</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-blue-700 flex items-center gap-2">
+                                <i class="fa-solid fa-envelope text-sm"></i> البريد الإلكتروني:
+                            </span>
+                            <span class="font-semibold text-blue-900">${userEmail}</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-blue-700 flex items-center gap-2">
+                                <i class="fa-solid fa-phone text-sm"></i> رقم الهاتف:
+                            </span>
+                            <span class="font-semibold text-blue-900">${userPhone}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Booking Details Section -->
+                <div class="bg-green-50 rounded-lg p-6 mb-6 border border-green-200">
+                    <h5 class="text-xl font-bold text-green-800 mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-calendar-check text-green-600"></i> تفاصيل الحجز
+                    </h5>
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center">
+                            <span class="text-green-700 flex items-center gap-2">
+                                <i class="fa-solid fa-futbol text-sm"></i> الملعب:
+                            </span>
+                            <span class="font-semibold text-green-900">${fieldName}</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-green-700 flex items-center gap-2">
+                                <i class="fa-solid fa-map-marker-alt text-sm"></i> الموقع:
+                            </span>
+                            <span class="font-semibold text-green-900">${fieldLocation}</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-green-700 flex items-center gap-2">
+                                <i class="fa-solid fa-calendar text-sm"></i> التاريخ:
+                            </span>
+                            <span class="font-semibold text-green-900">${selectedDate}</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-green-700 flex items-center gap-2">
+                                <i class="fa-solid fa-clock text-sm"></i> الوقت:
+                            </span>
+                            <span class="font-semibold text-green-900">${slotTime}</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-green-700 flex items-center gap-2">
+                                <i class="fa-solid fa-users text-sm"></i> نوع الحجز:
+                            </span>
+                            <span class="font-semibold text-green-900">${bookingTypeText}</span>
+                        </div>
+                        ${window.selectedPlayerCount ? `
+                        <div class="flex justify-between items-center">
+                            <span class="text-green-700 flex items-center gap-2">
+                                <i class="fa-solid fa-hashtag text-sm"></i> عدد اللاعبين:
+                            </span>
+                            <span class="font-semibold text-green-900">${window.selectedPlayerCount}</span>
+                        </div>
+                        ` : ''}
+                        <div class="flex justify-between items-center">
+                            <span class="text-green-700 flex items-center gap-2">
+                                <i class="fa-solid fa-money-bill text-sm"></i> السعر بالساعة:
+                            </span>
+                            <span class="font-semibold text-green-900">${fieldPrice} شيكل</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex space-x-4 space-x-reverse">
+                    <button onclick="initiateTeamBuilding()" class="bg-gradient-to-r from-green-600 to-green-500 text-white px-6 py-3 rounded-lg hover:from-green-700 hover:to-green-600 transition-all duration-300 shadow-lg flex-1 transform hover:-translate-y-1">
+                        <i class="fa-solid fa-check ml-2"></i> تأكيد وإنشاء الفريق
+                    </button>
+                    <button onclick="openModal('availability')" class="bg-gradient-to-r from-gray-600 to-gray-500 text-white px-6 py-3 rounded-lg hover:from-gray-700 hover:to-gray-600 transition-all duration-300 shadow-lg flex-1 transform hover:-translate-y-1">
+                        <i class="fa-solid fa-arrow-right ml-2"></i> العودة
+                    </button>
+                </div>
+            `;
+        }
+
+        // Duplicate modal system removed - using renderMatchmakingChoices() instead
+
+        // --- Render Fields ---
+        async function renderFields() {
+            const container = document.getElementById('fields-container');
+            container.innerHTML = ''; // Clear existing fields
+            try {
+                const response = await fetch('http://localhost:3002/api/fields');
+                const data = await response.json();
+                const fields = data.fields;
+
+                if (fields && fields.length > 0) {
+                    fields.forEach(field => {
+                        const fieldCard = document.createElement('div');
+                        fieldCard.className = 'bg-white rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden transform hover:-translate-y-2 border border-gray-100';
+                        const imageUrl = field.image ? `data:image/jpeg;base64,${field.image}` : `https://placehold.co/600x400/22c55e/ffffff?text=${field.name.replace(/\s/g, '+')}`;
+                        fieldCard.innerHTML = `
+                            <img
+                                src="${imageUrl}"
+                                alt="${field.name}"
+                                class="w-full h-56 object-cover"
+                                onerror="this.onerror=null;this.src='https://placehold.co/600x400/22c55e/ffffff?text=${field.name.replace(/\s/g, '+')}'"
+                            />
+                            <div class="p-6">
+                                <h4 class="text-2xl font-bold mb-2 text-gray-900 flex items-center gap-2">
+                                    <i class="fa-solid fa-futbol text-green-600"></i>
+                                    ${field.name}
+                                </h4>
+                                <p class="text-gray-700 text-sm mb-4 leading-relaxed">${field.description}</p>
+                                <button
+                                    onclick="openModal('field-details', ${field.id})"
+                                    class="bg-gradient-to-r from-blue-600 to-blue-500 text-white px-8 py-3 rounded-xl hover:from-blue-700 hover:to-blue-600 transition-all duration-300 shadow-lg w-full text-lg transform hover:-translate-y-1 flex items-center justify-center gap-2"
+                                >
+                                    <i class="fa-solid fa-calendar-plus"></i> احجز الآن
+                                </button>
+                            </div>
+                        `;
+                        container.appendChild(fieldCard);
+                    });
+                } else {
+                    container.innerHTML = `<p class="text-center text-gray-500 text-xl w-full">لا توجد ملاعب متاحة حالياً.</p>`;
+                }
+            } catch (error) {
+                console.error('Failed to fetch fields:', error);
+                container.innerHTML = `<p class="text-center text-red-500 text-xl w-full">حدث خطأ في تحميل الملاعب. يرجى التأكد من تشغيل الخادم.</p>`;
+            }
+        }
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            renderFields();
+        });
+    </script>
+</body>
+</html>

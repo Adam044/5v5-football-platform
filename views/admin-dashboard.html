@@ -1,0 +1,1996 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة تحكم الإدارة</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap');
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: #f0f4f8;
+            color: #2c3e50;
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+        .animate-scale-in-up {
+            animation: scaleInUp 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes scaleInUp {
+            from { transform: translateY(30px) scale(0.95); opacity: 0; }
+            to { transform: translateY(0) scale(1); opacity: 1; }
+        }
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f0f4f8;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #aab8c2;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #8899a6;
+        }
+        .tab-button {
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        .tab-button.active {
+            color: #10b981;
+        }
+        .tab-button.active::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            right: 0;
+            height: 4px;
+            width: 100%;
+            background-color: #10b981;
+            border-radius: 9999px;
+        }
+        .info-card {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            background-color: #ffffff;
+            border-radius: 1rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            transform: translateY(0);
+        }
+        .info-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        .info-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        .info-card-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1a202c;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .info-card-icon {
+            font-size: 1.75rem;
+        }
+        .info-card-body {
+            font-size: 1rem;
+            color: #4a5568;
+            line-height: 1.6;
+        }
+        .info-card-footer {
+            margin-top: 1.5rem;
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.5rem;
+            padding-top: 1rem;
+            border-top: 1px solid #e2e8f0;
+        }
+        .info-card-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.75rem 1.5rem;
+            font-weight: 700;
+            border-radius: 0.75rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(1, minmax(0, 1fr));
+            gap: 2.5rem;
+        }
+        @media (min-width: 768px) {
+            .card-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+        @media (min-width: 1280px) {
+            .card-grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- Global Header Placeholder -->
+    <div id="global-header"></div>
+
+    <!-- Admin Dashboard Content -->
+    <main class="flex-grow container mx-auto px-6 py-20 animate-fade-in">
+        <h3 class="text-5xl font-extrabold text-center mb-16 text-gray-900 leading-tight">
+            لوحة تحكم <span class="text-green-600">الإدارة</span>
+        </h3>
+        
+        <!-- Dashboard Overview -->
+        <div class="bg-white rounded-2xl shadow-xl p-8 mb-12 border-b-4 border-blue-500">
+            <h4 class="text-3xl font-bold text-gray-900 mb-8 flex items-center gap-3">
+                <i class="fa-solid fa-chart-line text-blue-600"></i>
+                نظرة عامة على النظام
+            </h4>
+            
+            <!-- Analytics Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-6 rounded-xl shadow-lg">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-blue-100 text-sm font-medium">إجمالي المستخدمين</p>
+                            <p id="total-users" class="text-3xl font-bold">0</p>
+                        </div>
+                        <i class="fa-solid fa-users text-4xl text-blue-200"></i>
+                    </div>
+                </div>
+                
+                <div class="bg-gradient-to-r from-green-500 to-green-600 text-white p-6 rounded-xl shadow-lg">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-green-100 text-sm font-medium">إجمالي الحجوزات</p>
+                            <p id="total-reservations" class="text-3xl font-bold">0</p>
+                        </div>
+                        <i class="fa-solid fa-calendar-check text-4xl text-green-200"></i>
+                    </div>
+                </div>
+                
+                <div class="bg-gradient-to-r from-yellow-500 to-yellow-600 text-white p-6 rounded-xl shadow-lg">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-yellow-100 text-sm font-medium">إجمالي الأرباح</p>
+                            <p id="total-earnings" class="text-3xl font-bold">0 ₪</p>
+                        </div>
+                        <i class="fa-solid fa-coins text-4xl text-yellow-200"></i>
+                    </div>
+                </div>
+                
+                <div class="bg-gradient-to-r from-purple-500 to-purple-600 text-white p-6 rounded-xl shadow-lg">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-purple-100 text-sm font-medium">طلبات معلقة</p>
+                            <p id="pending-requests" class="text-3xl font-bold">0</p>
+                        </div>
+                        <i class="fa-solid fa-clock text-4xl text-purple-200"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Recent Activity -->
+            <div class="bg-gray-50 rounded-xl p-6">
+                <h5 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-history text-gray-600"></i>
+                    آخر الحجوزات
+                </h5>
+                <div id="recent-reservations" class="space-y-3">
+                    <!-- Recent reservations will be loaded here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab Navigation -->
+        <div class="bg-white rounded-2xl shadow-xl p-6 mb-12 flex flex-wrap justify-center md:justify-between gap-4">
+            <button class="tab-button active text-green-600 font-bold text-xl px-4 py-2" data-tab="requests-tab">
+                <i class="fa-solid fa-clipboard-list ml-2"></i> طلبات الحجز
+            </button>
+            <button class="tab-button text-gray-600 font-bold text-xl px-4 py-2" data-tab="reservations-tab">
+                <i class="fa-solid fa-book-open-reader ml-2"></i> الحجوزات
+            </button>
+            <button class="tab-button text-gray-600 font-bold text-xl px-4 py-2" data-tab="fields-tab">
+                <i class="fa-solid fa-futbol ml-2"></i> إدارة الملاعب
+            </button>
+            <button class="tab-button text-gray-600 font-bold text-xl px-4 py-2" data-tab="availability-tab">
+                <i class="fa-solid fa-calendar-alt ml-2"></i> إدارة المواعيد
+            </button>
+            <button class="tab-button text-gray-600 font-bold text-xl px-4 py-2" data-tab="matchmaking-tab">
+                <i class="fa-solid fa-users-line ml-2"></i> طلبات المطابقة
+            </button>
+            <button class="tab-button text-gray-600 font-bold text-xl px-4 py-2" data-tab="tournaments-tab">
+                <i class="fa-solid fa-trophy ml-2"></i> إدارة البطولات
+            </button>
+        </div>
+
+        <!-- Tab Content -->
+        <div id="tab-content">
+
+            <!-- Tab 1: Booking Requests -->
+            <section id="requests-tab" class="tab-pane">
+                <div class="bg-white rounded-2xl shadow-xl p-8 mb-12 border-b-4 border-red-500">
+                    <h4 class="text-3xl font-bold text-gray-900 mb-8 flex items-center gap-3">
+                        <i class="fa-solid fa-clipboard-list text-red-600"></i>
+                        طلبات الحجز
+                    </h4>
+                    
+                    <div class="overflow-x-auto">
+                        <table class="w-full table-auto border-collapse">
+                            <thead>
+                                <tr class="bg-gray-100">
+                                    <th class="border border-gray-300 px-4 py-3 text-right font-bold">المستخدم</th>
+                                    <th class="border border-gray-300 px-4 py-3 text-right font-bold">الملعب</th>
+                                    <th class="border border-gray-300 px-4 py-3 text-right font-bold">التاريخ</th>
+                                    <th class="border border-gray-300 px-4 py-3 text-right font-bold">الوقت</th>
+                                    <th class="border border-gray-300 px-4 py-3 text-right font-bold">السعر</th>
+                                    <th class="border border-gray-300 px-4 py-3 text-right font-bold">الحالة</th>
+                                    <th class="border border-gray-300 px-4 py-3 text-right font-bold">الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody id="requests-table-body">
+                                <!-- Requests will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Tab 2: Reservations -->
+            <section id="reservations-tab" class="tab-pane hidden">
+                <div class="bg-white rounded-2xl shadow-xl p-8 mb-12 border-b-4 border-green-500">
+                    <h4 class="text-3xl font-bold text-gray-900 mb-8 flex items-center gap-3">
+                        <i class="fa-solid fa-book-open-reader text-green-600"></i>
+                        جميع الحجوزات
+                    </h4>
+                    
+                    <div class="overflow-x-auto">
+                        <table class="w-full table-auto border-collapse">
+                            <thead>
+                                <tr class="bg-gray-100">
+                                    <th class="border border-gray-300 px-4 py-3 text-right font-bold">المستخدم</th>
+                                    <th class="border border-gray-300 px-4 py-3 text-right font-bold">الملعب</th>
+                                    <th class="border border-gray-300 px-4 py-3 text-right font-bold">التاريخ</th>
+                                    <th class="border border-gray-300 px-4 py-3 text-right font-bold">الوقت</th>
+                                    <th class="border border-gray-300 px-4 py-3 text-right font-bold">السعر</th>
+                                    <th class="border border-gray-300 px-4 py-3 text-right font-bold">الحالة</th>
+                                    <th class="border border-gray-300 px-4 py-3 text-right font-bold">الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody id="reservations-table-body">
+                                <!-- Reservations will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Tab 3: Manage Fields -->
+            <section id="fields-tab" class="tab-pane hidden">
+                <div class="bg-white rounded-2xl shadow-xl p-8 mb-12 border-b-4 border-green-500">
+                    <h4 class="text-3xl font-bold text-gray-900 mb-8 flex items-center gap-3">
+                        <i class="fa-solid fa-futbol text-green-600"></i>
+                        إدارة الملاعب
+                    </h4>
+                    
+                    <div id="fields-card-container" class="card-grid">
+                        <!-- Field cards will be injected here -->
+                    </div>
+
+                    <button onclick="openAddFieldModal()" class="mt-8 bg-green-600 text-white font-bold py-3 px-6 rounded-xl hover:bg-green-700 transition-all duration-300 shadow-md">
+                        إضافة ملعب جديد
+                    </button>
+                </div>
+            </section>
+
+            <!-- Tab 4: Availability Management -->
+            <section id="availability-tab" class="tab-pane hidden">
+                <div class="bg-white rounded-2xl shadow-xl p-8 mb-12 border-b-4 border-purple-500">
+                    <h4 class="text-3xl font-bold text-gray-900 mb-8 flex items-center gap-3">
+                        <i class="fa-solid fa-calendar-alt text-purple-600"></i>
+                        إدارة المواعيد المتاحة
+                    </h4>
+                    
+                    <!-- Field Selection -->
+                    <div class="mb-6">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">اختر الملعب:</label>
+                        <select id="availability-field-select" class="w-full md:w-1/3 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">اختر ملعب...</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Date Selection -->
+                    <div class="mb-6">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">اختر التاريخ:</label>
+                        <input type="date" id="availability-date-select" class="w-full md:w-1/3 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    
+                    <!-- Availability Management Info -->
+                    <div class="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+                        <p class="text-blue-800 text-sm">
+                            <i class="fa-solid fa-info-circle ml-2"></i>
+                            لإضافة مواعيد جديدة، انتقل إلى قسم "إدارة الملاعب" واضغط على "إضافة مواعيد" للملعب المطلوب
+                        </p>
+                    </div>
+                    
+                    <!-- Availability Slots Display -->
+                    <div id="availability-slots" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <!-- Availability slots will be loaded here -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Tab 5: Bookings (Legacy) -->
+            <section id="bookings-tab" class="tab-pane hidden">
+                <div class="bg-white rounded-2xl shadow-xl p-8 mb-12 border-b-4 border-blue-500">
+                    <h4 class="text-3xl font-bold text-gray-900 mb-8 flex items-center gap-3">
+                        <i class="fa-solid fa-book-open-reader text-blue-600"></i>
+                        الحجوزات
+                    </h4>
+                    
+                    <div id="bookings-card-container" class="card-grid">
+                        <!-- Booking cards will be injected here -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Tab 3: Matchmaking -->
+            <section id="matchmaking-tab" class="tab-pane hidden">
+                <div class="bg-white rounded-2xl shadow-xl p-8 border-b-4 border-purple-500">
+                    <h4 class="text-3xl font-bold text-gray-900 mb-8 flex items-center gap-3">
+                        <i class="fa-solid fa-users-line text-purple-600"></i>
+                        طلبات المطابقة
+                    </h4>
+                    
+                    <div class="card-grid mb-10">
+                        <div id="teams-looking-container" class="bg-gray-50 p-6 rounded-xl border-t-4 border-blue-500 shadow-sm col-span-full md:col-span-1">
+                            <h5 class="text-xl font-bold text-gray-800 mb-4">فرق تبحث عن لاعب</h5>
+                            <div id="teams-looking-cards" class="space-y-4"></div>
+                        </div>
+                        <div id="players-looking-container" class="bg-gray-50 p-6 rounded-xl border-t-4 border-green-500 shadow-sm col-span-full md:col-span-1">
+                            <h5 class="text-xl font-bold text-gray-800 mb-4">لاعبون يبحثون عن فريق</h5>
+                            <div id="players-looking-cards" class="space-y-4"></div>
+                        </div>
+                    </div>
+
+                    <h4 class="text-3xl font-bold text-gray-900 mb-8 flex items-center gap-3">
+                        <i class="fa-solid fa-handshake text-yellow-600"></i>
+                        مقترحات المطابقة
+                    </h4>
+                    
+                    <div id="matchmaking-suggestions-container" class="card-grid">
+                        <!-- Matchmaking suggestions will be injected here -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Tab 4: Manage Tournaments -->
+            <section id="tournaments-tab" class="tab-pane hidden">
+                <div class="bg-white rounded-2xl shadow-xl p-8 border-b-4 border-orange-500">
+                    <h4 class="text-3xl font-bold text-gray-900 mb-8 flex items-center gap-3">
+                        <i class="fa-solid fa-trophy text-orange-600"></i>
+                        إدارة البطولات
+                    </h4>
+                    
+                    <div id="tournaments-card-container" class="card-grid">
+                        <!-- Tournament cards will be injected here -->
+                    </div>
+
+                    <button onclick="openAddTournamentModal()" class="mt-8 bg-orange-600 text-white font-bold py-3 px-6 rounded-xl hover:bg-orange-700 transition-all duration-300 shadow-md">
+                        إضافة بطولة جديدة
+                    </button>
+                </div>
+            </section>
+            
+        </div>
+    </main>
+
+    <!-- Modal for Adding Field -->
+    <div id="add-field-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50 animate-fade-in">
+        <div class="bg-white rounded-2xl shadow-3xl p-8 w-full max-w-lg relative animate-scale-in-up border-b-4 border-green-600 max-h-[90vh] overflow-y-auto">
+            <button onclick="closeAddFieldModal()" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 transition-colors duration-300 rounded-full bg-gray-100 p-2 hover:bg-gray-200">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <h4 class="text-3xl font-bold text-gray-900 mb-8 flex items-center justify-center gap-3">
+                <i class="fa-solid fa-square-plus text-green-600"></i>
+                إضافة ملعب
+            </h4>
+            <form id="add-field-form" onsubmit="event.preventDefault(); handleAddField();">
+                <div class="mb-4">
+                    <label for="field-name" class="block text-gray-700 font-semibold mb-2 text-right">اسم الملعب</label>
+                    <input type="text" id="field-name" class="p-3 border border-gray-300 rounded-lg w-full text-right" required>
+                </div>
+                <div class="mb-4">
+                    <label for="field-description" class="block text-gray-700 font-semibold mb-2 text-right">الوصف</label>
+                    <textarea id="field-description" rows="3" class="p-3 border border-gray-300 rounded-lg w-full text-right"></textarea>
+                </div>
+                <div class="mb-4">
+                    <label for="field-location" class="block text-gray-700 font-semibold mb-2 text-right">الموقع</label>
+                    <input type="text" id="field-location" class="p-3 border border-gray-300 rounded-lg w-full text-right" required>
+                </div>
+                <div class="mb-4">
+                    <label for="field-price" class="block text-gray-700 font-semibold mb-2 text-right">السعر بالساعة (شيكل)</label>
+                    <input type="number" id="field-price" class="p-3 border border-gray-300 rounded-lg w-full text-right" required>
+                </div>
+                <div class="mb-4">
+                    <label for="field-image-file" class="block text-gray-700 font-semibold mb-2 text-right">صورة الملعب</label>
+                    <input type="file" id="field-image-file" accept="image/*" class="p-3 border border-gray-300 rounded-lg w-full text-right" required>
+                </div>
+                <button type="submit" class="bg-green-600 text-white font-bold px-8 py-4 rounded-xl w-full hover:bg-green-700 transition-all duration-300 shadow-lg text-lg flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-plus-circle"></i> إضافة
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal for Editing Field -->
+    <div id="edit-field-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50 animate-fade-in">
+        <div class="bg-white rounded-2xl shadow-3xl p-8 w-full max-w-lg relative animate-scale-in-up border-b-4 border-green-600 max-h-[90vh] overflow-y-auto">
+            <button onclick="closeEditFieldModal()" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 transition-colors duration-300 rounded-full bg-gray-100 p-2 hover:bg-gray-200">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <h4 class="text-3xl font-bold text-gray-900 mb-8 flex items-center justify-center gap-3">
+                <i class="fa-solid fa-edit text-green-600"></i>
+                تعديل ملعب
+            </h4>
+            <form id="edit-field-form" onsubmit="event.preventDefault(); handleEditField();">
+                <input type="hidden" id="edit-field-id">
+                <div class="mb-4">
+                    <label for="edit-field-name" class="block text-gray-700 font-semibold mb-2 text-right">اسم الملعب</label>
+                    <input type="text" id="edit-field-name" class="p-3 border border-gray-300 rounded-lg w-full text-right" required>
+                </div>
+                <div class="mb-4">
+                    <label for="edit-field-description" class="block text-gray-700 font-semibold mb-2 text-right">الوصف</label>
+                    <textarea id="edit-field-description" rows="3" class="p-3 border border-gray-300 rounded-lg w-full text-right"></textarea>
+                </div>
+                <div class="mb-4">
+                    <label for="edit-field-location" class="block text-gray-700 font-semibold mb-2 text-right">الموقع</label>
+                    <input type="text" id="edit-field-location" class="p-3 border border-gray-300 rounded-lg w-full text-right" required>
+                </div>
+                <div class="mb-4">
+                    <label for="edit-field-price" class="block text-gray-700 font-semibold mb-2 text-right">السعر بالساعة (شيكل)</label>
+                    <input type="number" id="edit-field-price" class="p-3 border border-gray-300 rounded-lg w-full text-right" required>
+                </div>
+                <div class="mb-4">
+                    <label for="edit-field-image-file" class="block text-gray-700 font-semibold mb-2 text-right">صورة الملعب</label>
+                    <img id="edit-field-image-preview" src="" alt="صورة الملعب الحالية" class="w-full h-48 object-cover rounded-xl mt-2 mb-2">
+                    <input type="file" id="edit-field-image-file" accept="image/*" class="p-3 border border-gray-300 rounded-lg w-full text-right">
+                    <p class="text-sm text-gray-500 mt-2 text-right">اترك هذا الحقل فارغاً للاحتفاظ بالصورة الحالية.</p>
+                </div>
+                <button type="submit" class="bg-blue-600 text-white font-bold px-8 py-4 rounded-xl w-full hover:bg-blue-700 transition-all duration-300 shadow-lg text-lg flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-floppy-disk"></i> حفظ التغييرات
+                </button>
+            </form>
+        </div>
+    </div>
+
+
+    <!-- Modal for Adding Slots -->
+    <div id="add-slot-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50 animate-fade-in">
+        <div class="bg-white rounded-2xl shadow-3xl p-8 w-full max-w-lg relative animate-scale-in-up border-b-4 border-blue-600 max-h-[90vh] overflow-y-auto">
+            <button onclick="closeAddSlotModal()" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 transition-colors duration-300 rounded-full bg-gray-100 p-2 hover:bg-gray-200">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <h4 class="text-3xl font-bold text-gray-900 mb-8 flex items-center justify-center gap-3">
+                <i class="fa-solid fa-calendar-plus text-blue-600"></i>
+                إضافة مواعيد للملعب <span id="slot-field-name" class="font-normal text-green-600 mr-2"></span>
+            </h4>
+            <form id="add-slot-form" onsubmit="event.preventDefault(); handleAddSlot();">
+                <input type="hidden" id="slot-field-id">
+                <div class="mb-4">
+                    <label for="slot-date" class="block text-gray-700 font-semibold mb-2 text-right">التاريخ</label>
+                    <input type="date" id="slot-date" class="p-3 border border-gray-300 rounded-lg w-full text-right" required>
+                </div>
+                <div id="availability-view" class="mb-6 space-y-4">
+                    <!-- Existing slots will be displayed here dynamically -->
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700 font-semibold mb-2 text-right">أضف مواعيد جديدة</label>
+                    <div id="slots-container" class="space-y-2">
+                        <!-- New slots will be added dynamically here -->
+                    </div>
+                    <button type="button" onclick="addSlotInput()" class="mt-2 text-blue-600 font-semibold text-sm hover:underline flex items-center gap-2">
+                        <i class="fa-solid fa-circle-plus"></i> إضافة موعد آخر
+                    </button>
+                </div>
+                <button type="submit" class="bg-blue-600 text-white font-bold px-8 py-4 rounded-xl w-full hover:bg-blue-700 transition-all duration-300 shadow-lg text-lg flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-calendar-check"></i> حفظ المواعيد
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal for Adding Tournament -->
+    <div id="add-tournament-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50 animate-fade-in">
+        <div class="bg-white rounded-2xl shadow-3xl p-8 w-full max-w-lg relative animate-scale-in-up border-b-4 border-orange-600 max-h-[90vh] overflow-y-auto">
+            <button onclick="closeAddTournamentModal()" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 transition-colors duration-300 rounded-full bg-gray-100 p-2 hover:bg-gray-200">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <h4 class="text-3xl font-bold text-gray-900 mb-8 flex items-center justify-center gap-3">
+                <i class="fa-solid fa-trophy text-orange-600"></i>
+                إضافة بطولة
+            </h4>
+            <form id="add-tournament-form" onsubmit="event.preventDefault(); handleAddTournament();">
+                <div class="space-y-4">
+                    <div>
+                        <label for="tournament-name" class="block text-gray-700 font-semibold mb-2 text-right">اسم البطولة</label>
+                        <input type="text" id="tournament-name" class="p-3 border border-gray-300 rounded-lg w-full text-right" required>
+                    </div>
+                    
+                    <div>
+                        <label for="tournament-description" class="block text-gray-700 font-semibold mb-2 text-right">الوصف</label>
+                        <textarea id="tournament-description" rows="3" class="p-3 border border-gray-300 rounded-lg w-full text-right"></textarea>
+                    </div>
+
+                    <div>
+                        <label for="tournament-prize" class="block text-gray-700 font-semibold mb-2 text-right">الجائزة</label>
+                        <input type="text" id="tournament-prize" class="p-3 border border-gray-300 rounded-lg w-full text-right" required>
+                    </div>
+
+                    <div>
+                        <label for="tournament-date" class="block text-gray-700 font-semibold mb-2 text-right">تاريخ البطولة</label>
+                        <input type="date" id="tournament-date" class="p-3 border border-gray-300 rounded-lg w-full text-right" required>
+                    </div>
+
+                    <div>
+                        <label for="tournament-field" class="block text-gray-700 font-semibold mb-2 text-right">الملعب</label>
+                        <select id="tournament-field" class="p-3 border border-gray-300 rounded-lg w-full text-right" required></select>
+                    </div>
+
+                    <div>
+                        <label for="tournament-image" class="block text-gray-700 font-semibold mb-2 text-right">صورة البطولة</label>
+                         <img id="tournament-image-preview" src="" alt="صورة البطولة" class="w-full h-48 object-cover rounded-xl mt-2 mb-2 hidden">
+                        <input type="file" id="tournament-image" accept="image/*" class="p-3 border border-gray-300 rounded-lg w-full text-right" required>
+                    </div>
+                </div>
+
+                <button type="submit" class="mt-8 bg-orange-600 text-white font-bold px-8 py-4 rounded-xl w-full hover:bg-orange-700 transition-all duration-300 shadow-lg text-lg flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-plus-circle"></i> إضافة بطولة
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Message Box (replaces alert) -->
+    <div id="message-box" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50 animate-fade-in">
+        <div class="bg-white rounded-2xl shadow-3xl p-8 w-full max-w-sm relative animate-scale-in-up text-center border-t-4 border-red-500">
+            <h4 id="message-box-title" class="text-2xl font-bold mb-4 text-gray-900 flex items-center justify-center gap-2"></h4>
+            <p id="message-box-content" class="text-gray-700 mb-6 text-lg"></p>
+            <div id="message-box-buttons" class="flex gap-3 justify-center">
+                <button id="message-box-confirm" onclick="closeMessageBox()" class="bg-red-600 text-white px-7 py-3 rounded-xl hover:bg-red-700 transition-all duration-300 shadow-md text-lg">
+                    حسناً
+                </button>
+                <button id="message-box-cancel" onclick="closeMessageBox()" class="hidden bg-gray-500 text-white px-7 py-3 rounded-xl hover:bg-gray-600 transition-all duration-300 shadow-md text-lg">
+                    إلغاء
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Slot Modal -->
+    <div id="edit-slot-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50 animate-fade-in">
+        <div class="bg-white rounded-2xl shadow-3xl p-8 w-full max-w-lg relative animate-scale-in-up border-b-4 border-blue-600">
+            <button onclick="closeEditSlotModal()" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 transition-colors duration-300 rounded-full bg-gray-100 p-2 hover:bg-gray-200">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <h4 class="text-3xl font-bold text-gray-900 mb-8 flex items-center justify-center gap-3">
+                <i class="fa-solid fa-edit text-blue-600"></i>
+                تعديل الموعد
+            </h4>
+            <form id="edit-slot-form" onsubmit="event.preventDefault(); handleEditSlot();">
+                <input type="hidden" id="edit-slot-id">
+                <input type="hidden" id="edit-slot-field-id">
+                
+                <div class="mb-4">
+                    <label for="edit-slot-date" class="block text-gray-700 font-semibold mb-2 text-right">التاريخ</label>
+                    <input type="date" id="edit-slot-date" class="p-3 border border-gray-300 rounded-lg w-full text-right" required>
+                </div>
+                
+                <div class="mb-4">
+                    <label for="edit-slot-start-time" class="block text-gray-700 font-semibold mb-2 text-right">وقت البداية</label>
+                    <input type="time" id="edit-slot-start-time" class="p-3 border border-gray-300 rounded-lg w-full text-right" required>
+                </div>
+                
+                <div class="mb-6">
+                    <label for="edit-slot-end-time" class="block text-gray-700 font-semibold mb-2 text-right">وقت النهاية</label>
+                    <input type="time" id="edit-slot-end-time" class="p-3 border border-gray-300 rounded-lg w-full text-right" required>
+                </div>
+                
+                <div class="flex gap-4">
+                    <button type="submit" class="bg-blue-600 text-white font-bold px-6 py-3 rounded-xl flex-1 hover:bg-blue-700 transition-all duration-300 shadow-lg flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-save"></i> حفظ التغييرات
+                    </button>
+                    <button type="button" onclick="closeEditSlotModal()" class="bg-gray-500 text-white font-bold px-6 py-3 rounded-xl flex-1 hover:bg-gray-600 transition-all duration-300 shadow-lg flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-times"></i> إلغاء
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-gray-200 py-10 mt-auto">
+        <div class="container mx-auto px-6 text-center">
+            <p class="mb-5 text-lg">&copy; 2025 5ع5. جميع الحقوق محفوظة.</p>
+            <div class="flex justify-center space-x-6 space-x-reverse text-md">
+                <a href="#" class="text-gray-400 hover:text-white transition-colors duration-300">سياسة الخصوصية</a>
+                <a href="#" class="text-gray-400 hover:text-white transition-colors duration-300">شروط الخدمة</a>
+                <a href="#" class="text-gray-400 hover:text-white transition-colors duration-300">الأسئلة الشائعة</a>
+            </div>
+        </div>
+    </footer>
+
+    <script src="header.js"></script>
+    <script>
+        // --- Admin Access Check on page load ---
+        async function checkAdminAccess() {
+            const userId = localStorage.getItem('userId');
+            if (!userId) {
+                showMessageBox('غير مصرح', 'يجب تسجيل الدخول للوصول إلى هذه الصفحة.', 'error');
+                setTimeout(() => window.location.href = 'auth.html', 1500);
+                return;
+            }
+            try {
+                // Use the admin fields endpoint to verify admin access
+                // This will automatically check admin permissions via checkAdmin middleware
+                const response = await fetch(`http://localhost:3002/api/admin/fields`, {
+                    headers: {
+                        'X-User-Id': userId
+                    }
+                });
+                if (!response.ok) {
+                    if (response.status === 401 || response.status === 403) {
+                        showMessageBox('غير مصرح', 'ليس لديك صلاحيات للوصول إلى لوحة تحكم الإدارة.', 'error');
+                        setTimeout(() => window.location.href = 'index.html', 1500);
+                        return;
+                    }
+                    throw new Error('Failed to verify admin access');
+                }
+                // If all checks pass, fetch admin data
+                fetchData();
+            } catch (error) {
+                console.error('Admin access check failed:', error);
+                showMessageBox('خطأ في الاتصال', `فشل التحقق من الصلاحيات. يرجى المحاولة لاحقاً. تفاصيل الخطأ: ${error.message}`, 'error');
+            }
+        }
+        
+        // --- Helper functions ---
+        function getStatusBadge(status) {
+            const statusMap = {
+                'pending': { text: 'قيد الانتظار', color: 'bg-yellow-200 text-yellow-800' },
+                'confirmed': { text: 'مؤكد', color: 'bg-green-200 text-green-800' },
+                'completed': { text: 'مكتمل', color: 'bg-green-200 text-green-800' },
+                'declined': { text: 'مرفوض', color: 'bg-red-200 text-red-800' },
+                'upcoming': { text: 'قادمة', color: 'bg-blue-200 text-blue-800' },
+                'past': { text: 'سابقة', color: 'bg-gray-200 text-gray-800' }
+            };
+            const badge = status && statusMap[status.toLowerCase()] ? statusMap[status.toLowerCase()] : { text: 'غير محدد', color: 'bg-gray-400 text-gray-800' };
+            return `<span class="${badge.color} py-1 px-3 rounded-full text-xs font-semibold">${badge.text}</span>`;
+        }
+        
+        function getReservationType(type) {
+            const typeMap = {
+                'full_team': 'فريق كامل',
+                'player_looking_for_team': 'لاعب يبحث عن فريق',
+                'team_looking_for_player': 'فريق يبحث عن لاعب'
+            };
+            return typeMap[type] || type;
+        }
+
+        function getRequestType(type) {
+            const typeMap = {
+                'player_looking_for_team': 'لاعب يبحث عن فريق',
+                'team_looking_for_player': 'فريق يبحث عن لاعب'
+            };
+            return typeMap[type.toLowerCase()] || type;
+        }
+
+        function showMessageBox(title, content, type = 'error', callback = null, isConfirmation = false) {
+            const msgBox = document.getElementById('message-box');
+            const msgTitle = document.getElementById('message-box-title');
+            const msgContent = document.getElementById('message-box-content');
+            const confirmButton = document.getElementById('message-box-confirm');
+            const cancelButton = document.getElementById('message-box-cancel');
+
+            if (!msgBox || !msgTitle || !msgContent || !confirmButton || !cancelButton) {
+                console.error("MessageBox elements not found in the DOM.");
+                return;
+            }
+
+            msgTitle.innerHTML = '';
+            msgBox.className = 'hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50 animate-fade-in';
+            msgBox.querySelector('.bg-white').className = 'bg-white rounded-2xl shadow-3xl p-8 w-full max-w-sm relative animate-scale-in-up text-center';
+
+            if (type === 'error') {
+                msgTitle.innerHTML = `<i class="fa-solid fa-octagon-xmark text-red-500 ml-2"></i>${title}`;
+                msgBox.querySelector('.bg-white').classList.add('border-t-4', 'border-red-500');
+                confirmButton.className = 'bg-red-600 text-white px-7 py-3 rounded-xl hover:bg-red-700 transition-all duration-300 shadow-md text-lg';
+            } else if (type === 'success') {
+                msgTitle.innerHTML = `<i class="fa-solid fa-circle-check text-green-600 ml-2"></i>${title}`;
+                msgBox.querySelector('.bg-white').classList.add('border-t-4', 'border-green-600');
+                confirmButton.className = 'bg-green-600 text-white px-7 py-3 rounded-xl hover:bg-green-700 transition-all duration-300 shadow-md text-lg';
+            } else if (type === 'warning') {
+                msgTitle.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-yellow-500 ml-2"></i>${title}`;
+                msgBox.querySelector('.bg-white').classList.add('border-t-4', 'border-yellow-500');
+                confirmButton.className = 'bg-yellow-600 text-white px-7 py-3 rounded-xl hover:bg-yellow-700 transition-all duration-300 shadow-md text-lg';
+            } else { // info
+                msgTitle.innerHTML = `<i class="fa-solid fa-circle-info text-blue-500 ml-2"></i>${title}`;
+                msgBox.querySelector('.bg-white').classList.add('border-t-4', 'border-blue-500');
+                confirmButton.className = 'bg-blue-600 text-white px-7 py-3 rounded-xl hover:bg-blue-700 transition-all duration-300 shadow-md text-lg';
+            }
+            msgContent.innerText = content;
+            
+            // Show/hide cancel button based on confirmation type
+            if (isConfirmation) {
+                cancelButton.classList.remove('hidden');
+                confirmButton.textContent = 'نعم';
+                cancelButton.onclick = closeMessageBox;
+            } else {
+                cancelButton.classList.add('hidden');
+                confirmButton.textContent = 'حسناً';
+            }
+            
+            msgBox.classList.remove('hidden');
+
+            if (callback) {
+                confirmButton.onclick = () => {
+                    closeMessageBox();
+                    callback();
+                };
+            } else {
+                confirmButton.onclick = closeMessageBox;
+            }
+        }
+        
+        function closeMessageBox() {
+            document.getElementById('message-box').classList.add('hidden');
+        }
+
+        // --- Tab Management ---
+        const tabs = document.querySelectorAll('.tab-button');
+        const tabPanes = document.querySelectorAll('.tab-pane');
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                tabs.forEach(t => t.classList.remove('active', 'text-green-600'));
+                tab.classList.add('active', 'text-green-600');
+
+                tabPanes.forEach(p => p.classList.add('hidden'));
+                const targetTab = document.getElementById(tab.dataset.tab);
+                if (targetTab) {
+                    targetTab.classList.remove('hidden');
+                }
+            });
+        });
+
+        // --- Fetch and Render Data ---
+        async function fetchData() {
+            const userId = localStorage.getItem('userId');
+            const headers = {
+                'Content-Type': 'application/json',
+                'X-User-Id': userId
+            };
+            try {
+                // Fetch fields
+                const fieldsResponse = await fetch('http://localhost:3002/api/admin/fields', { headers });
+                if (!fieldsResponse.ok) {
+                    throw new Error('Failed to fetch fields');
+                }
+                const fieldsData = await fieldsResponse.json();
+                renderFields(fieldsData.fields);
+                populateTournamentFieldDropdown(fieldsData.fields);
+
+                // Fetch reservations
+                const bookingsResponse = await fetch(`http://localhost:3002/api/admin/reservations`, { headers });
+                if (!bookingsResponse.ok) {
+                    throw new Error('Failed to fetch bookings');
+                }
+                const bookingsData = await bookingsResponse.json();
+                renderBookings(bookingsData.reservations);
+
+                // Fetch matchmaking requests
+                const matchmakingResponse = await fetch(`http://localhost:3002/api/admin/matchmaking-requests`, { headers });
+                if (!matchmakingResponse.ok) {
+                    throw new Error('Failed to fetch matchmaking requests');
+                }
+                const matchmakingData = await matchmakingResponse.json();
+                renderMatchmaking(matchmakingData.requests);
+
+                // Fetch matchmaking suggestions
+                const suggestionsResponse = await fetch(`http://localhost:3002/api/admin/matchmaking/suggestions`, { headers });
+                if (!suggestionsResponse.ok) {
+                    throw new Error('Failed to fetch matchmaking suggestions');
+                }
+                const suggestionsData = await suggestionsResponse.json();
+                renderMatchmakingSuggestions(suggestionsData.suggestions);
+
+                // Fetch tournaments
+                const tournamentsResponse = await fetch(`http://localhost:3002/api/admin/tournaments`, { headers });
+                if (!tournamentsResponse.ok) {
+                    throw new Error('Failed to fetch tournaments');
+                }
+                const tournamentsData = await tournamentsResponse.json();
+                renderTournaments(tournamentsData.tournaments);
+
+            } catch (error) {
+                console.error('Failed to fetch data:', error);
+                showMessageBox('خطأ في الاتصال', `فشل تحميل البيانات. يرجى التأكد من تشغيل الخادم. تفاصيل الخطأ: ${error.message}`, 'error');
+            }
+        }
+
+        function renderFields(fields) {
+            const container = document.getElementById('fields-card-container');
+            container.innerHTML = '';
+            
+            if (!Array.isArray(fields) || fields.length === 0) {
+                 container.innerHTML = `<p class="text-center text-gray-500">لا توجد ملاعب لعرضها.</p>`;
+                 return;
+            }
+            fields.forEach(field => {
+                const card = document.createElement('div');
+                card.className = 'info-card';
+                const imageUrl = field.image ? `data:image/jpeg;base64,${field.image}` : `https://placehold.co/600x400/22c55e/ffffff?text=${field.name.replace(/\s/g, '+')}`;
+                card.innerHTML = `
+                    <div class="info-card-header">
+                        <div class="info-card-title">
+                            <i class="fa-solid fa-futbol text-green-600"></i> ${field.name}
+                        </div>
+                        <button onclick="deleteField(${field.id})" class="text-red-500 hover:text-red-700 transition-colors duration-300">
+                           <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </div>
+                    <img src="${imageUrl}" alt="${field.name}" class="w-full h-48 object-cover rounded-xl mb-4" onerror="this.onerror=null;this.src='https://placehold.co/600x400/22c55e/ffffff?text=${field.name.replace(/\s/g, '+')}'"/>
+                    <div class="info-card-body">
+                        <p class="mb-2"><strong>الموقع:</strong> ${field.location}</p>
+                        <p class="mb-4"><strong>الوصف:</strong> ${field.description || '-'}</p>
+                        <p class="text-xl font-bold text-gray-900">
+                            ${field.price_per_hour} شيكل / ساعة
+                        </p>
+                    </div>
+                    <div class="info-card-footer">
+                        <button onclick="openEditFieldModal(${field.id})" class="info-card-button bg-blue-500 text-white hover:bg-blue-600">
+                            <i class="fa-solid fa-edit ml-2"></i> تعديل
+                        </button>
+                        <button onclick="openAddSlotModal(${field.id}, '${field.name}')" class="info-card-button bg-green-500 text-white hover:bg-green-600">
+                            <i class="fa-solid fa-calendar-plus ml-2"></i> إضافة مواعيد
+                        </button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function renderBookings(bookings) {
+            const container = document.getElementById('bookings-card-container');
+            container.innerHTML = '';
+            
+            if (bookings.length === 0) {
+                 container.innerHTML = `<p class="py-4 text-center text-gray-500">لا توجد حجوزات لعرضها.</p>`;
+                 return;
+            }
+            bookings.forEach(booking => {
+                const durationHours = (new Date(`1970/01/01 ${booking.end_time}`) - new Date(`1970/01/01 ${booking.start_time}`)) / 3600000;
+                
+                const card = document.createElement('div');
+                card.className = 'info-card';
+                card.innerHTML = `
+                    <div class="info-card-header">
+                         <div class="info-card-title">
+                            <i class="fa-solid fa-user text-blue-600"></i> ${booking.user_name}
+                         </div>
+                         ${getStatusBadge('confirmed')}
+                    </div>
+                    <div class="info-card-body space-y-2">
+                        <p><strong>الملعب:</strong> ${booking.field_name}</p>
+                        <p><strong>التاريخ:</strong> ${booking.slot_date}</p>
+                        <p><strong>الوقت:</strong> ${booking.start_time} - ${booking.end_time}</p>
+                        <p><strong>المدة:</strong> ${durationHours} ساعة</p>
+                        <p><strong>السعر:</strong> ${booking.price_per_hour * durationHours} شيكل</p>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function renderMatchmaking(requests) {
+            const teamsContainer = document.getElementById('teams-looking-cards');
+            const playersContainer = document.getElementById('players-looking-cards');
+            teamsContainer.innerHTML = '';
+            playersContainer.innerHTML = '';
+            
+            if (requests.length === 0) {
+                 teamsContainer.innerHTML = `<p class="py-4 text-center text-gray-500">لا توجد طلبات لعرضها.</p>`;
+                 playersContainer.innerHTML = `<p class="py-4 text-center text-gray-500">لا توجد طلبات لعرضها.</p>`;
+                 return;
+            }
+
+            const teamsLooking = requests.filter(r => r.request_type === 'team_looking_for_player');
+            const playersLooking = requests.filter(r => r.request_type === 'player_looking_for_team');
+            
+            teamsLooking.forEach(request => {
+                const card = document.createElement('div');
+                card.className = 'bg-white rounded-xl shadow-md p-4 space-y-2 border-r-4 border-blue-500';
+                card.innerHTML = `
+                    <p class="font-bold text-gray-900">${request.user_name}</p>
+                    <p class="text-sm text-gray-700">يبحث عن لاعب في ملعب ${request.field_name} بتاريخ ${request.slot_date} الساعة ${request.start_time}</p>
+                `;
+                teamsContainer.appendChild(card);
+            });
+
+            playersLooking.forEach(request => {
+                const card = document.createElement('div');
+                card.className = 'bg-white rounded-xl shadow-md p-4 space-y-2 border-r-4 border-green-500';
+                card.innerHTML = `
+                     <p class="font-bold text-gray-900">${request.user_name}</p>
+                    <p class="text-sm text-gray-700">يبحث عن فريق في ملعب ${request.field_name} بتاريخ ${request.slot_date} الساعة ${request.start_time}</p>
+                `;
+                playersContainer.appendChild(card);
+            });
+
+            if (teamsLooking.length === 0) {
+                teamsContainer.innerHTML = `<p class="py-4 text-center text-gray-500">لا توجد طلبات فرق حالياً.</p>`;
+            }
+            if (playersLooking.length === 0) {
+                playersContainer.innerHTML = `<p class="py-4 text-center text-gray-500">لا توجد طلبات لاعبين حالياً.</p>`;
+            }
+        }
+        
+        function renderMatchmakingSuggestions(suggestions) {
+             const container = document.getElementById('matchmaking-suggestions-container');
+             container.innerHTML = '';
+
+             if (suggestions.length === 0) {
+                container.innerHTML = `<p class="py-4 text-center text-gray-500">لا توجد مقترحات مطابقة حالياً.</p>`;
+                return;
+             }
+             suggestions.forEach(suggestion => {
+                const card = document.createElement('div');
+                card.className = 'info-card border-b-4 border-yellow-500';
+                card.innerHTML = `
+                    <div class="info-card-header">
+                        <div class="info-card-title">
+                            <i class="fa-solid fa-handshake text-yellow-600"></i> اقتراح مطابقة
+                        </div>
+                        ${getStatusBadge('pending')}
+                    </div>
+                    <div class="info-card-body space-y-2">
+                        <p class="text-lg"><strong>اللاعب:</strong> ${suggestion.player_name}</p>
+                        <p class="text-lg"><strong>الفريق:</strong> ${suggestion.team_name}</p>
+                        <p><strong>في ملعب:</strong> ${suggestion.field_name}</p>
+                        <p><strong>بتاريخ:</strong> ${suggestion.slot_date}</p>
+                    </div>
+                `;
+                container.appendChild(card);
+             });
+        }
+
+
+        function renderTournaments(tournaments) {
+            const container = document.getElementById('tournaments-card-container');
+            container.innerHTML = '';
+            
+            if (tournaments.length === 0) {
+                 container.innerHTML = `<p class="py-4 text-center text-gray-500">لا توجد بطولات لعرضها.</p>`;
+                 return;
+            }
+            tournaments.forEach(tournament => {
+                const status = (new Date(tournament.tournament_date) < new Date()) ? 'past' : 'upcoming';
+                const imageUrl = tournament.image_data ? `data:image/jpeg;base64,${tournament.image_data}` : `https://placehold.co/600x400/8b5cf6/ffffff?text=${tournament.name.replace(/\s/g, '+')}`;
+                const card = document.createElement('div');
+                card.className = 'info-card';
+                card.innerHTML = `
+                    <div class="info-card-header">
+                        <div class="info-card-title">
+                            <i class="fa-solid fa-trophy text-orange-600"></i> ${tournament.name}
+                        </div>
+                        ${getStatusBadge(status)}
+                    </div>
+                     <img src="${imageUrl}" alt="${tournament.name}" class="w-full h-48 object-cover rounded-xl mb-4" onerror="this.onerror=null;this.src='https://placehold.co/600x400/8b5cf6/ffffff?text=${tournament.name.replace(/\s/g, '+')}'" />
+                     <div class="info-card-body space-y-2">
+                        <p><strong>الملعب:</strong> ${tournament.field_name}</p>
+                        <p><strong>التاريخ:</strong> ${tournament.tournament_date}</p>
+                        <p><strong>الجائزة:</strong> ${tournament.prize || 'غير محددة'}</p>
+                        <p><strong>الوصف:</strong> ${tournament.description || '-'}</p>
+                    </div>
+                    <div class="info-card-footer">
+                        <button onclick="deleteTournament(${tournament.id})" class="info-card-button bg-red-500 text-white hover:bg-red-600">
+                           <i class="fa-solid fa-trash ml-2"></i> حذف
+                        </button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+        
+        // --- Modal & Form Handling ---
+        function openAddFieldModal() {
+            document.getElementById('add-field-modal').classList.remove('hidden');
+        }
+
+        function closeAddFieldModal() {
+            document.getElementById('add-field-modal').classList.add('hidden');
+            document.getElementById('add-field-form').reset();
+        }
+
+        // Helper function to convert file to Base64
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+                reader.readAsDataURL(file);
+            });
+        }
+
+        async function handleAddField() {
+            const name = document.getElementById('field-name').value;
+            const description = document.getElementById('field-description').value;
+            const location = document.getElementById('field-location').value;
+            const pricePerHour = document.getElementById('field-price').value;
+            const imageFile = document.getElementById('field-image-file').files[0];
+
+            if (!imageFile) {
+                showMessageBox('خطأ في الصورة', 'يرجى اختيار صورة للملعب.', 'error');
+                return;
+            }
+
+            try {
+                const imageData = await fileToBase64(imageFile);
+                
+                const response = await fetch('http://localhost:3002/api/admin/fields', {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'X-User-Id': localStorage.getItem('userId')
+                    },
+                    body: JSON.stringify({ name, description, location, pricePerHour, image: imageData })
+                });
+
+                if (response.ok) {
+                    closeAddFieldModal();
+                    fetchData();
+                    showMessageBox('تمت الإضافة بنجاح', 'تم إضافة الملعب الجديد.', 'success');
+                } else {
+                    const errorData = await response.json();
+                    showMessageBox('خطأ في الإضافة', errorData.error);
+                }
+            } catch (error) {
+                console.error('Failed to add field:', error);
+                showMessageBox('خطأ في الشبكة', 'فشل الاتصال بالخادم.');
+            }
+        }
+        
+        async function openEditFieldModal(fieldId) {
+            const userId = localStorage.getItem('userId');
+            try {
+                const response = await fetch(`http://localhost:3002/api/fields/${fieldId}?userId=${userId}`);
+                if (!response.ok) throw new Error('Failed to fetch field data');
+                const field = await response.json();
+                
+                document.getElementById('edit-field-id').value = fieldId;
+                document.getElementById('edit-field-name').value = field.field.name;
+                document.getElementById('edit-field-description').value = field.field.description;
+                document.getElementById('edit-field-location').value = field.field.location;
+                document.getElementById('edit-field-price').value = field.field.price_per_hour;
+                
+                // Set the image preview
+                const imagePreview = document.getElementById('edit-field-image-preview');
+                imagePreview.src = field.field.image ? `data:image/jpeg;base64,${field.field.image}` : `https://placehold.co/600x400/22c55e/ffffff?text=${field.field.name.replace(/\s/g, '+')}`;
+
+                document.getElementById('edit-field-modal').classList.remove('hidden');
+            } catch (error) {
+                console.error('Failed to open edit modal:', error);
+                showMessageBox('خطأ', 'فشل تحميل بيانات الملعب للتعديل.', 'error');
+            }
+        }
+        
+        function closeEditFieldModal() {
+            document.getElementById('edit-field-modal').classList.add('hidden');
+        }
+
+        async function handleEditField() {
+            const fieldId = document.getElementById('edit-field-id').value;
+            const name = document.getElementById('edit-field-name').value;
+            const description = document.getElementById('edit-field-description').value;
+            const location = document.getElementById('edit-field-location').value;
+            const pricePerHour = document.getElementById('edit-field-price').value;
+            const imageFile = document.getElementById('edit-field-image-file').files[0];
+            
+            let imageData = null;
+            if (imageFile) {
+                imageData = await fileToBase64(imageFile);
+            } else {
+                // If no new image is selected, fetch the existing one to send back
+                const response = await fetch(`http://localhost:3002/api/fields/${fieldId}?userId=${localStorage.getItem('userId')}`);
+                const field = await response.json();
+                imageData = field.field.image;
+            }
+
+            try {
+                const response = await fetch(`http://localhost:3002/api/admin/fields/${fieldId}`, {
+                    method: 'PUT',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'X-User-Id': localStorage.getItem('userId')
+                    },
+                    body: JSON.stringify({ name, description, location, pricePerHour, image: imageData })
+                });
+                
+                if (response.ok) {
+                    closeEditFieldModal();
+                    fetchData();
+                    showMessageBox('تم التحديث بنجاح', 'تم تعديل بيانات الملعب.', 'success');
+                } else {
+                    const errorData = await response.json();
+                    showMessageBox('خطأ في التعديل', errorData.error);
+                }
+            } catch (error) {
+                console.error('Failed to edit field:', error);
+                showMessageBox('خطأ في الشبكة', 'فشل الاتصال بالخادم.');
+            }
+        }
+
+        async function deleteField(fieldId) {
+             showMessageBox(
+                'تأكيد الحذف',
+                'هل أنت متأكد من رغبتك في حذف هذا الملعب؟',
+                'warning',
+                async () => {
+                     try {
+                         const response = await fetch(`http://localhost:3002/api/admin/fields/${fieldId}`, {
+                             method: 'DELETE',
+                             headers: { 
+                                 'Content-Type': 'application/json',
+                                 'X-User-Id': localStorage.getItem('userId')
+                             }
+                         });
+
+                         if (response.ok) {
+                             fetchData();
+                             showMessageBox('تم الحذف', 'تم حذف الملعب بنجاح.', 'success');
+                         } else {
+                             const errorData = await response.json();
+                             showMessageBox('خطأ في الحذف', errorData.error);
+                         }
+                     } catch (error) {
+                         console.error('Failed to delete field:', error);
+                         showMessageBox('خطأ في الشبكة', 'فشل الاتصال بالخادم.');
+                     }
+                }
+            );
+        }
+
+        function openAddSlotModal(fieldId, fieldName) {
+            document.getElementById('slot-field-id').value = fieldId;
+            document.getElementById('slot-field-name').innerText = fieldName;
+            document.getElementById('add-slot-modal').classList.remove('hidden');
+            addSlotInput();
+            fetchAvailabilityForAdmin(fieldId);
+        }
+
+        function closeAddSlotModal() {
+            document.getElementById('add-slot-modal').classList.add('hidden');
+            document.getElementById('add-slot-form').reset();
+            document.getElementById('slots-container').innerHTML = '';
+            document.getElementById('availability-view').innerHTML = '';
+        }
+        
+        async function fetchAvailabilityForAdmin(fieldId) {
+            const date = document.getElementById('slot-date').value;
+            const viewContainer = document.getElementById('availability-view');
+            viewContainer.innerHTML = `<p class="text-center text-gray-500">جاري تحميل المواعيد...</p>`;
+
+            try {
+                let url = `http://localhost:3002/api/admin/availability?`;
+                const params = new URLSearchParams();
+                
+                if (fieldId) params.append('fieldId', fieldId);
+                if (date) params.append('date', date);
+                
+                url += params.toString();
+                
+                const response = await fetch(url, {
+                    headers: {
+                        'X-User-Id': localStorage.getItem('userId')
+                    }
+                });
+                const data = await response.json();
+                
+                viewContainer.innerHTML = '';
+                if (data.availability && data.availability.length > 0) {
+                    // Group by date if showing multiple dates
+                    const groupedByDate = {};
+                    data.availability.forEach(slot => {
+                        if (!groupedByDate[slot.slot_date]) {
+                            groupedByDate[slot.slot_date] = [];
+                        }
+                        groupedByDate[slot.slot_date].push(slot);
+                    });
+                    
+                    Object.keys(groupedByDate).sort().forEach(slotDate => {
+                        // Add date header if showing multiple dates
+                        if (!date && Object.keys(groupedByDate).length > 1) {
+                            const dateHeader = document.createElement('div');
+                            dateHeader.className = 'text-lg font-bold text-gray-700 mt-4 mb-2 border-b pb-1';
+                            dateHeader.textContent = slotDate;
+                            viewContainer.appendChild(dateHeader);
+                        }
+                        
+                        groupedByDate[slotDate].forEach(slot => {
+                            const slotDiv = document.createElement('div');
+                            const statusClass = slot.is_reserved ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800';
+                            const statusText = slot.is_reserved ? `محجوز (${slot.user_name || 'غير معروف'})` : 'متاح';
+                            slotDiv.className = `flex items-center justify-between p-3 rounded-lg ${statusClass} font-semibold mb-2`;
+                            slotDiv.innerHTML = `
+                                <span>${slot.start_time} - ${slot.end_time}</span>
+                                <span>${statusText}</span>
+                            `;
+                            viewContainer.appendChild(slotDiv);
+                        });
+                    });
+                } else {
+                    const message = date ? 'لا توجد مواعيد مضافة لهذا اليوم.' : 'لا توجد مواعيد مضافة لهذا الملعب.';
+                    viewContainer.innerHTML = `<p class="text-center text-gray-500">${message}</p>`;
+                }
+            } catch (error) {
+                console.error('Failed to fetch availability for admin:', error);
+                viewContainer.innerHTML = `<p class="text-center text-red-500">حدث خطأ في تحميل المواعيد.</p>`;
+            }
+        }
+
+        function addSlotInput() {
+            const slotsContainer = document.getElementById('slots-container');
+            const newSlotDiv = document.createElement('div');
+            newSlotDiv.className = 'flex items-center gap-2';
+            newSlotDiv.innerHTML = `
+                <input type="time" name="start_time" class="p-2 border border-gray-300 rounded-lg w-1/2 text-right" required>
+                <span class="text-gray-500">-</span>
+                <input type="time" name="end_time" class="p-2 border border-gray-300 rounded-lg w-1/2 text-right" required>
+                <button type="button" onclick="this.parentElement.remove()" class="text-red-500 hover:text-red-700">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            `;
+            slotsContainer.appendChild(newSlotDiv);
+        }
+        
+        document.getElementById('slot-date').addEventListener('change', (e) => {
+            const fieldId = document.getElementById('slot-field-id').value;
+            if (fieldId) {
+                fetchAvailabilityForAdmin(fieldId);
+            }
+        });
+        
+        // Add event listener for field selection in add slot modal
+        document.addEventListener('DOMContentLoaded', () => {
+            const slotFieldSelect = document.getElementById('slot-field-id');
+            if (slotFieldSelect) {
+                slotFieldSelect.addEventListener('change', (e) => {
+                    const fieldId = e.target.value;
+                    if (fieldId) {
+                        fetchAvailabilityForAdmin(fieldId);
+                    } else {
+                        document.getElementById('availability-view').innerHTML = '';
+                    }
+                });
+            }
+        });
+
+        async function handleAddSlot() {
+            const fieldId = document.getElementById('slot-field-id').value;
+            const date = document.getElementById('slot-date').value;
+            const slotInputs = document.getElementById('slots-container').querySelectorAll('div');
+            const slots = Array.from(slotInputs).map(div => ({
+                start: div.querySelector('input[name="start_time"]').value,
+                end: div.querySelector('input[name="end_time"]').value
+            }));
+
+            try {
+                const response = await fetch('http://localhost:3002/api/admin/availability', {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'X-User-Id': localStorage.getItem('userId')
+                    },
+                    body: JSON.stringify({ fieldId, date, slots })
+                });
+
+                if (response.ok) {
+                    showMessageBox('تمت الإضافة بنجاح', 'تم إضافة المواعيد للملعب المحدد.', 'success');
+                    // Refresh the availability display in the modal
+                    fetchAvailabilityForAdmin(fieldId);
+                    // Refresh the main availability section
+                    loadAvailabilitySlots();
+                    // Clear the slots container but keep the modal open to show updated availability
+                    document.getElementById('slots-container').innerHTML = '';
+                } else {
+                    const errorData = await response.json();
+                    showMessageBox('خطأ في الإضافة', errorData.error);
+                }
+            } catch (error) {
+                console.error('Failed to add slots:', error);
+                showMessageBox('خطأ في الشبكة', 'فشل الاتصال بالخادم.');
+            }
+        }
+
+        // --- Tournament Modal Functions ---
+        async function openAddTournamentModal() {
+            document.getElementById('add-tournament-modal').classList.remove('hidden');
+            try {
+                const response = await fetch('http://localhost:3002/api/admin/fields', {
+                    headers: {
+                        'X-User-Id': localStorage.getItem('userId')
+                    }
+                });
+                if (!response.ok) {
+                    throw new Error('Failed to fetch fields');
+                }
+                const data = await response.json();
+                const fields = data.fields;
+                populateTournamentFieldDropdown(fields);
+            } catch (error) {
+                console.error('Failed to open tournament modal:', error);
+                showMessageBox('خطأ في الاتصال', 'فشل تحميل قائمة الملاعب.', 'error');
+            }
+        }
+        
+        document.getElementById('tournament-field').addEventListener('change', async (e) => {
+            const fieldId = e.target.value;
+            const imagePreview = document.getElementById('tournament-image-preview');
+            const imageInput = document.getElementById('tournament-image');
+            
+            if (fieldId) {
+                 try {
+                    const response = await fetch(`http://localhost:3002/api/fields/${fieldId}?userId=${localStorage.getItem('userId')}`);
+                    if (!response.ok) throw new Error('Failed to fetch field data');
+                    const field = await response.json();
+                    if (field.field.image) {
+                        imagePreview.src = `data:image/jpeg;base64,${field.field.image}`;
+                        imagePreview.classList.remove('hidden');
+                        imageInput.removeAttribute('required'); // Image is now provided
+                    } else {
+                        imagePreview.classList.add('hidden');
+                        imageInput.setAttribute('required', 'required');
+                    }
+                } catch (error) {
+                    console.error('Failed to load field image:', error);
+                    imagePreview.classList.add('hidden');
+                    imageInput.setAttribute('required', 'required');
+                }
+            } else {
+                imagePreview.classList.add('hidden');
+                imageInput.setAttribute('required', 'required');
+            }
+        });
+
+        function closeAddTournamentModal() {
+            document.getElementById('add-tournament-modal').classList.add('hidden');
+            document.getElementById('add-tournament-form').reset();
+            document.getElementById('tournament-image-preview').classList.add('hidden');
+        }
+
+        function populateTournamentFieldDropdown(fields) {
+            const dropdown = document.getElementById('tournament-field');
+            dropdown.innerHTML = '';
+            if (!Array.isArray(fields) || fields.length === 0) {
+                const option = document.createElement('option');
+                option.innerText = 'لا توجد ملاعب متاحة';
+                option.disabled = true;
+                dropdown.appendChild(option);
+                return;
+            }
+            fields.forEach(field => {
+                const option = document.createElement('option');
+                option.value = field.id;
+                option.innerText = field.name;
+                dropdown.appendChild(option);
+            });
+             // Trigger the change event to load the image of the first field
+            dropdown.dispatchEvent(new Event('change'));
+        }
+
+        async function handleAddTournament() {
+            const name = document.getElementById('tournament-name').value;
+            const description = document.getElementById('tournament-description').value;
+            const prize = document.getElementById('tournament-prize').value;
+            const date = document.getElementById('tournament-date').value;
+            const fieldId = document.getElementById('tournament-field').value;
+            const imageFile = document.getElementById('tournament-image').files[0];
+            const imagePreviewSrc = document.getElementById('tournament-image-preview').src;
+
+            let imageData = null;
+
+            if (imageFile) {
+                imageData = await fileToBase64(imageFile);
+            } else if (imagePreviewSrc && !imagePreviewSrc.includes('placehold.co')) {
+                // Get the base64 data from the preview image if no new file is uploaded
+                imageData = imagePreviewSrc;
+            } else {
+                 showMessageBox('خطأ في الصورة', 'يرجى اختيار صورة للبطولة.', 'error');
+                 return;
+            }
+
+            try {
+                const response = await fetch('http://localhost:3002/api/admin/tournaments', {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'X-User-Id': localStorage.getItem('userId')
+                    },
+                    body: JSON.stringify({
+                        name,
+                        description,
+                        prize,
+                        date,
+                        fieldId,
+                        image: imageData
+                    })
+                });
+
+                if (response.ok) {
+                    closeAddTournamentModal();
+                    fetchData();
+                    showMessageBox('تمت الإضافة بنجاح', 'تم إضافة البطولة الجديدة.', 'success');
+                } else {
+                    const errorData = await response.json();
+                    showMessageBox('خطأ في الإضافة', errorData.error);
+                }
+            } catch (error) {
+                console.error('Failed to add tournament:', error);
+                showMessageBox('خطأ في الشبكة', 'فشل الاتصال بالخادم.');
+            }
+        }
+        
+        async function deleteTournament(tournamentId) {
+            showMessageBox(
+                'تأكيد الحذف',
+                'هل أنت متأكد من رغبتك في حذف هذه البطولة؟',
+                'warning',
+                async () => {
+                     try {
+                         const response = await fetch(`http://localhost:3002/api/admin/tournaments/${tournamentId}`, {
+                             method: 'DELETE',
+                             headers: { 
+                                 'Content-Type': 'application/json',
+                                 'X-User-Id': localStorage.getItem('userId')
+                             },
+                             body: JSON.stringify({})
+                         });
+
+                         if (response.ok) {
+                             fetchData();
+                             showMessageBox('تم الحذف', 'تم حذف البطولة بنجاح.', 'success');
+                         } else {
+                             const errorData = await response.json();
+                             showMessageBox('خطأ في الحذف', errorData.error);
+                         }
+                     } catch (error) {
+                         console.error('Failed to delete tournament:', error);
+                         showMessageBox('خطأ في الشبكة', 'فشل الاتصال بالخادم.');
+                     }
+                }
+            );
+        }
+
+        // --- Analytics Functions ---
+        async function loadAnalytics() {
+            try {
+                const response = await fetch(`http://localhost:3002/api/admin/analytics`, {
+                    headers: {
+                        'X-User-Id': localStorage.getItem('userId')
+                    }
+                });
+                if (!response.ok) throw new Error('Failed to fetch analytics');
+                const data = await response.json();
+                
+                document.getElementById('total-users').textContent = data.totalUsers || 0;
+                document.getElementById('total-reservations').textContent = data.totalReservations || 0;
+                document.getElementById('total-earnings').textContent = `${data.totalEarnings || 0} ₪`;
+                document.getElementById('pending-requests').textContent = data.pendingRequests || 0;
+                
+                // Load recent reservations
+                const recentContainer = document.getElementById('recent-reservations');
+                if (data.recentReservations && data.recentReservations.length > 0) {
+                    recentContainer.innerHTML = data.recentReservations.map(reservation => `
+                        <div class="flex items-center justify-between p-3 bg-white rounded-lg shadow-sm">
+                            <div>
+                                <p class="font-semibold text-gray-800">${reservation.user_name}</p>
+                                <p class="text-sm text-gray-600">${reservation.field_name} - ${reservation.date} ${reservation.start_time}</p>
+                            </div>
+                            <span class="text-green-600 font-bold">${reservation.price} ₪</span>
+                        </div>
+                    `).join('');
+                } else {
+                    recentContainer.innerHTML = '<p class="text-gray-500 text-center">لا توجد حجوزات حديثة</p>';
+                }
+            } catch (error) {
+                console.error('Failed to load analytics:', error);
+            }
+        }
+        
+        // --- Requests Management Functions ---
+        async function loadRequests() {
+            try {
+                const response = await fetch(`http://localhost:3002/api/admin/reservations`, {
+                    headers: {
+                        'X-User-Id': localStorage.getItem('userId')
+                    }
+                });
+                if (!response.ok) throw new Error('Failed to fetch requests');
+                const data = await response.json();
+                
+                const tbody = document.getElementById('requests-table-body');
+                if (data.reservations && data.reservations.length > 0) {
+                    tbody.innerHTML = data.reservations.filter(r => r.status === 'pending').map(request => `
+                        <tr class="hover:bg-gray-50">
+                            <td class="border border-gray-300 px-4 py-3">${request.user_name}</td>
+                            <td class="border border-gray-300 px-4 py-3">${request.field_name}</td>
+                            <td class="border border-gray-300 px-4 py-3">${request.date}</td>
+                            <td class="border border-gray-300 px-4 py-3">${request.start_time} - ${request.end_time}</td>
+                            <td class="border border-gray-300 px-4 py-3">${request.price} ₪</td>
+                            <td class="border border-gray-300 px-4 py-3">
+                                <span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-sm">معلق</span>
+                            </td>
+                            <td class="border border-gray-300 px-4 py-3">
+                                <button onclick="approveRequest(${request.id})" class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded mr-2 text-sm">
+                                    موافقة
+                                </button>
+                                <button onclick="rejectRequest(${request.id})" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm">
+                                    رفض
+                                </button>
+                            </td>
+                        </tr>
+                    `).join('');
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="7" class="text-center py-8 text-gray-500">لا توجد طلبات معلقة</td></tr>';
+                }
+            } catch (error) {
+                console.error('Failed to load requests:', error);
+            }
+        }
+        
+        async function approveRequest(requestId) {
+            try {
+                const response = await fetch(`http://localhost:3002/api/admin/reservations/${requestId}/approve`, {
+                    method: 'PUT',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'X-User-Id': localStorage.getItem('userId')
+                    },
+                    body: JSON.stringify({})
+                });
+                
+                if (response.ok) {
+                    loadRequests();
+                    loadReservations();
+                    loadAnalytics();
+                    showMessageBox('تمت الموافقة', 'تم قبول طلب الحجز بنجاح.', 'success');
+                } else {
+                    const errorData = await response.json();
+                    showMessageBox('خطأ', errorData.error);
+                }
+            } catch (error) {
+                console.error('Failed to approve request:', error);
+                showMessageBox('خطأ في الشبكة', 'فشل الاتصال بالخادم.');
+            }
+        }
+        
+        async function rejectRequest(requestId) {
+            try {
+                const response = await fetch(`http://localhost:3002/api/admin/reservations/${requestId}/reject`, {
+                    method: 'PUT',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'X-User-Id': localStorage.getItem('userId')
+                    },
+                    body: JSON.stringify({})
+                });
+                
+                if (response.ok) {
+                    loadRequests();
+                    loadAnalytics();
+                    showMessageBox('تم الرفض', 'تم رفض طلب الحجز.', 'success');
+                } else {
+                    const errorData = await response.json();
+                    showMessageBox('خطأ', errorData.error);
+                }
+            } catch (error) {
+                console.error('Failed to reject request:', error);
+                showMessageBox('خطأ في الشبكة', 'فشل الاتصال بالخادم.');
+            }
+        }
+        
+        // --- Reservations Management Functions ---
+        async function loadReservations() {
+            try {
+                const response = await fetch(`http://localhost:3002/api/admin/reservations`, {
+                    headers: {
+                        'X-User-Id': localStorage.getItem('userId')
+                    }
+                });
+                if (!response.ok) throw new Error('Failed to fetch reservations');
+                const data = await response.json();
+                
+                const tbody = document.getElementById('reservations-table-body');
+                if (data.reservations && data.reservations.length > 0) {
+                    tbody.innerHTML = data.reservations.map(reservation => `
+                        <tr class="hover:bg-gray-50">
+                            <td class="border border-gray-300 px-4 py-3">${reservation.user_name}</td>
+                            <td class="border border-gray-300 px-4 py-3">${reservation.field_name}</td>
+                            <td class="border border-gray-300 px-4 py-3">${reservation.date}</td>
+                            <td class="border border-gray-300 px-4 py-3">${reservation.start_time} - ${reservation.end_time}</td>
+                            <td class="border border-gray-300 px-4 py-3">${reservation.price} ₪</td>
+                            <td class="border border-gray-300 px-4 py-3">
+                                <span class="px-2 py-1 rounded-full text-sm ${
+                                    reservation.status === 'confirmed' ? 'bg-green-100 text-green-800' :
+                                    reservation.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                                    'bg-red-100 text-red-800'
+                                }">
+                                    ${reservation.status === 'confirmed' ? 'مؤكد' : reservation.status === 'pending' ? 'معلق' : 'ملغي'}
+                                </span>
+                            </td>
+                            <td class="border border-gray-300 px-4 py-3">
+                                ${reservation.status === 'confirmed' ? 
+                                    `<button onclick="cancelReservation(${reservation.id})" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm">إلغاء</button>` :
+                                    '-'
+                                }
+                            </td>
+                        </tr>
+                    `).join('');
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="7" class="text-center py-8 text-gray-500">لا توجد حجوزات</td></tr>';
+                }
+            } catch (error) {
+                console.error('Failed to load reservations:', error);
+            }
+        }
+        
+        async function cancelReservation(reservationId) {
+            showMessageBox(
+                'تأكيد الإلغاء',
+                'هل أنت متأكد من رغبتك في إلغاء هذا الحجز؟',
+                'warning',
+                async () => {
+                    try {
+                        const response = await fetch(`http://localhost:3002/api/admin/reservations/${reservationId}/cancel`, {
+                            method: 'PUT',
+                            headers: { 
+                                'Content-Type': 'application/json',
+                                'X-User-Id': localStorage.getItem('userId')
+                            },
+                            body: JSON.stringify({})
+                        });
+                        
+                        if (response.ok) {
+                            loadReservations();
+                            loadAnalytics();
+                            showMessageBox('تم الإلغاء', 'تم إلغاء الحجز بنجاح.', 'success');
+                        } else {
+                            const errorData = await response.json();
+                            showMessageBox('خطأ', errorData.error);
+                        }
+                    } catch (error) {
+                        console.error('Failed to cancel reservation:', error);
+                        showMessageBox('خطأ في الشبكة', 'فشل الاتصال بالخادم.');
+                    }
+                }
+            );
+        }
+        
+        // --- Availability Management Functions ---
+        async function loadAvailabilityFields() {
+            try {
+                const response = await fetch(`http://localhost:3002/api/admin/fields`, {
+                    headers: {
+                        'X-User-Id': localStorage.getItem('userId')
+                    }
+                });
+                if (!response.ok) throw new Error('Failed to fetch fields');
+                const data = await response.json();
+                
+                const select = document.getElementById('availability-field-select');
+                select.innerHTML = '<option value="">اختر ملعب...</option>';
+                
+                // Also populate the add slot modal field select
+                const addSlotSelect = document.getElementById('slot-field-id');
+                if (addSlotSelect) {
+                    addSlotSelect.innerHTML = '<option value="">اختر ملعب...</option>';
+                }
+                
+                if (data.fields && data.fields.length > 0) {
+                    data.fields.forEach(field => {
+                        const option = document.createElement('option');
+                        option.value = field.id;
+                        option.textContent = field.name;
+                        select.appendChild(option);
+                        
+                        // Also add to add slot modal
+                        if (addSlotSelect) {
+                            const addSlotOption = document.createElement('option');
+                            addSlotOption.value = field.id;
+                            addSlotOption.textContent = field.name;
+                            addSlotSelect.appendChild(addSlotOption);
+                        }
+                    });
+                }
+                
+                // Load all availabilities by default
+                loadAllAvailabilities();
+            } catch (error) {
+                console.error('Failed to load fields for availability:', error);
+            }
+        }
+        
+        async function loadAllAvailabilities() {
+            try {
+                const response = await fetch(`http://localhost:3002/api/admin/availability`, {
+                    headers: {
+                        'X-User-Id': localStorage.getItem('userId')
+                    }
+                });
+                if (!response.ok) throw new Error('Failed to fetch availability');
+                const data = await response.json();
+                
+                const container = document.getElementById('availability-slots');
+                if (data.availability && data.availability.length > 0) {
+                    container.innerHTML = data.availability.map(slot => `
+                        <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-200 hover:shadow-xl transition-all duration-300">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="flex items-center gap-2">
+                                    <i class="fa-solid fa-clock text-blue-600"></i>
+                                    <span class="font-bold text-lg text-gray-800">${slot.start_time} - ${slot.end_time}</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <i class="fa-solid fa-money-bill text-green-600"></i>
+                                    <span class="text-green-600 font-bold text-lg">${slot.price || slot.field_price || 'غير محدد'} ₪</span>
+                                </div>
+                            </div>
+                            <div class="mb-4">
+                                <div class="flex items-center gap-2 mb-2">
+                                    <i class="fa-solid fa-futbol text-purple-600"></i>
+                                    <span class="text-gray-700 font-medium">${slot.field_name}</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <i class="fa-solid fa-calendar text-orange-600"></i>
+                                    <span class="text-gray-600">${slot.slot_date}</span>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                    <i class="fa-solid fa-${
+                                        slot.is_reserved ? 'user-check text-red-600' : 'check-circle text-green-600'
+                                    }"></i>
+                                    <span class="text-sm font-medium ${
+                                        slot.is_reserved ? 'text-red-600' : 'text-green-600'
+                                    }">
+                                        ${slot.is_reserved ? `محجوز - ${slot.user_name || 'غير معروف'}` : 'متاح للحجز'}
+                                    </span>
+                                </div>
+                                <div class="flex gap-2">
+                                    <button onclick="editAvailabilitySlot(${slot.id}, '${slot.start_time}', '${slot.end_time}', '${slot.slot_date}', ${slot.field_id})" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-lg text-sm transition-colors duration-300 flex items-center gap-1">
+                                        <i class="fa-solid fa-edit"></i> تعديل
+                                    </button>
+                                    <button onclick="deleteAvailabilitySlot(${slot.id})" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg text-sm transition-colors duration-300 flex items-center gap-1">
+                                        <i class="fa-solid fa-trash"></i> حذف
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    container.innerHTML = '<p class="text-gray-500 text-center col-span-full">لا توجد مواعيد مضافة</p>';
+                }
+            } catch (error) {
+                console.error('Failed to load all availabilities:', error);
+                document.getElementById('availability-slots').innerHTML = '<p class="text-red-500 text-center col-span-full">خطأ في تحميل المواعيد</p>';
+            }
+        }
+        
+        async function loadAvailabilitySlots() {
+            const fieldId = document.getElementById('availability-field-select').value;
+            const date = document.getElementById('availability-date-select').value;
+            
+            if (!fieldId && !date) {
+                // If no filters selected, load all availabilities
+                loadAllAvailabilities();
+                return;
+            }
+            
+            try {
+                let url = `http://localhost:3002/api/admin/availability?`;
+                const params = new URLSearchParams();
+                
+                if (fieldId) params.append('fieldId', fieldId);
+                if (date) params.append('date', date);
+                
+                url += params.toString();
+                
+                const response = await fetch(url, {
+                    headers: {
+                        'X-User-Id': localStorage.getItem('userId')
+                    }
+                });
+                if (!response.ok) throw new Error('Failed to fetch availability');
+                const data = await response.json();
+                
+                const container = document.getElementById('availability-slots');
+                if (data.availability && data.availability.length > 0) {
+                    container.innerHTML = data.availability.map(slot => `
+                        <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-200 hover:shadow-xl transition-all duration-300">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="flex items-center gap-2">
+                                    <i class="fa-solid fa-clock text-blue-600"></i>
+                                    <span class="font-bold text-lg text-gray-800">${slot.start_time} - ${slot.end_time}</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <i class="fa-solid fa-money-bill text-green-600"></i>
+                                    <span class="text-green-600 font-bold text-lg">${slot.price || slot.field_price || 'غير محدد'} ₪</span>
+                                </div>
+                            </div>
+                            <div class="mb-4">
+                                <div class="flex items-center gap-2 mb-2">
+                                    <i class="fa-solid fa-futbol text-purple-600"></i>
+                                    <span class="text-gray-700 font-medium">${slot.field_name}</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <i class="fa-solid fa-calendar text-orange-600"></i>
+                                    <span class="text-gray-600">${slot.slot_date}</span>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                    <i class="fa-solid fa-${
+                                        slot.is_reserved ? 'user-check text-red-600' : 'check-circle text-green-600'
+                                    }"></i>
+                                    <span class="text-sm font-medium ${
+                                        slot.is_reserved ? 'text-red-600' : 'text-green-600'
+                                    }">
+                                        ${slot.is_reserved ? `محجوز - ${slot.user_name || 'غير معروف'}` : 'متاح للحجز'}
+                                    </span>
+                                </div>
+                                <div class="flex gap-2">
+                                    <button onclick="editAvailabilitySlot(${slot.id}, '${slot.start_time}', '${slot.end_time}', '${slot.slot_date}', ${slot.field_id})" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-lg text-sm transition-colors duration-300 flex items-center gap-1">
+                                        <i class="fa-solid fa-edit"></i> تعديل
+                                    </button>
+                                    <button onclick="deleteAvailabilitySlot(${slot.id})" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg text-sm transition-colors duration-300 flex items-center gap-1">
+                                        <i class="fa-solid fa-trash"></i> حذف
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    container.innerHTML = '<p class="text-gray-500 text-center col-span-full">لا توجد مواعيد متاحة للفلاتر المحددة</p>';
+                }
+            } catch (error) {
+                console.error('Failed to load availability slots:', error);
+                document.getElementById('availability-slots').innerHTML = '<p class="text-red-500 text-center col-span-full">خطأ في تحميل المواعيد</p>';
+            }
+        }
+        
+        async function deleteAvailabilitySlot(slotId) {
+            showMessageBox(
+                'تأكيد الحذف',
+                'هل أنت متأكد من رغبتك في حذف هذا الموعد؟',
+                'warning',
+                async () => {
+                    try {
+                        const response = await fetch(`http://localhost:3002/api/admin/availability/${slotId}`, {
+                            method: 'DELETE',
+                            headers: { 
+                                'Content-Type': 'application/json',
+                                'X-User-Id': localStorage.getItem('userId')
+                            },
+                            body: JSON.stringify({})
+                        });
+                        
+                        if (response.ok) {
+                            loadAvailabilitySlots();
+                            showMessageBox('تم الحذف', 'تم حذف الموعد بنجاح.', 'success');
+                        } else {
+                            const errorData = await response.json();
+                            showMessageBox('خطأ', errorData.error);
+                        }
+                    } catch (error) {
+                        console.error('Failed to delete availability slot:', error);
+                        showMessageBox('خطأ في الشبكة', 'فشل الاتصال بالخادم.');
+                    }
+                },
+                true
+            );
+        }
+        
+        // Edit Availability Slot Function
+        function editAvailabilitySlot(slotId, startTime, endTime, date, fieldId) {
+            document.getElementById('edit-slot-id').value = slotId;
+            document.getElementById('edit-slot-start-time').value = startTime;
+            document.getElementById('edit-slot-end-time').value = endTime;
+            document.getElementById('edit-slot-date').value = date;
+            document.getElementById('edit-slot-field-id').value = fieldId;
+            document.getElementById('edit-slot-modal').classList.remove('hidden');
+        }
+        
+        function closeEditSlotModal() {
+            document.getElementById('edit-slot-modal').classList.add('hidden');
+            document.getElementById('edit-slot-form').reset();
+        }
+        
+        async function handleEditSlot() {
+            const slotId = document.getElementById('edit-slot-id').value;
+            const startTime = document.getElementById('edit-slot-start-time').value;
+            const endTime = document.getElementById('edit-slot-end-time').value;
+            const date = document.getElementById('edit-slot-date').value;
+            const fieldId = document.getElementById('edit-slot-field-id').value;
+            
+            try {
+                const response = await fetch(`http://localhost:3002/api/admin/availability/${slotId}`, {
+                    method: 'PUT',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'X-User-Id': localStorage.getItem('userId')
+                    },
+                    body: JSON.stringify({ 
+                        start_time: startTime, 
+                        end_time: endTime, 
+                        slot_date: date,
+                        field_id: fieldId
+                    })
+                });
+                
+                if (response.ok) {
+                    closeEditSlotModal();
+                    loadAvailabilitySlots();
+                    showMessageBox('تم التحديث', 'تم تحديث الموعد بنجاح.', 'success');
+                } else {
+                    const errorData = await response.json();
+                    showMessageBox('خطأ في التحديث', errorData.error);
+                }
+            } catch (error) {
+                console.error('Failed to edit availability slot:', error);
+                showMessageBox('خطأ في الشبكة', 'فشل الاتصال بالخادم.');
+            }
+        }
+        
+        // Event listeners for availability management
+        document.getElementById('availability-field-select').addEventListener('change', loadAvailabilitySlots);
+        document.getElementById('availability-date-select').addEventListener('change', loadAvailabilitySlots);
+        
+        // Update fetchData function to load all new sections
+        const originalFetchData = fetchData;
+        fetchData = async function() {
+            await originalFetchData();
+            await loadAnalytics();
+            await loadRequests();
+            await loadReservations();
+            await loadAvailabilityFields();
+        };
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            checkAdminAccess();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Join Team - 5ع5 Palestine</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .team-join-container {
+            max-width: 600px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        
+        .booking-info {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+        }
+        
+        .booking-type-badge {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+        }
+        
+        .full-field { background: #28a745; color: white; }
+        .team-vs-team { background: #007bff; color: white; }
+        .team-looking-players { background: #ffc107; color: black; }
+        .players-looking-team { background: #17a2b8; color: white; }
+        
+        .team-roster {
+            margin: 2rem 0;
+        }
+        
+        .player-count {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            color: #333;
+        }
+        
+        .player-list {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .player-item {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+            background: #f8f9fa;
+            border-radius: 6px;
+            border-left: 4px solid #007bff;
+        }
+        
+        .player-item.creator {
+            border-left-color: #28a745;
+            background: #e8f5e8;
+        }
+        
+        .player-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #007bff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            margin-right: 1rem;
+        }
+        
+        .player-icon.creator {
+            background: #28a745;
+        }
+        
+        .join-form {
+            background: #f8f9fa;
+            padding: 2rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 1rem;
+        }
+        
+        .btn {
+            padding: 0.75rem 2rem;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #0056b3;
+        }
+        
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #1e7e34;
+        }
+        
+        .btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+        
+        .alert {
+            padding: 1rem;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+        }
+        
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 2rem;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 1rem 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: #007bff;
+            transition: width 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="team-join-container">
+        <div id="loading" class="loading">
+            <h2>Loading team details...</h2>
+        </div>
+        
+        <div id="content" style="display: none;">
+            <div id="booking-info" class="booking-info">
+                <!-- Booking details will be populated here -->
+            </div>
+            
+            <div class="team-roster">
+                <div class="player-count" id="player-count">
+                    <!-- Player count will be populated here -->
+                </div>
+                
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill"></div>
+                </div>
+                
+                <ul class="player-list" id="player-list">
+                    <!-- Player list will be populated here -->
+                </ul>
+            </div>
+            
+            <div id="join-section">
+                <div class="join-form">
+                    <h3>Join This Team</h3>
+                    <form id="join-form">
+                        <div class="form-group">
+                            <label for="playerName">Your Name *</label>
+                            <input type="text" id="playerName" name="playerName" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="playerEmail">Email (optional)</label>
+                            <input type="email" id="playerEmail" name="playerEmail">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="playerPhone">Phone (optional)</label>
+                            <input type="tel" id="playerPhone" name="playerPhone">
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary" id="join-btn">
+                            Join Team
+                        </button>
+                    </form>
+                </div>
+            </div>
+            
+            <div id="creator-section" style="display: none;">
+                <div class="join-form">
+                    <h3>Team Management</h3>
+                    <p>Share this link with your friends to build your team:</p>
+                    <div style="background: white; padding: 1rem; border-radius: 6px; margin: 1rem 0; word-break: break-all; border: 1px solid #ddd;">
+                        <span id="invitation-link"></span>
+                    </div>
+                    <button type="button" class="btn btn-primary" onclick="copyInvitationLink()" style="margin-right: 1rem;">
+                        Copy Link
+                    </button>
+                    <button type="button" class="btn btn-success" id="confirm-btn" style="display: none;" onclick="confirmBooking()">
+                        Confirm Reservation
+                    </button>
+                    <button type="button" class="btn btn-success" id="submit-btn" style="display: none;" onclick="submitForReview()">
+                        Submit for Review
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div id="alert-container"></div>
+    </div>
+
+    <script>
+        let bookingData = null;
+        let urlParams = null;
+        
+        // Extract parameters from URL
+        urlParams = new URLSearchParams(window.location.search);
+        
+        // Load team details on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadTeamDetails();
+        });
+        
+        // Team building rules functions
+        function getMinimumPlayersRequired(bookingType) {
+            switch(bookingType) {
+                case 'full_field': return 12;
+                case 'team_vs_team': return 6;
+                case 'team_looking_for_players': return 4;
+                case 'players_looking_for_team': return 1;
+                default: return 1;
+            }
+        }
+        
+        function getMaximumPlayersAllowed(bookingType) {
+            switch(bookingType) {
+                case 'full_field': return 12;
+                case 'team_vs_team': return 6;
+                case 'team_looking_for_players': return 11;
+                case 'players_looking_for_team': return 3;
+                default: return 12;
+            }
+        }
+        
+        async function loadTeamDetails() {
+            try {
+                // Get field details from API
+                const fieldId = urlParams.get('fieldId');
+                const fieldResponse = await fetch(`/api/fields/${fieldId}`);
+                const fieldData = await fieldResponse.json();
+                
+                if (!fieldResponse.ok) {
+                    throw new Error('Failed to load field details');
+                }
+                
+                // Create booking data from URL parameters
+                const booking = {
+                    field_name: fieldData.field.name,
+                    field_location: fieldData.field.location,
+                    slot_date: urlParams.get('slotDate'),
+                    start_time: urlParams.get('startTime'),
+                    end_time: urlParams.get('endTime'),
+                    booking_type: urlParams.get('bookingType')
+                };
+                
+                // Create initial team member (creator)
+                const members = [{
+                    player_name: urlParams.get('playerName'),
+                    is_creator: true,
+                    joined_at: new Date().toISOString()
+                }];
+                
+                bookingData = {
+                    booking: booking,
+                    members: members,
+                    canConfirm: false,
+                    needsReview: booking.booking_type !== 'full_field'
+                };
+                
+                displayTeamDetails(bookingData);
+                
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('content').style.display = 'block';
+                
+            } catch (error) {
+                showAlert('Error loading team details: ' + error.message, 'error');
+                document.getElementById('loading').innerHTML = '<h2>Error loading team details</h2>';
+            }
+        }
+        
+        function displayTeamDetails(data) {
+            const { booking, members, canConfirm, needsReview } = data;
+            
+            // Display booking info
+            const bookingInfo = document.getElementById('booking-info');
+            const bookingTypeClass = booking.booking_type.replace('_', '-');
+            const bookingTypeText = {
+                'full_field': 'Full Field Reservation',
+                'team_vs_team': 'Team vs Another Team',
+                'team_looking_players': 'Team Looking for Players',
+                'players_looking_team': 'Players Looking for a Team'
+            };
+            
+            bookingInfo.innerHTML = `
+                <div class="booking-type-badge ${bookingTypeClass}">
+                    ${bookingTypeText[booking.booking_type]}
+                </div>
+                <h2>${booking.field_name}</h2>
+                <p><strong>Location:</strong> ${booking.field_location}</p>
+                <p><strong>Date:</strong> ${booking.slot_date}</p>
+                <p><strong>Time:</strong> ${booking.start_time} - ${booking.end_time}</p>
+                <p><strong>Created by:</strong> ${members.find(m => m.is_creator)?.player_name || 'Unknown'}</p>
+            `;
+            
+            // Calculate proper team requirements
+            const minRequired = getMinimumPlayersRequired(booking.booking_type);
+            const maxAllowed = getMaximumPlayersAllowed(booking.booking_type);
+            const currentCount = members.length;
+            
+            // Display player count and progress
+            const playerCount = document.getElementById('player-count');
+            playerCount.textContent = `${currentCount} of ${maxAllowed} players joined (minimum: ${minRequired})`;
+            
+            const progressFill = document.getElementById('progress-fill');
+            const progressPercent = (currentCount / maxAllowed) * 100;
+            progressFill.style.width = progressPercent + '%';
+            
+            // Update progress bar color based on minimum requirement
+            const isMinimumMet = currentCount >= minRequired;
+            progressFill.style.backgroundColor = isMinimumMet ? '#10b981' : '#f59e0b';
+            
+            // Display team members
+            const playerList = document.getElementById('player-list');
+            playerList.innerHTML = '';
+            
+            members.forEach((member, index) => {
+                const li = document.createElement('li');
+                li.className = `player-item ${member.is_creator ? 'creator' : ''}`;
+                
+                li.innerHTML = `
+                    <div class="player-icon ${member.is_creator ? 'creator' : ''}">
+                        ${member.player_name.charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                        <strong>${member.player_name}</strong>
+                        ${member.is_creator ? ' (Team Creator)' : ''}
+                        ${member.player_email ? `<br><small>${member.player_email}</small>` : ''}
+                    </div>
+                `;
+                
+                playerList.appendChild(li);
+            });
+            
+            // In this flow, the current user is always the creator
+            const isCreator = true;
+            
+            if (isCreator) {
+                document.getElementById('join-section').style.display = 'none';
+                document.getElementById('creator-section').style.display = 'block';
+                document.getElementById('invitation-link').textContent = window.location.href;
+                
+                // Only show confirmation buttons if minimum requirements are met
+                if (isMinimumMet) {
+                    if (booking.booking_type === 'full_field') {
+                        // Full field can be confirmed directly
+                        document.getElementById('confirm-btn').style.display = 'inline-block';
+                        document.getElementById('submit-btn').style.display = 'none';
+                    } else {
+                        // Other types need admin review
+                        document.getElementById('submit-btn').style.display = 'inline-block';
+                        document.getElementById('confirm-btn').style.display = 'none';
+                    }
+                } else {
+                    // Hide both buttons if minimum not met
+                    document.getElementById('confirm-btn').style.display = 'none';
+                    document.getElementById('submit-btn').style.display = 'none';
+                }
+            }
+        }
+        
+        // Join functionality is not needed in this flow since user is always the creator
+        // The join form is hidden and team building happens through invitation links
+        
+        function copyInvitationLink() {
+            const link = window.location.href;
+            navigator.clipboard.writeText(link).then(() => {
+                showAlert('Invitation link copied to clipboard!', 'success');
+            }).catch(() => {
+                showAlert('Failed to copy link. Please copy manually.', 'error');
+            });
+        }
+        
+        async function confirmBooking() {
+            try {
+                // Show loading state
+                const confirmBtn = document.getElementById('confirm-btn');
+                const originalText = confirmBtn.innerHTML;
+                confirmBtn.innerHTML = 'Confirming...';
+                confirmBtn.disabled = true;
+                
+                // Create booking request with URL parameters
+                const bookingRequest = {
+                    userId: localStorage.getItem('userId'),
+                    fieldId: urlParams.get('fieldId'),
+                    slotDate: urlParams.get('slotDate'),
+                    startTime: urlParams.get('startTime'),
+                    endTime: urlParams.get('endTime'),
+                    bookingType: urlParams.get('bookingType'),
+                    playerName: urlParams.get('playerName'),
+                    teamMembers: bookingData.members || []
+                };
+                
+                const response = await fetch('http://localhost:3002/api/booking-requests', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(bookingRequest)
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showAlert('Booking confirmed successfully! See you at the field.', 'success');
+                    confirmBtn.style.display = 'none';
+                    // Redirect to main page after successful booking
+                    setTimeout(() => {
+                        window.location.href = '/';
+                    }, 2000);
+                } else {
+                    throw new Error(result.error || 'Failed to confirm booking');
+                }
+                
+            } catch (error) {
+                showAlert('Error confirming booking: ' + error.message, 'error');
+                // Restore button state
+                const confirmBtn = document.getElementById('confirm-btn');
+                confirmBtn.innerHTML = 'Confirm Reservation';
+                confirmBtn.disabled = false;
+            }
+        }
+        
+        async function submitForReview() {
+            try {
+                // Show loading state
+                const submitBtn = document.getElementById('submit-btn');
+                const originalText = submitBtn.innerHTML;
+                submitBtn.innerHTML = 'Submitting...';
+                submitBtn.disabled = true;
+                
+                // Create booking request with URL parameters
+                const bookingRequest = {
+                    userId: localStorage.getItem('userId'),
+                    fieldId: urlParams.get('fieldId'),
+                    slotDate: urlParams.get('slotDate'),
+                    startTime: urlParams.get('startTime'),
+                    endTime: urlParams.get('endTime'),
+                    bookingType: urlParams.get('bookingType'),
+                    playerName: urlParams.get('playerName'),
+                    teamMembers: bookingData.members || [],
+                    needsReview: true
+                };
+                
+                const response = await fetch('http://localhost:3002/api/booking-requests', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(bookingRequest)
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showAlert('Request submitted to admin for review. You will be contacted soon.', 'success');
+                    submitBtn.style.display = 'none';
+                    // Redirect to main page after successful submission
+                    setTimeout(() => {
+                        window.location.href = '/';
+                    }, 2000);
+                } else {
+                    throw new Error(result.error || 'Failed to submit for review');
+                }
+                
+            } catch (error) {
+                showAlert('Error submitting for review: ' + error.message, 'error');
+                // Restore button state
+                const submitBtn = document.getElementById('submit-btn');
+                submitBtn.innerHTML = 'Submit for Review';
+                submitBtn.disabled = false;
+            }
+        }
+        
+        function showAlert(message, type) {
+            const alertContainer = document.getElementById('alert-container');
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type === 'error' ? 'error' : 'success'}`;
+            alert.textContent = message;
+            
+            alertContainer.appendChild(alert);
+            
+            setTimeout(() => {
+                alert.remove();
+            }, 5000);
+        }
+    </script>
+</body>
+</html>
