@@ -1,13 +1,18 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Join Team - 5ع5 Palestine</title>
+    <title>انضم للفريق - 5ع5 فلسطين</title>
     <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
     <style>
+        * {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
         .team-join-container {
-            max-width: 600px;
+            max-width: 800px;
             margin: 2rem auto;
             padding: 2rem;
             background: white;
@@ -180,12 +185,162 @@
             background: #007bff;
             transition: width 0.3s ease;
         }
+        
+        /* Team Division Styles */
+        .teams-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+        
+        .team-section {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: 2px solid #e9ecef;
+        }
+        
+        .team-section.team-a {
+            border-color: #007bff;
+        }
+        
+        .team-section.team-b {
+            border-color: #28a745;
+        }
+        
+        .team-header {
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+        
+        .team-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+        
+        .team-a .team-title {
+            color: #007bff;
+        }
+        
+        .team-b .team-title {
+            color: #28a745;
+        }
+        
+        .team-count {
+            font-size: 0.9rem;
+            color: #666;
+        }
+        
+        .join-team-btn {
+            width: 100%;
+            margin-top: 1rem;
+            padding: 0.75rem;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .join-team-btn.team-a {
+            background: #007bff;
+            color: white;
+        }
+        
+        .join-team-btn.team-a:hover {
+            background: #0056b3;
+        }
+        
+        .join-team-btn.team-b {
+            background: #28a745;
+            color: white;
+        }
+        
+        .join-team-btn.team-b:hover {
+            background: #1e7e34;
+        }
+        
+        .join-team-btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+        
+        /* QR Code Styles */
+        .qr-section {
+            text-align: center;
+            margin: 2rem 0;
+            padding: 1.5rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .qr-code {
+            margin: 1rem auto;
+            display: inline-block;
+        }
+        
+        /* Login Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+        
+        .modal-content {
+            background-color: white;
+            margin: 15% auto;
+            padding: 2rem;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+        }
+        
+        .close {
+            color: #aaa;
+            float: left;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .close:hover {
+            color: black;
+        }
+        
+        /* Single Team Styles */
+        .single-team-container {
+            background: #f8f9fa;
+            padding: 2rem;
+            border-radius: 8px;
+            margin: 2rem 0;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .teams-container {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            
+            .team-join-container {
+                margin: 1rem;
+                padding: 1rem;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="team-join-container">
         <div id="loading" class="loading">
-            <h2>Loading team details...</h2>
+            <h2>جاري تحميل تفاصيل الفريق...</h2>
         </div>
         
         <div id="content" style="display: none;">
@@ -193,86 +348,141 @@
                 <!-- Booking details will be populated here -->
             </div>
             
-            <div class="team-roster">
-                <div class="player-count" id="player-count">
+            <!-- QR Code Section for Creator -->
+            <div id="qr-section" class="qr-section" style="display: none;">
+                <h3>شارك الرابط أو الرمز المربع</h3>
+                <p>شارك هذا الرابط مع أصدقائك للانضمام للفريق:</p>
+                <div style="background: white; padding: 1rem; border-radius: 6px; margin: 1rem 0; word-break: break-all; border: 1px solid #ddd;">
+                    <span id="invitation-link"></span>
+                </div>
+                <button type="button" class="btn btn-primary" onclick="copyInvitationLink()" style="margin: 0.5rem;">
+                    نسخ الرابط
+                </button>
+                <div class="qr-code" id="qr-code"></div>
+            </div>
+            
+            <!-- Team vs Team Division -->
+            <div id="teams-container" class="teams-container" style="display: none;">
+                <div class="team-section team-a">
+                    <div class="team-header">
+                        <div class="team-title">الفريق أ</div>
+                        <div class="team-count" id="team-a-count">0/6 لاعبين</div>
+                    </div>
+                    <ul class="player-list" id="team-a-list"></ul>
+                    <button class="join-team-btn team-a" id="join-team-a" onclick="showJoinModal('A')">
+                        انضم للفريق أ
+                    </button>
+                </div>
+                
+                <div class="team-section team-b">
+                    <div class="team-header">
+                        <div class="team-title">الفريق ب</div>
+                        <div class="team-count" id="team-b-count">0/6 لاعبين</div>
+                    </div>
+                    <ul class="player-list" id="team-b-list"></ul>
+                    <button class="join-team-btn team-b" id="join-team-b" onclick="showJoinModal('B')">
+                        انضم للفريق ب
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Single Team Container -->
+            <div id="single-team-container" class="single-team-container" style="display: none;">
+                <div class="player-count" id="single-player-count">
                     <!-- Player count will be populated here -->
                 </div>
                 
                 <div class="progress-bar">
-                    <div class="progress-fill" id="progress-fill"></div>
+                    <div class="progress-fill" id="single-progress-fill"></div>
                 </div>
                 
-                <ul class="player-list" id="player-list">
+                <ul class="player-list" id="single-player-list">
                     <!-- Player list will be populated here -->
                 </ul>
+                
+                <button class="btn btn-primary" id="join-single-team" onclick="showJoinModal('single')" style="width: 100%; margin-top: 1rem;">
+                    انضم للفريق
+                </button>
             </div>
             
-            <div id="join-section">
-                <div class="join-form">
-                    <h3>Join This Team</h3>
-                    <form id="join-form">
-                        <div class="form-group">
-                            <label for="playerName">Your Name *</label>
-                            <input type="text" id="playerName" name="playerName" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="playerEmail">Email (optional)</label>
-                            <input type="email" id="playerEmail" name="playerEmail">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="playerPhone">Phone (optional)</label>
-                            <input type="tel" id="playerPhone" name="playerPhone">
-                        </div>
-                        
-                        <button type="submit" class="btn btn-primary" id="join-btn">
-                            Join Team
-                        </button>
-                    </form>
-                </div>
-            </div>
-            
-            <div id="creator-section" style="display: none;">
-                <div class="join-form">
-                    <h3>Team Management</h3>
-                    <p>Share this link with your friends to build your team:</p>
-                    <div style="background: white; padding: 1rem; border-radius: 6px; margin: 1rem 0; word-break: break-all; border: 1px solid #ddd;">
-                        <span id="invitation-link"></span>
-                    </div>
-                    <button type="button" class="btn btn-primary" onclick="copyInvitationLink()" style="margin-right: 1rem;">
-                        Copy Link
-                    </button>
-                    <button type="button" class="btn btn-success" id="confirm-btn" style="display: none;" onclick="confirmBooking()">
-                        Confirm Reservation
-                    </button>
-                    <button type="button" class="btn btn-success" id="submit-btn" style="display: none;" onclick="submitForReview()">
-                        Submit for Review
-                    </button>
-                </div>
+            <!-- Confirmation Buttons -->
+            <div id="confirmation-section" style="display: none; text-align: center; margin-top: 2rem;">
+                <button type="button" class="btn btn-success" id="confirm-btn" style="display: none; margin: 0.5rem;" onclick="confirmBooking()">
+                    تأكيد الحجز
+                </button>
+                <button type="button" class="btn btn-success" id="submit-btn" style="display: none; margin: 0.5rem;" onclick="submitForReview()">
+                    إرسال للمراجعة
+                </button>
             </div>
         </div>
         
         <div id="alert-container"></div>
     </div>
+    
+    <!-- Login Modal -->
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeLoginModal()">&times;</span>
+            <h2>سجل دخولك في أقل من دقيقة!</h2>
+            <p>يجب تسجيل الدخول للانضمام إلى هذه المباراة</p>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="loginName">الاسم *</label>
+                    <input type="text" id="loginName" name="loginName" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="loginEmail">البريد الإلكتروني *</label>
+                    <input type="email" id="loginEmail" name="loginEmail" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="loginPhone">رقم الهاتف (اختياري)</label>
+                    <input type="tel" id="loginPhone" name="loginPhone">
+                </div>
+                
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">
+                    انضم الآن
+                </button>
+            </form>
+        </div>
+    </div>
 
     <script>
         let bookingData = null;
         let urlParams = null;
+        let currentUser = null;
+        let selectedTeam = null;
+        let invitationCode = null;
         
         // Extract parameters from URL
         urlParams = new URLSearchParams(window.location.search);
         
+        // Check if we're on an invitation page
+        const pathParts = window.location.pathname.split('/');
+        if (pathParts[1] === 'join' && pathParts[2]) {
+            invitationCode = pathParts[2];
+        }
+        
         // Load team details on page load
         document.addEventListener('DOMContentLoaded', function() {
+            checkUserAuth();
             loadTeamDetails();
         });
+        
+        // Check user authentication
+        function checkUserAuth() {
+            const userData = localStorage.getItem('userData');
+            if (userData) {
+                currentUser = JSON.parse(userData);
+            }
+        }
         
         // Team building rules functions
         function getMinimumPlayersRequired(bookingType) {
             switch(bookingType) {
                 case 'full_field': return 12;
-                case 'team_vs_team': return 6;
+                case 'team_vs_team': return 6; // 3 per team
                 case 'team_looking_for_players': return 4;
                 case 'players_looking_for_team': return 1;
                 default: return 1;
@@ -282,129 +492,128 @@
         function getMaximumPlayersAllowed(bookingType) {
             switch(bookingType) {
                 case 'full_field': return 12;
-                case 'team_vs_team': return 6;
+                case 'team_vs_team': return 6; // 3 per team
                 case 'team_looking_for_players': return 11;
                 case 'players_looking_for_team': return 3;
                 default: return 12;
             }
         }
         
+        // Get booking type display name in Arabic
+        function getBookingTypeDisplayName(bookingType) {
+            switch(bookingType) {
+                case 'full_field': return 'ملعب كامل';
+                case 'team_vs_team': return 'فريق ضد فريق';
+                case 'team_looking_for_players': return 'فريق يبحث عن لاعبين';
+                case 'players_looking_for_team': return 'لاعبون يبحثون عن فريق';
+                default: return bookingType;
+            }
+        }
+        
         async function loadTeamDetails() {
             try {
-                // Get field details from API
-                const fieldId = urlParams.get('fieldId');
-                const fieldResponse = await fetch(`/api/fields/${fieldId}`);
-                const fieldData = await fieldResponse.json();
-                
-                if (!fieldResponse.ok) {
-                    throw new Error('Failed to load field details');
+                if (invitationCode) {
+                    // Load existing team data from invitation code
+                    const response = await fetch(`/api/team-building/${invitationCode}`);
+                    const data = await response.json();
+                    
+                    if (!response.ok) {
+                        throw new Error(data.error || 'فشل في تحميل تفاصيل الفريق');
+                    }
+                    
+                    bookingData = data;
+                    displayTeamDetails(bookingData);
+                } else {
+                    // Create new team from URL parameters (creator flow)
+                    const fieldId = urlParams.get('fieldId');
+                    const fieldResponse = await fetch(`/api/fields/${fieldId}`);
+                    const fieldData = await fieldResponse.json();
+                    
+                    if (!fieldResponse.ok) {
+                        throw new Error('فشل في تحميل تفاصيل الملعب');
+                    }
+                    
+                    // Create booking data from URL parameters
+                    const booking = {
+                        field_name: fieldData.field.name,
+                        field_location: fieldData.field.location,
+                        slot_date: urlParams.get('slotDate'),
+                        start_time: urlParams.get('startTime'),
+                        end_time: urlParams.get('endTime'),
+                        booking_type: urlParams.get('bookingType')
+                    };
+                    
+                    // Create initial team member (creator)
+                    const members = [{
+                        player_name: urlParams.get('playerName'),
+                        is_creator: true,
+                        joined_at: new Date().toISOString(),
+                        team: 'A' // Creator always goes to team A for team_vs_team
+                    }];
+                    
+                    bookingData = {
+                        booking: booking,
+                        members: members,
+                        canConfirm: false,
+                        needsReview: booking.booking_type !== 'full_field'
+                    };
+                    
+                    displayTeamDetails(bookingData);
+                    
+                    // Show QR section for creator
+                    if (currentUser) {
+                        document.getElementById('qr-section').style.display = 'block';
+                        generateInvitationLink();
+                    }
                 }
-                
-                // Create booking data from URL parameters
-                const booking = {
-                    field_name: fieldData.field.name,
-                    field_location: fieldData.field.location,
-                    slot_date: urlParams.get('slotDate'),
-                    start_time: urlParams.get('startTime'),
-                    end_time: urlParams.get('endTime'),
-                    booking_type: urlParams.get('bookingType')
-                };
-                
-                // Create initial team member (creator)
-                const members = [{
-                    player_name: urlParams.get('playerName'),
-                    is_creator: true,
-                    joined_at: new Date().toISOString()
-                }];
-                
-                bookingData = {
-                    booking: booking,
-                    members: members,
-                    canConfirm: false,
-                    needsReview: booking.booking_type !== 'full_field'
-                };
-                
-                displayTeamDetails(bookingData);
                 
                 document.getElementById('loading').style.display = 'none';
                 document.getElementById('content').style.display = 'block';
                 
             } catch (error) {
-                showAlert('Error loading team details: ' + error.message, 'error');
-                document.getElementById('loading').innerHTML = '<h2>Error loading team details</h2>';
+                console.error('Error loading team details:', error);
+                showAlert('خطأ في تحميل تفاصيل الفريق: ' + error.message, 'error');
+                document.getElementById('loading').style.display = 'none';
             }
         }
         
         function displayTeamDetails(data) {
             const { booking, members, canConfirm, needsReview } = data;
             
-            // Display booking info
+            // Display booking info in Arabic
             const bookingInfo = document.getElementById('booking-info');
             const bookingTypeClass = booking.booking_type.replace('_', '-');
-            const bookingTypeText = {
-                'full_field': 'Full Field Reservation',
-                'team_vs_team': 'Team vs Another Team',
-                'team_looking_players': 'Team Looking for Players',
-                'players_looking_team': 'Players Looking for a Team'
-            };
             
             bookingInfo.innerHTML = `
                 <div class="booking-type-badge ${bookingTypeClass}">
-                    ${bookingTypeText[booking.booking_type]}
+                    ${getBookingTypeDisplayName(booking.booking_type)}
                 </div>
                 <h2>${booking.field_name}</h2>
-                <p><strong>Location:</strong> ${booking.field_location}</p>
-                <p><strong>Date:</strong> ${booking.slot_date}</p>
-                <p><strong>Time:</strong> ${booking.start_time} - ${booking.end_time}</p>
-                <p><strong>Created by:</strong> ${members.find(m => m.is_creator)?.player_name || 'Unknown'}</p>
+                <p><strong>الموقع:</strong> ${booking.field_location}</p>
+                <p><strong>التاريخ:</strong> ${booking.slot_date}</p>
+                <p><strong>الوقت:</strong> ${booking.start_time} - ${booking.end_time}</p>
+                <p><strong>منشئ الفريق:</strong> ${members.find(m => m.is_creator)?.player_name || 'غير معروف'}</p>
             `;
             
             // Calculate proper team requirements
             const minRequired = getMinimumPlayersRequired(booking.booking_type);
             const maxAllowed = getMaximumPlayersAllowed(booking.booking_type);
-            const currentCount = members.length;
             
-            // Display player count and progress
-            const playerCount = document.getElementById('player-count');
-            playerCount.textContent = `${currentCount} of ${maxAllowed} players joined (minimum: ${minRequired})`;
-            
-            const progressFill = document.getElementById('progress-fill');
-            const progressPercent = (currentCount / maxAllowed) * 100;
-            progressFill.style.width = progressPercent + '%';
-            
-            // Update progress bar color based on minimum requirement
-            const isMinimumMet = currentCount >= minRequired;
-            progressFill.style.backgroundColor = isMinimumMet ? '#10b981' : '#f59e0b';
-            
-            // Display team members
-            const playerList = document.getElementById('player-list');
-            playerList.innerHTML = '';
-            
-            members.forEach((member, index) => {
-                const li = document.createElement('li');
-                li.className = `player-item ${member.is_creator ? 'creator' : ''}`;
-                
-                li.innerHTML = `
-                    <div class="player-icon ${member.is_creator ? 'creator' : ''}">
-                        ${member.player_name.charAt(0).toUpperCase()}
-                    </div>
-                    <div>
-                        <strong>${member.player_name}</strong>
-                        ${member.is_creator ? ' (Team Creator)' : ''}
-                        ${member.player_email ? `<br><small>${member.player_email}</small>` : ''}
-                    </div>
-                `;
-                
-                playerList.appendChild(li);
-            });
+            if (booking.booking_type === 'team_vs_team') {
+                displayTeamVsTeamLayout(members, minRequired, maxAllowed);
+            } else {
+                displaySingleTeamLayout(members, minRequired, maxAllowed);
+            }
             
             // In this flow, the current user is always the creator
             const isCreator = true;
+            const currentCount = members.length;
+            const isMinimumMet = currentCount >= minRequired;
             
             if (isCreator) {
-                document.getElementById('join-section').style.display = 'none';
-                document.getElementById('creator-section').style.display = 'block';
+                document.getElementById('qr-section').style.display = 'block';
                 document.getElementById('invitation-link').textContent = window.location.href;
+                document.getElementById('confirmation-section').style.display = 'block';
                 
                 // Only show confirmation buttons if minimum requirements are met
                 if (isMinimumMet) {
@@ -428,14 +637,174 @@
         // Join functionality is not needed in this flow since user is always the creator
         // The join form is hidden and team building happens through invitation links
         
+        function displayTeamVsTeamLayout(members, minRequired, maxAllowed) {
+            document.getElementById('teams-container').style.display = 'grid';
+            document.getElementById('single-team-container').style.display = 'none';
+            
+            const teamA = members.filter(m => m.team === 'A' || m.is_creator);
+            const teamB = members.filter(m => m.team === 'B');
+            
+            // Display Team A
+            displayTeamSection('team-a', teamA, maxAllowed / 2);
+            
+            // Display Team B
+            displayTeamSection('team-b', teamB, maxAllowed / 2);
+        }
+        
+        function displaySingleTeamLayout(members, minRequired, maxAllowed) {
+            document.getElementById('teams-container').style.display = 'none';
+            document.getElementById('single-team-container').style.display = 'block';
+            
+            const currentCount = members.length;
+            
+            // Update player count
+            document.getElementById('single-player-count').textContent = `اللاعبون: ${currentCount}/${maxAllowed} (الحد الأدنى: ${minRequired})`;
+            
+            // Update progress bar
+            const progressPercent = (currentCount / maxAllowed) * 100;
+            const progressFill = document.getElementById('single-progress-fill');
+            progressFill.style.width = progressPercent + '%';
+            
+            const isMinimumMet = currentCount >= minRequired;
+            progressFill.style.backgroundColor = isMinimumMet ? '#28a745' : '#ffc107';
+            
+            // Display player list
+            const playerList = document.getElementById('single-player-list');
+            playerList.innerHTML = '';
+            
+            members.forEach(member => {
+                const li = document.createElement('li');
+                li.className = `player-item ${member.is_creator ? 'creator' : ''}`;
+                
+                li.innerHTML = `
+                    <div class="player-icon ${member.is_creator ? 'creator' : ''}">
+                        ${member.player_name.charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                        <strong>${member.player_name}</strong>
+                        ${member.is_creator ? ' (منشئ الفريق)' : ''}
+                        ${member.player_email ? `<br><small>${member.player_email}</small>` : ''}
+                    </div>
+                `;
+                
+                playerList.appendChild(li);
+            });
+        }
+        
+        function displayTeamSection(teamId, teamMembers, maxPerTeam) {
+            const countElement = document.getElementById(`${teamId}-count`);
+            const listElement = document.getElementById(`${teamId}-list`);
+            
+            countElement.textContent = `${teamMembers.length}/${maxPerTeam} لاعبين`;
+            
+            listElement.innerHTML = '';
+            
+            teamMembers.forEach(member => {
+                const li = document.createElement('li');
+                li.className = `player-item ${member.is_creator ? 'creator' : ''}`;
+                
+                li.innerHTML = `
+                    <div class="player-icon ${member.is_creator ? 'creator' : ''}">
+                        ${member.player_name.charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                        <strong>${member.player_name}</strong>
+                        ${member.is_creator ? ' (منشئ الفريق)' : ''}
+                        ${member.player_email ? `<br><small>${member.player_email}</small>` : ''}
+                    </div>
+                `;
+                
+                listElement.appendChild(li);
+            });
+        }
+        
+        function generateInvitationLink() {
+            const link = window.location.href;
+            document.getElementById('invitation-link').textContent = link;
+            
+            // Generate QR code
+            const qrCodeElement = document.getElementById('qr-code');
+            qrCodeElement.innerHTML = '';
+            
+            if (typeof QRCode !== 'undefined') {
+                QRCode.toCanvas(qrCodeElement, link, { width: 200 }, function (error) {
+                    if (error) console.error('QR Code generation failed:', error);
+                });
+            }
+        }
+        
         function copyInvitationLink() {
             const link = window.location.href;
             navigator.clipboard.writeText(link).then(() => {
-                showAlert('Invitation link copied to clipboard!', 'success');
+                showAlert('تم نسخ رابط الدعوة!', 'success');
             }).catch(() => {
-                showAlert('Failed to copy link. Please copy manually.', 'error');
+                showAlert('فشل في نسخ الرابط. يرجى النسخ يدوياً.', 'error');
             });
         }
+        
+        function showJoinModal(team) {
+            selectedTeam = team;
+            if (!currentUser) {
+                document.getElementById('loginModal').style.display = 'block';
+            } else {
+                joinTeam(team);
+            }
+        }
+        
+        function closeLoginModal() {
+            document.getElementById('loginModal').style.display = 'none';
+        }
+        
+        async function joinTeam(team) {
+            try {
+                const response = await fetch(`/api/team-building/${invitationCode}/join`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        playerName: currentUser.name,
+                        playerEmail: currentUser.email,
+                        playerPhone: currentUser.phone,
+                        team: team
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showAlert('تم الانضمام للفريق بنجاح!', 'success');
+                    loadTeamDetails(); // Refresh the page
+                } else {
+                    throw new Error(result.error || 'فشل في الانضمام للفريق');
+                }
+            } catch (error) {
+                showAlert('خطأ في الانضمام للفريق: ' + error.message, 'error');
+            }
+        }
+        
+        // Handle login form submission
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const userData = {
+                name: formData.get('loginName'),
+                email: formData.get('loginEmail'),
+                phone: formData.get('loginPhone')
+            };
+            
+            // Store user data
+            localStorage.setItem('userData', JSON.stringify(userData));
+            currentUser = userData;
+            
+            closeLoginModal();
+            
+            // Join the selected team
+            if (selectedTeam) {
+                await joinTeam(selectedTeam);
+            }
+        });
         
         async function confirmBooking() {
             try {
@@ -468,7 +837,7 @@
                 const result = await response.json();
                 
                 if (response.ok) {
-                    showAlert('Booking confirmed successfully! See you at the field.', 'success');
+                    showAlert('تم تأكيد الحجز بنجاح! نراكم في الملعب.', 'success');
                     confirmBtn.style.display = 'none';
                     // Redirect to main page after successful booking
                     setTimeout(() => {
@@ -479,7 +848,7 @@
                 }
                 
             } catch (error) {
-                showAlert('Error confirming booking: ' + error.message, 'error');
+                showAlert('خطأ في تأكيد الحجز: ' + error.message, 'error');
                 // Restore button state
                 const confirmBtn = document.getElementById('confirm-btn');
                 confirmBtn.innerHTML = 'Confirm Reservation';
@@ -519,7 +888,7 @@
                 const result = await response.json();
                 
                 if (response.ok) {
-                    showAlert('Request submitted to admin for review. You will be contacted soon.', 'success');
+                    showAlert('تم إرسال الطلب للمراجعة. سيتم التواصل معكم قريباً.', 'success');
                     submitBtn.style.display = 'none';
                     // Redirect to main page after successful submission
                     setTimeout(() => {
@@ -530,7 +899,7 @@
                 }
                 
             } catch (error) {
-                showAlert('Error submitting for review: ' + error.message, 'error');
+                showAlert('خطأ في إرسال الطلب للمراجعة: ' + error.message, 'error');
                 // Restore button state
                 const submitBtn = document.getElementById('submit-btn');
                 submitBtn.innerHTML = 'Submit for Review';

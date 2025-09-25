@@ -148,6 +148,13 @@ const db = new sqlite3.Database(path.join(__dirname, '5v5.db'), (err) => {
         }
     });
     
+    // Add team column to team_members table for team A/B assignments
+    db.run(`ALTER TABLE team_members ADD COLUMN team TEXT DEFAULT 'A'`, (err) => {
+        if (err && !err.message.includes('duplicate column name')) {
+            console.error('Error adding team column:', err);
+        }
+    });
+    
     // Add image column to fields table if it doesn't exist (migration for existing databases)
     db.run(`ALTER TABLE fields ADD COLUMN image BLOB`, (err) => {
         if (err && !err.message.includes('duplicate column name')) {
@@ -433,9 +440,10 @@ app.post('/api/team-building/initiate', (req, res) => {
             return res.status(500).json({ error: 'Failed to create booking request.' });
         }
 
-        // Add creator as first team member
-        const memberSql = `INSERT INTO team_members (booking_request_id, user_id, player_name, is_creator) VALUES (?, ?, ?, 1)`;
-        db.run(memberSql, [this.lastID, userId, playerName], (memberErr) => {
+        // Add creator as first team member (always Team A for team_vs_team)
+        const creatorTeam = bookingType === 'team_vs_team' ? 'A' : 'A';
+        const memberSql = `INSERT INTO team_members (booking_request_id, user_id, player_name, is_creator, team) VALUES (?, ?, ?, 1, ?)`;
+        db.run(memberSql, [this.lastID, userId, playerName, creatorTeam], (memberErr) => {
             if (memberErr) {
                 console.error('Error adding creator to team:', memberErr);
                 return res.status(500).json({ error: 'Failed to add creator to team.' });
@@ -468,7 +476,7 @@ app.post('/api/team-building/initiate', (req, res) => {
 // API to join a team via invitation code
 app.post('/api/team-building/join/:invitationCode', (req, res) => {
     const { invitationCode } = req.params;
-    const { playerName, playerEmail, playerPhone, userId } = req.body;
+    const { playerName, playerEmail, playerPhone, userId, team } = req.body;
 
     if (!playerName) {
         return res.status(400).json({ error: 'Player name is required.' });
@@ -496,20 +504,55 @@ app.post('/api/team-building/join/:invitationCode', (req, res) => {
         };
         const config = bookingConfig[booking.booking_type];
         
-        // Check if team is full
-        if (booking.current_player_count >= config.max) {
-            return res.status(400).json({ error: 'Team is already full.' });
-        }
-
-        // Add player to team
-        const memberSql = `INSERT INTO team_members (booking_request_id, user_id, player_name, player_email, player_phone) VALUES (?, ?, ?, ?, ?)`;
-        
-        db.run(memberSql, [booking.id, userId, playerName, playerEmail, playerPhone], function(err) {
-            if (err) {
-                console.error('Error adding team member:', err);
-                return res.status(500).json({ error: 'Failed to join team.' });
+        // For team_vs_team, check team capacity (3 per team)
+        if (booking.booking_type === 'team_vs_team') {
+            const teamToJoin = team || 'B'; // Default to team B if not specified
+            
+            // Count current team members for the specified team
+            const teamCountSql = `SELECT COUNT(*) as count FROM team_members WHERE booking_request_id = ? AND team = ?`;
+            
+            db.get(teamCountSql, [booking.id, teamToJoin], (countErr, teamCount) => {
+                if (countErr) {
+                    console.error('Error counting team members:', countErr);
+                    return res.status(500).json({ error: 'Database error.' });
+                }
+                
+                if (teamCount.count >= 3) {
+                    return res.status(400).json({ error: `Team ${teamToJoin} is already full.` });
+                }
+                
+                // Add player to specified team
+                const memberSql = `INSERT INTO team_members (booking_request_id, user_id, player_name, player_email, player_phone, team) VALUES (?, ?, ?, ?, ?, ?)`;
+                
+                db.run(memberSql, [booking.id, userId, playerName, playerEmail, playerPhone, teamToJoin], function(err) {
+                    if (err) {
+                        console.error('Error adding team member:', err);
+                        return res.status(500).json({ error: 'Failed to join team.' });
+                    }
+                    
+                    handlePlayerCountUpdate(booking, config, res);
+                });
+            });
+        } else {
+            // Check if team is full for other booking types
+            if (booking.current_player_count >= config.max) {
+                return res.status(400).json({ error: 'Team is already full.' });
             }
-
+            
+            // Add player to team (default team A for non-team_vs_team)
+            const memberSql = `INSERT INTO team_members (booking_request_id, user_id, player_name, player_email, player_phone, team) VALUES (?, ?, ?, ?, ?, 'A')`;
+            
+            db.run(memberSql, [booking.id, userId, playerName, playerEmail, playerPhone], function(err) {
+                if (err) {
+                    console.error('Error adding team member:', err);
+                    return res.status(500).json({ error: 'Failed to join team.' });
+                }
+                
+                handlePlayerCountUpdate(booking, config, res);
+            });
+        }
+        
+        function handlePlayerCountUpdate(booking, config, res) {
             // Update player count
             const updateCountSql = `UPDATE booking_requests SET current_player_count = current_player_count + 1, 
                                    status = CASE WHEN current_player_count + 1 >= ? THEN 'ready_for_confirmation' ELSE 'building_team' END 
@@ -529,7 +572,7 @@ app.post('/api/team-building/join/:invitationCode', (req, res) => {
                     canConfirm: (booking.current_player_count + 1) >= config.min
                 });
             });
-        });
+        }
     });
 });
 
@@ -562,7 +605,7 @@ app.get('/api/team-building/:invitationCode', (req, res) => {
         const config = bookingConfig[booking.booking_type];
 
         // Get team members
-        const membersSql = `SELECT player_name, player_email, is_creator, joined_at FROM team_members WHERE booking_request_id = ? ORDER BY is_creator DESC, joined_at ASC`;
+        const membersSql = `SELECT player_name, player_email, is_creator, joined_at, team FROM team_members WHERE booking_request_id = ? ORDER BY is_creator DESC, joined_at ASC`;
         
         db.all(membersSql, [booking.id], (membersErr, members) => {
             if (membersErr) {
