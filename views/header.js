@@ -51,14 +51,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 <!-- Mobile Menu -->
                 <div id="mobile-menu" class="hidden lg:hidden bg-white shadow-md py-4 mt-2 border-t border-gray-100 absolute top-full left-0 w-full z-40">
-                    <nav class="flex flex-col items-end px-6 space-y-3">
-                        <a href="index.html" class="block text-gray-700 py-2 hover:bg-green-50 w-full text-right pl-4 rounded-lg flex items-center gap-2 justify-end">
+                    <nav class="flex flex-col items-center px-6 space-y-3">
+                        <a href="index.html" class="block text-gray-700 py-2 hover:bg-green-50 w-full text-center rounded-lg flex items-center gap-2 justify-center">
                             <i class="fa-solid fa-house"></i> الرئيسية
                         </a>
-                        <a href="tournaments.html" class="block text-gray-700 py-2 hover:bg-green-50 w-full text-right pl-4 rounded-lg flex items-center gap-2 justify-end">
+                        <a href="tournaments.html" class="block text-gray-700 py-2 hover:bg-green-50 w-full text-center rounded-lg flex items-center gap-2 justify-center">
                             <i class="fa-solid fa-trophy"></i> البطولات
                         </a>
-                        <a href="about.html" class="block text-gray-700 py-2 hover:bg-green-50 w-full text-right pl-4 rounded-lg flex items-center gap-2 justify-end">
+                        <a href="about.html" class="block text-gray-700 py-2 hover:bg-green-50 w-full text-center rounded-lg flex items-center gap-2 justify-center">
                             <i class="fa-solid fa-circle-info"></i> عنا
                         </a>
                         <div id="mobile-auth-links" class="w-full">

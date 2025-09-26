@@ -1464,6 +1464,10 @@ app.get('/team-join.html', (req, res) => {
     res.sendFile(path.join(__dirname, 'views', 'team-join.html'));
 });
 
+app.get('/terms-of-use.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'views', 'terms-of-use.html'));
+});
+
 // Route to handle team-join URLs with invitation codes
 app.get('/join/:invitationCode', (req, res) => {
     res.sendFile(path.join(__dirname, 'views', 'team-join.html'));

@@ -7,11 +7,15 @@ document.addEventListener('DOMContentLoaded', () => {
         const footerHTML = `
             <footer class="bg-gray-900 text-gray-200 py-10 mt-auto">
                 <div class="container mx-auto px-6 text-center">
-                    <p class="mb-5 text-lg">&copy; 2025 5ع5. جميع الحقوق محفوظة.</p>
-                    <div class="flex justify-center space-x-6 space-x-reverse text-md">
-                        <a href="#" class="text-gray-400 hover:text-white transition-colors duration-300">سياسة الخصوصية</a>
-                        <a href="#" class="text-gray-400 hover:text-white transition-colors duration-300">شروط الاستخدام</a>
-                        <a href="about.html" class="text-gray-400 hover:text-white transition-colors duration-300">عنّا</a>
+                    <!-- Logo centered -->
+                    <div class="mb-6">
+                        <img src="images/logo.jpg" alt="5ع5 Logo" class="mx-auto h-16 w-auto rounded-lg">
+                    </div>
+                    <!-- Copyright text -->
+                    <p class="mb-4 text-lg">© 2025 جميع الحقوق محفوظة.</p>
+                    <!-- Terms of Use link -->
+                    <div class="text-md">
+                        <a href="terms-of-use.html" class="text-gray-400 hover:text-white transition-colors duration-300">شروط الاستخدام</a>
                     </div>
                 </div>
             </footer>
