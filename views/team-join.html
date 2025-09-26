@@ -586,7 +586,8 @@
 
         function setupInvitationLink() {
             const invitationLinkInput = document.getElementById('invitation-link');
-            const fullUrl = `${window.location.origin}/join/${invitationCode}`;
+            // Ensure this uses the correct path format: /join/<code here>
+            const fullUrl = `${window.location.origin}/join/${invitationCode}`; 
             
             invitationLinkInput.value = fullUrl;
             // Generate QR code right away so it's ready when the modal opens

@@ -1404,32 +1404,32 @@ function getPlayersNeededForMatchmaking(bookingType, currentPlayers) {
 
 // Route to serve main pages
 app.get('/index.html', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
+    res.sendFile(path.join(__dirname, 'views', 'index.html'));
 });
 
 app.get('/auth.html', (req, res) => {
-    res.sendFile(path.join(__dirname, 'auth.html'));
+    res.sendFile(path.join(__dirname, 'views', 'auth.html'));
 });
 
 app.get('/admin-dashboard.html', (req, res) => {
-    res.sendFile(path.join(__dirname, 'admin-dashboard.html'));
+    res.sendFile(path.join(__dirname, 'views', 'admin-dashboard.html'));
 });
 
 app.get('/user-dashboard.html', (req, res) => {
-    res.sendFile(path.join(__dirname, 'user-dashboard.html'));
+    res.sendFile(path.join(__dirname, 'views', 'user-dashboard.html'));
 });
 
 app.get('/tournaments.html', (req, res) => {
-    res.sendFile(path.join(__dirname, 'tournaments.html'));
+    res.sendFile(path.join(__dirname, 'views', 'tournaments.html'));
 });
 
 app.get('/team-join.html', (req, res) => {
-    res.sendFile(path.join(__dirname, 'team-join.html'));
+    res.sendFile(path.join(__dirname, 'views', 'team-join.html'));
 });
 
 // Route to handle team-join URLs with invitation codes
 app.get('/join/:invitationCode', (req, res) => {
-    res.sendFile(path.join(__dirname, 'team-join.html'));
+    res.sendFile(path.join(__dirname, 'views', 'team-join.html'));
 });
 
 // Start the server
