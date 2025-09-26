@@ -139,11 +139,41 @@
             .card-grid {
                 grid-template-columns: repeat(2, minmax(0, 1fr));
             }
+            .matchmaking-grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
         }
         @media (min-width: 1280px) {
             .card-grid {
                 grid-template-columns: repeat(3, minmax(0, 1fr));
             }
+            .matchmaking-grid {
+                grid-template-columns: 1fr 1fr 1.5fr; /* Custom widths for better view */
+            }
+        }
+        
+        /* Table responsive adjustments */
+        @media (max-width: 768px) {
+            .overflow-x-auto table {
+                min-width: 600px; /* Ensure table content is readable */
+            }
+        }
+        
+        /* Matchmaking Card Specific Styles */
+        .matchmaking-card-section {
+            background-color: #fefefe;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            border-top: 4px solid var(--secondary-color);
+        }
+
+        .suggestion-card {
+            background-color: #f9fafb;
+            border-radius: 0.75rem;
+            padding: 1rem;
+            border: 1px solid #e5e7eb;
+            margin-bottom: 1rem;
         }
     </style>
 </head>
@@ -242,31 +272,49 @@
         <!-- Tab Content -->
         <div id="tab-content">
 
-            <!-- Tab 1: Matchmaking Requests -->
+            <!-- Tab 1: Matchmaking Requests (New Structure) -->
             <section id="matchmaking-requests-tab" class="tab-pane">
                 <div class="bg-white rounded-2xl shadow-xl p-8 border-b-4 border-blue-500">
                     <h4 class="text-3xl font-bold text-gray-900 mb-8 flex items-center gap-3">
                         <i class="fa-solid fa-handshake-angle text-blue-600"></i>
-                        طلبات المطابقة
+                        إدارة طلبات المطابقة
                     </h4>
-                    
-                    <div class="overflow-x-auto">
-                        <table class="w-full table-auto border-collapse">
-                            <thead>
-                                <tr class="bg-gray-100">
-                                    <th class="border border-gray-300 px-4 py-3 text-right font-bold">المستخدم</th>
-                                    <th class="border border-gray-300 px-4 py-3 text-right font-bold">الملعب</th>
-                                    <th class="border border-gray-300 px-4 py-3 text-right font-bold">التاريخ</th>
-                                    <th class="border border-gray-300 px-4 py-3 text-right font-bold">الوقت</th>
-                                    <th class="border border-gray-300 px-4 py-3 text-right font-bold">نوع الطلب</th>
-                                    <th class="border border-gray-300 px-4 py-3 text-right font-bold">الحالة</th>
-                                    <th class="border border-gray-300 px-4 py-3 text-right font-bold">الإجراءات</th>
-                                </tr>
-                            </thead>
-                            <tbody id="matchmaking-requests-table-body">
+
+                    <div id="matchmaking-sections-container" class="grid grid-cols-1 gap-8 matchmaking-grid">
+                        
+                        <!-- 1. Teams Looking for Players (Team vs Team or Team needs players) -->
+                        <div class="matchmaking-card-section border-blue-500">
+                            <h5 class="text-xl font-bold text-blue-800 mb-4 flex items-center gap-2">
+                                <i class="fa-solid fa-users-line text-blue-500"></i> طلبات الفرق
+                            </h5>
+                            <p class="text-gray-600 mb-4 text-sm">فرق تبحث عن لاعبين (Option 3) أو فريق منافس (Option 2).</p>
+                            <div id="teams-looking-requests" class="overflow-x-auto max-h-96">
                                 <!-- Requests will be loaded here -->
-                            </tbody>
-                        </table>
+                            </div>
+                        </div>
+
+                        <!-- 2. Players Looking for Team (Single Player) -->
+                        <div class="matchmaking-card-section border-yellow-500">
+                            <h5 class="text-xl font-bold text-yellow-800 mb-4 flex items-center gap-2">
+                                <i class="fa-solid fa-user-plus text-yellow-500"></i> طلبات اللاعبين الفرديين
+                            </h5>
+                            <p class="text-gray-600 mb-4 text-sm">لاعبون فرديون يبحثون عن فريق للانضمام إليه (Option 4).</p>
+                            <div id="players-looking-requests" class="overflow-x-auto max-h-96">
+                                <!-- Requests will be loaded here -->
+                            </div>
+                        </div>
+
+                        <!-- 3. Potential Matchmake Suggestions -->
+                        <div class="matchmaking-card-section border-green-500">
+                            <h5 class="text-xl font-bold text-green-800 mb-4 flex items-center gap-2">
+                                <i class="fa-solid fa-arrows-turn-to-dots text-green-500"></i> المطابقات المحتملة
+                            </h5>
+                            <p class="text-gray-600 mb-4 text-sm">مقترحات مطابقة بين الفرق واللاعبين الفرديين في نفس الموعد.</p>
+                            <div id="potential-matches-suggestions" class="space-y-4 max-h-96 overflow-y-auto">
+                                <!-- Suggestions will be loaded here -->
+                            </div>
+                        </div>
+
                     </div>
                 </div>
             </section>
@@ -283,13 +331,13 @@
                         <table class="w-full table-auto border-collapse">
                             <thead>
                                 <tr class="bg-gray-100">
-                                    <th class="border border-gray-300 px-4 py-3 text-right font-bold">المستخدم</th>
-                                    <th class="border border-gray-300 px-4 py-3 text-right font-bold">الملعب</th>
-                                    <th class="border border-gray-300 px-4 py-3 text-right font-bold">التاريخ</th>
-                                    <th class="border border-gray-300 px-4 py-3 text-right font-bold">الوقت</th>
-                                    <th class="border border-gray-300 px-4 py-3 text-right font-bold">نوع الحجز</th>
-                                    <th class="border border-gray-300 px-4 py-3 text-right font-bold">الحالة</th>
-                                    <th class="border border-gray-300 px-4 py-3 text-right font-bold">الإجراءات</th>
+                                    <th class="border border-gray-300 px-4 py-3 text-right font-bold whitespace-nowrap">المستخدم</th>
+                                    <th class="border border-gray-300 px-4 py-3 text-right font-bold whitespace-nowrap">الملعب</th>
+                                    <th class="border border-gray-300 px-4 py-3 text-right font-bold whitespace-nowrap">التاريخ</th>
+                                    <th class="border border-gray-300 px-4 py-3 text-right font-bold whitespace-nowrap">الوقت</th>
+                                    <th class="border border-gray-300 px-4 py-3 text-right font-bold whitespace-nowrap">نوع الحجز</th>
+                                    <th class="border border-gray-300 px-4 py-3 text-right font-bold whitespace-nowrap">الحالة</th>
+                                    <th class="border border-gray-300 px-4 py-3 text-right font-bold whitespace-nowrap">الإجراءات</th>
                                 </tr>
                             </thead>
                             <tbody id="reservations-table-body">
@@ -646,14 +694,16 @@
         function getStatusBadge(status) {
             const statusMap = {
                 'pending': { text: 'قيد الانتظار', color: 'bg-yellow-200 text-yellow-800' },
+                'matched': { text: 'تم التوفيق', color: 'bg-green-200 text-green-800' },
                 'confirmed': { text: 'مؤكد', color: 'bg-green-200 text-green-800' },
                 'completed': { text: 'مكتمل', color: 'bg-green-200 text-green-800' },
                 'declined': { text: 'مرفوض', color: 'bg-red-200 text-red-800' },
                 'upcoming': { text: 'قادمة', color: 'bg-blue-200 text-blue-800' },
-                'past': { text: 'سابقة', color: 'bg-gray-200 text-gray-800' }
+                'past': { text: 'سابقة', color: 'bg-gray-200 text-gray-800' },
+                'rejected': { text: 'مرفوض', color: 'bg-red-200 text-red-800' }
             };
             const badge = status && statusMap[status.toLowerCase()] ? statusMap[status.toLowerCase()] : { text: 'غير محدد', color: 'bg-gray-400 text-gray-800' };
-            return `<span class="${badge.color} py-1 px-3 rounded-full text-xs font-semibold">${badge.text}</span>`;
+            return `<span class="${badge.color} py-1 px-3 rounded-full text-xs font-semibold whitespace-nowrap">${badge.text}</span>`;
         }
 
         function getRequestType(type) {
@@ -760,14 +810,14 @@
                 populateFieldDropdowns(fieldsData.fields);
                 
                 // Fetch all data for the tabs
-                const [reservationsData, matchmakingData, tournamentsData] = await Promise.all([
+                const [reservationsData, categorizedMatchmakingData, tournamentsData] = await Promise.all([
                     fetch('/api/admin/reservations', { headers }).then(res => res.json()),
-                    fetch('/api/admin/matchmaking-requests', { headers }).then(res => res.json()),
+                    fetch('/api/admin/matchmaking/categorized', { headers }).then(res => res.json()), // NEW ENDPOINT
                     fetch('/api/admin/tournaments', { headers }).then(res => res.json()),
                 ]);
 
                 renderReservations(reservationsData.reservations);
-                renderMatchmakingRequests(matchmakingData.requests);
+                renderMatchmakingCategorized(categorizedMatchmakingData); // NEW RENDER FUNCTION
                 renderTournaments(tournamentsData.tournaments);
                 loadAnalytics();
                 loadAvailabilitySlots();
@@ -777,7 +827,120 @@
                 showMessageBox('خطأ في الاتصال', `فشل تحميل البيانات. يرجى التأكد من تشغيل الخادم. تفاصيل الخطأ: ${error.message}`, 'error');
             }
         }
+        
+        // --- NEW MATCHMAKING RENDER FUNCTION ---
+        function renderMatchmakingCategorized(data) {
+            // Render Teams Looking for Players (Team vs Team or Team needs players)
+            renderMatchmakingTable(
+                document.getElementById('teams-looking-requests'), 
+                [...data.team_looking_for_players, ...data.team_vs_team].filter(r => r.status === 'pending'),
+                'team'
+            );
+            
+            // Render Players Looking for Team (Single Player)
+            renderMatchmakingTable(
+                document.getElementById('players-looking-requests'), 
+                data.players_looking_for_team.filter(r => r.status === 'pending'),
+                'player'
+            );
+            
+            // Render Potential Matches
+            renderPotentialMatches(data.potential_matches);
+        }
+        
+        function renderMatchmakingTable(container, requests, category) {
+            container.innerHTML = '';
+            
+            if (requests.length === 0) {
+                container.innerHTML = `<p class="py-4 text-center text-gray-500">لا توجد طلبات معلقة في هذا القسم.</p>`;
+                return;
+            }
 
+            const tableHtml = `
+                <table class="w-full table-auto border-collapse">
+                    <thead>
+                        <tr class="bg-gray-100">
+                            <th class="border border-gray-300 px-4 py-3 text-right font-bold whitespace-nowrap">المستخدم</th>
+                            <th class="border border-gray-300 px-4 py-3 text-right font-bold whitespace-nowrap">الملعب</th>
+                            <th class="border border-gray-300 px-4 py-3 text-right font-bold whitespace-nowrap">الوقت</th>
+                            <th class="border border-gray-300 px-4 py-3 text-right font-bold whitespace-nowrap">المطلوب</th>
+                            <th class="border border-gray-300 px-4 py-3 text-right font-bold whitespace-nowrap">الإجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${requests.map(request => `
+                            <tr class="hover:bg-gray-50 text-sm">
+                                <td class="border border-gray-300 px-4 py-3 font-semibold">${request.user_name}</td>
+                                <td class="border border-gray-300 px-4 py-3">${request.field_name}</td>
+                                <td class="border border-gray-300 px-4 py-3">${request.start_time} - ${request.end_time}</td>
+                                <td class="border border-gray-300 px-4 py-3 text-blue-600 font-bold">
+                                    ${request.request_type === 'team_looking_for_players' ? `لـ ${request.players_needed} لاعب` : 
+                                      request.request_type === 'team_vs_team' ? `لـ فريق منافس` : 
+                                      'لـ فريق'}
+                                </td>
+                                <td class="border border-gray-300 px-4 py-3 whitespace-nowrap">
+                                    <button onclick="approveMatchmakingRequest(${request.id})" class="bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded text-xs transition-colors duration-300">قبول</button>
+                                    <button onclick="rejectMatchmakingRequest(${request.id})" class="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-xs transition-colors duration-300">رفض</button>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+            
+            container.innerHTML = `<div class="overflow-x-auto">${tableHtml}</div>`;
+        }
+
+        function renderPotentialMatches(suggestions) {
+            const container = document.getElementById('potential-matches-suggestions');
+            container.innerHTML = '';
+            
+            if (suggestions.length === 0) {
+                container.innerHTML = `<p class="py-4 text-center text-gray-500">لا توجد مطابقات محتملة حالياً.</p>`;
+                return;
+            }
+
+            suggestions.forEach(match => {
+                const team = match.teamRequest;
+                const player = match.playerRequest;
+                
+                const card = document.createElement('div');
+                card.className = 'suggestion-card border-l-4 border-green-400';
+                card.innerHTML = `
+                    <p class="text-sm font-bold text-gray-800 mb-2">
+                        <i class="fa-solid fa-clock ml-1 text-blue-500"></i> ${team.start_time} | 
+                        <i class="fa-solid fa-calendar ml-1 text-orange-500"></i> ${team.slot_date}
+                    </p>
+                    <p class="text-md font-semibold text-gray-900 mb-2">
+                        <i class="fa-solid fa-futbol text-green-500 ml-1"></i> ${team.field_name}
+                    </p>
+                    
+                    <div class="border-t border-gray-200 mt-3 pt-3 space-y-2">
+                        <p class="text-sm text-gray-700">
+                            <i class="fa-solid fa-user-tag text-blue-400 ml-1"></i> 
+                            الفريق: <strong>${team.user_name}</strong> (ناقص ${team.players_needed} لاعب)
+                        </p>
+                        <p class="text-sm text-gray-700">
+                            <i class="fa-solid fa-user-plus text-yellow-400 ml-1"></i> 
+                            اللاعب: <strong>${player.user_name}</strong> (يبحث عن فريق)
+                        </p>
+                        <p class="text-xs text-gray-500">
+                            <i class="fa-solid fa-phone text-gray-400 ml-1"></i> 
+                            هاتف الفريق: ${team.phone_number || 'غير متوفر'}
+                        </p>
+                    </div>
+
+                    <!-- Action Button - Placeholder for complex matching logic -->
+                    <button onclick="showMessageBox('تنبيه للمطابقة', 'هذه المقترحات تتطلب اتصالاً يدوياً بين الإدارة والمستخدمين للتوفيق بين الفريق واللاعب الفردي. يمكنك استخدام أرقام الهواتف المتوفرة.', 'info')" 
+                        class="mt-3 bg-blue-600 text-white w-full text-xs py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                        إجراء التوفيق يدوياً
+                    </button>
+                `;
+                container.appendChild(card);
+            });
+        }
+        
+        // --- EXISTING RENDER FUNCTIONS (Kept for completeness) ---
         function renderFields(fields) {
             const container = document.getElementById('fields-card-container');
             container.innerHTML = '';
@@ -860,50 +1023,6 @@
                 tbody.appendChild(row);
             });
         }
-
-        function renderMatchmakingRequests(requests) {
-            const tbody = document.getElementById('matchmaking-requests-table-body');
-            tbody.innerHTML = '';
-            
-            if (!Array.isArray(requests) || requests.length === 0) {
-                 tbody.innerHTML = '<tr><td colspan="7" class="text-center py-8 text-gray-500">لا توجد طلبات مطابقة</td></tr>';
-                 return;
-            }
-            requests.forEach(request => {
-                const row = document.createElement('tr');
-                row.className = 'hover:bg-gray-50';
-
-                let statusText, statusColor;
-                if (request.status === 'pending') {
-                    statusText = 'قيد الانتظار';
-                    statusColor = 'bg-yellow-200 text-yellow-800';
-                } else if (request.status === 'confirmed') {
-                    statusText = 'مؤكد';
-                    statusColor = 'bg-green-200 text-green-800';
-                } else {
-                    statusText = 'ملغى';
-                    statusColor = 'bg-red-200 text-red-800';
-                }
-
-                row.innerHTML = `
-                    <td class="border border-gray-300 px-4 py-3">${request.user_name || 'غير محدد'}</td>
-                    <td class="border border-gray-300 px-4 py-3">${request.field_name}</td>
-                    <td class="border border-gray-300 px-4 py-3">${request.slot_date}</td>
-                    <td class="border border-gray-300 px-4 py-3">${request.start_time} - ${request.end_time}</td>
-                    <td class="border border-gray-300 px-4 py-3">${getRequestType(request.request_type)}</td>
-                    <td class="border border-gray-300 px-4 py-3">
-                        <span class="${statusColor} py-1 px-3 rounded-full text-xs font-semibold">${statusText}</span>
-                    </td>
-                    <td class="border border-gray-300 px-4 py-3">
-                        ${request.status === 'pending' ?
-                            `<button onclick="approveMatchmakingRequest(${request.id})" class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-sm ml-2 transition-colors duration-300">موافقة</button>
-                            <button onclick="rejectMatchmakingRequest(${request.id})" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm transition-colors duration-300">رفض</button>` : '-'
-                        }
-                    </td>
-                `;
-                tbody.appendChild(row);
-            });
-        }
         
         function renderTournaments(tournaments) {
             const container = document.getElementById('tournaments-card-container');
@@ -942,7 +1061,8 @@
             });
         }
         
-        // --- Modal & Form Handling ---
+        // --- MODAL AND ACTION FUNCTIONS (Kept for completeness) ---
+        
         function openAddFieldModal() {
             document.getElementById('add-field-modal').classList.remove('hidden');
         }
@@ -1201,7 +1321,7 @@
             const tournamentSelect = document.getElementById('tournament-field');
             
             availabilitySelect.innerHTML = '<option value="">اختر ملعب...</option>';
-            tournamentSelect.innerHTML = '';
+            if (tournamentSelect) tournamentSelect.innerHTML = ''; // Check if element exists
             
             fields.forEach(field => {
                 const optionAvail = document.createElement('option');
@@ -1209,12 +1329,14 @@
                 optionAvail.textContent = field.name;
                 availabilitySelect.appendChild(optionAvail);
 
-                const optionTourn = document.createElement('option');
-                optionTourn.value = field.id;
-                optionTourn.textContent = field.name;
-                tournamentSelect.appendChild(optionTourn);
+                if (tournamentSelect) {
+                    const optionTourn = document.createElement('option');
+                    optionTourn.value = field.id;
+                    optionTourn.textContent = field.name;
+                    tournamentSelect.appendChild(optionTourn);
+                }
             });
-             if (tournamentSelect.options.length > 0) {
+             if (tournamentSelect && tournamentSelect.options.length > 0) {
                 tournamentSelect.dispatchEvent(new Event('change'));
             }
         }
@@ -1430,7 +1552,7 @@
         async function approveMatchmakingRequest(requestId) {
             try {
                 const response = await fetch(`/api/admin/matchmaking-requests/${requestId}/approve`, {
-                    method: 'PUT',
+                    method: 'POST',
                     headers: { 
                         'Content-Type': 'application/json',
                         'X-User-Id': localStorage.getItem('userId')
@@ -1459,7 +1581,7 @@
                 async () => {
                     try {
                         const response = await fetch(`/api/admin/matchmaking-requests/${requestId}/reject`, {
-                            method: 'PUT',
+                            method: 'POST',
                             headers: { 
                                 'Content-Type': 'application/json',
                                 'X-User-Id': localStorage.getItem('userId')
@@ -1670,142 +1792,7 @@
         document.getElementById('availability-field-select').addEventListener('change', loadAvailabilitySlots);
         document.getElementById('availability-date-select').addEventListener('change', loadAvailabilitySlots);
 
-        // --- Tournament Modal Functions ---
-        async function openAddTournamentModal() {
-            document.getElementById('add-tournament-modal').classList.remove('hidden');
-            try {
-                const response = await fetch('/api/admin/fields', {
-                    headers: { 'X-User-Id': localStorage.getItem('userId') }
-                });
-                if (!response.ok) throw new Error('Failed to fetch fields');
-                const data = await response.json();
-                const fields = data.fields;
-                populateFieldDropdowns(fields);
-            } catch (error) {
-                console.error('Failed to open tournament modal:', error);
-                showMessageBox('خطأ في الاتصال', 'فشل تحميل قائمة الملاعب.', 'error');
-            }
-        }
-        
-        document.getElementById('tournament-field').addEventListener('change', async (e) => {
-            const fieldId = e.target.value;
-            const imagePreview = document.getElementById('tournament-image-preview');
-            const imageInput = document.getElementById('tournament-image');
-            
-            if (fieldId) {
-                 try {
-                    const response = await fetch(`/api/fields/${fieldId}?userId=${localStorage.getItem('userId')}`);
-                    if (!response.ok) throw new Error('Failed to fetch field data');
-                    const field = await response.json();
-                    if (field.field.image) {
-                        imagePreview.src = `data:image/jpeg;base64,${field.field.image}`;
-                        imagePreview.classList.remove('hidden');
-                        imageInput.removeAttribute('required');
-                    } else {
-                        imagePreview.classList.add('hidden');
-                        imageInput.setAttribute('required', 'required');
-                    }
-                } catch (error) {
-                    console.error('Failed to load field image:', error);
-                    imagePreview.classList.add('hidden');
-                    imageInput.setAttribute('required', 'required');
-                }
-            } else {
-                imagePreview.classList.add('hidden');
-                imageInput.setAttribute('required', 'required');
-            }
-        });
-
-        function closeAddTournamentModal() {
-            document.getElementById('add-tournament-modal').classList.add('hidden');
-            document.getElementById('add-tournament-form').reset();
-            document.getElementById('tournament-image-preview').classList.add('hidden');
-        }
-
-        async function handleAddTournament() {
-            const name = document.getElementById('tournament-name').value;
-            const description = document.getElementById('tournament-description').value;
-            const prize = document.getElementById('tournament-prize').value;
-            const date = document.getElementById('tournament-date').value;
-            const fieldId = document.getElementById('tournament-field').value;
-            const imageFile = document.getElementById('tournament-image').files[0];
-            const imagePreviewSrc = document.getElementById('tournament-image-preview').src;
-
-            let imageData = null;
-
-            if (imageFile) {
-                imageData = await fileToBase64(imageFile);
-            } else if (imagePreviewSrc && !imagePreviewSrc.includes('placehold.co')) {
-                imageData = imagePreviewSrc;
-            } else {
-                 showMessageBox('خطأ في الصورة', 'يرجى اختيار صورة للبطولة.', 'error');
-                 return;
-            }
-
-            try {
-                const response = await fetch('/api/admin/tournaments', {
-                    method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'X-User-Id': localStorage.getItem('userId')
-                    },
-                    body: JSON.stringify({
-                        name,
-                        description,
-                        prize,
-                        date,
-                        fieldId,
-                        image: imageData
-                    })
-                });
-
-                if (response.ok) {
-                    closeAddTournamentModal();
-                    fetchData();
-                    showMessageBox('تمت الإضافة بنجاح', 'تم إضافة البطولة الجديدة.', 'success');
-                } else {
-                    const errorData = await response.json();
-                    showMessageBox('خطأ في الإضافة', errorData.error);
-                }
-            } catch (error) {
-                console.error('Failed to add tournament:', error);
-                showMessageBox('خطأ في الشبكة', 'فشل الاتصال بالخادم.');
-            }
-        }
-        
-        async function deleteTournament(tournamentId) {
-            showMessageBox(
-                'تأكيد الحذف',
-                'هل أنت متأكد من رغبتك في حذف هذه البطولة؟',
-                'warning',
-                async () => {
-                     try {
-                         const response = await fetch(`/api/admin/tournaments/${tournamentId}`, {
-                             method: 'DELETE',
-                             headers: { 
-                                 'Content-Type': 'application/json',
-                                 'X-User-Id': localStorage.getItem('userId')
-                             },
-                             body: JSON.stringify({})
-                         });
-
-                         if (response.ok) {
-                             fetchData();
-                             showMessageBox('تم الحذف', 'تم حذف البطولة بنجاح.', 'success');
-                         } else {
-                             const errorData = await response.json();
-                             showMessageBox('خطأ في الحذف', errorData.error);
-                         }
-                     } catch (error) {
-                         console.error('Failed to delete tournament:', error);
-                         showMessageBox('خطأ في الشبكة', 'فشل الاتصال بالخادم.');
-                     }
-                },
-                true
-            );
-        }
-
-        // Initialize on page load
+        // --- Initialize on page load ---
         document.addEventListener('DOMContentLoaded', () => {
             checkAdminAccess();
         });

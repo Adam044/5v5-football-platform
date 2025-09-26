@@ -1039,6 +1039,43 @@ app.get('/api/admin/matchmaking-requests', checkAdmin, (req, res) => {
     });
 });
 
+// API endpoint to get categorized matchmaking requests for admin dashboard
+app.get('/api/admin/matchmaking/categorized', checkAdmin, (req, res) => {
+    const sql = `
+        SELECT
+            m.id,
+            u.name AS user_name,
+            f.name AS field_name,
+            m.slot_date,
+            m.start_time,
+            m.end_time,
+            m.request_type,
+            m.players_needed,
+            m.status,
+            m.created_at
+        FROM matchmaking_requests m
+        JOIN users u ON m.user_id = u.id
+        JOIN fields f ON m.field_id = f.id
+        ORDER BY m.created_at DESC;
+    `;
+    
+    db.all(sql, [], (err, rows) => {
+        if (err) {
+            return res.status(500).json({ error: err.message });
+        }
+        
+        // Categorize the requests based on request_type
+        const categorized = {
+            team_looking_for_players: rows.filter(r => r.request_type === 'team_looking_for_players'),
+            team_vs_team: rows.filter(r => r.request_type === 'team_vs_team'),
+            players_looking_for_team: rows.filter(r => r.request_type === 'players_looking_for_team'),
+            potential_matches: [] // This could be enhanced with matching logic in the future
+        };
+        
+        res.json(categorized);
+    });
+});
+
 // Team Building API Endpoints
 app.post('/api/team-building/initiate', (req, res) => {
     const { userId, fieldId, slotDate, startTime, endTime, bookingType } = req.body;
