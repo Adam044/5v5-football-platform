@@ -10,10 +10,18 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap');
+        
+        :root {
+            --primary-color: #10B981;
+            --secondary-color: #3B82F6;
+            --background-color: #f0f4f8;
+            --text-color: #2c3e50;
+        }
+
         body {
             font-family: 'Cairo', sans-serif;
-            background-color: #f0f4f8;
-            color: #2c3e50;
+            background-color: var(--background-color);
+            color: var(--text-color);
         }
         .animate-fade-in {
             animation: fadeIn 0.4s ease-out forwards;
@@ -43,6 +51,22 @@
         ::-webkit-scrollbar-thumb:hover {
             background: #8899a6;
         }
+        
+        .logo {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            object-fit: cover;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .form-container {
+            transition: opacity 0.3s ease-in-out;
+        }
+        .form-container.hidden {
+            opacity: 0;
+            height: 0;
+            overflow: hidden;
+        }
     </style>
 </head>
 <body class="min-h-screen flex flex-col">
@@ -51,12 +75,14 @@
     <div id="global-header"></div>
     
     <!-- Auth Card -->
-    <div class="flex-grow flex items-center justify-center w-full">
+    <div class="flex-grow flex items-center justify-center w-full p-4">
         <div class="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md animate-scale-in-up text-center border-b-4 border-green-600">
-            <h1 class="text-4xl font-extrabold text-green-700 mb-6">5ع5</h1>
+            <div class="mb-8 flex justify-center">
+                <img src="images/logo.jpg" alt="5v5 Palestine Logo" class="logo">
+            </div>
             
             <!-- Sign In Form -->
-            <div id="sign-in-form" class="animate-fade-in">
+            <div id="sign-in-form" class="form-container">
                 <h2 class="text-3xl font-bold mb-8 text-gray-900 flex items-center justify-center gap-3">
                     <i class="fa-solid fa-right-to-bracket text-green-600"></i> تسجيل الدخول
                 </h2>
@@ -69,7 +95,7 @@
                         <label for="signin-password" class="block text-gray-700 font-semibold mb-2">كلمة المرور</label>
                         <input type="password" id="signin-password" class="p-3 border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 text-right bg-white" required>
                     </div>
-                    <button type="submit" class="bg-gradient-to-r from-green-600 to-green-500 text-white font-bold px-8 py-4 rounded-xl w-full hover:from-green-700 hover:to-green-600 transition-all duration-300 shadow-lg text-xl flex items-center justify-center gap-3">
+                    <button type="submit" id="signin-btn" class="bg-gradient-to-r from-green-600 to-green-500 text-white font-bold px-8 py-4 rounded-xl w-full hover:from-green-700 hover:to-green-600 transition-all duration-300 shadow-lg text-xl flex items-center justify-center gap-3">
                         <i class="fa-solid fa-key text-white"></i> تسجيل الدخول
                     </button>
                 </form>
@@ -80,7 +106,7 @@
             </div>
     
             <!-- Sign Up Form (hidden by default) -->
-            <div id="sign-up-form" class="hidden animate-fade-in">
+            <div id="sign-up-form" class="form-container hidden">
                 <h2 class="text-3xl font-bold mb-8 text-gray-900 flex items-center justify-center gap-3">
                     <i class="fa-solid fa-user-plus text-blue-600"></i> إنشاء حساب
                 </h2>
@@ -104,6 +130,10 @@
                         </div>
                     </div>
                     <div class="mb-5 text-right">
+                        <label for="signup-birthdate" class="block text-gray-700 font-semibold mb-2">تاريخ الميلاد</label>
+                        <input type="date" id="signup-birthdate" class="p-3 border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-right bg-white" required>
+                    </div>
+                    <div class="mb-5 text-right">
                         <label for="signup-password" class="block text-gray-700 font-semibold mb-2">كلمة المرور</label>
                         <input type="password" id="signup-password" class="p-3 border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-right bg-white" required>
                     </div>
@@ -112,7 +142,7 @@
                         <input type="password" id="signup-confirm-password" class="p-3 border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-right bg-white" required>
                     </div>
 
-                    <button type="submit" class="bg-gradient-to-r from-blue-600 to-blue-500 text-white font-bold px-8 py-4 rounded-xl w-full hover:from-blue-700 hover:to-blue-600 transition-all duration-300 shadow-lg text-xl flex items-center justify-center gap-3">
+                    <button type="submit" id="signup-btn" class="bg-gradient-to-r from-blue-600 to-blue-500 text-white font-bold px-8 py-4 rounded-xl w-full hover:from-blue-700 hover:to-blue-600 transition-all duration-300 shadow-lg text-xl flex items-center justify-center gap-3">
                         <i class="fa-solid fa-check-circle text-white"></i> إنشاء الحساب
                     </button>
                 </form>
@@ -137,7 +167,7 @@
     
     <script src="header.js"></script>
     <script>
-        function showMessageBox(title, content, type = 'error') {
+        function showMessageBox(title, content, type = 'error', callback = null) {
             const msgBox = document.getElementById('message-box');
             const msgTitle = document.getElementById('message-box-title');
             const msgContent = document.getElementById('message-box-content');
@@ -161,6 +191,17 @@
                 msgButton.className = 'bg-blue-600 text-white px-7 py-3 rounded-xl hover:bg-blue-700 transition-all duration-300 shadow-md text-lg';
             }
             msgContent.innerText = content;
+            
+            // Set callback for button click
+            if (callback) {
+                 msgButton.onclick = function() {
+                     closeMessageBox();
+                     callback();
+                 };
+            } else {
+                 msgButton.onclick = closeMessageBox;
+            }
+
             msgBox.classList.remove('hidden');
         }
 
@@ -172,19 +213,23 @@
             const signInForm = document.getElementById('sign-in-form');
             const signUpForm = document.getElementById('sign-up-form');
 
-            signInForm.classList.add('hidden');
-            signUpForm.classList.add('hidden');
-
             if (formType === 'sign-in') {
                 signInForm.classList.remove('hidden');
+                signUpForm.classList.add('hidden');
             } else if (formType === 'sign-up') {
                 signUpForm.classList.remove('hidden');
+                signInForm.classList.add('hidden');
             }
         }
         
         async function handleSignIn() {
             const email = document.getElementById('signin-email').value;
             const password = document.getElementById('signin-password').value;
+            const signInBtn = document.getElementById('signin-btn');
+            const originalBtnHtml = signInBtn.innerHTML;
+            
+            signInBtn.disabled = true;
+            signInBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin ml-2"></i> جاري تسجيل الدخول...`;
 
             try {
                 const response = await fetch('/api/login', {
@@ -198,35 +243,33 @@
                 const result = await response.json();
 
                 if (response.ok) {
-                    showMessageBox('تسجيل الدخول', result.message, 'success');
                     localStorage.setItem('userId', result.userId);
                     localStorage.setItem('userEmail', result.email);
                     localStorage.setItem('userName', result.userName);
                     localStorage.setItem('isAdmin', result.isAdmin || false);
 
-                    // Redirect logic based on return URL or admin status
-                    setTimeout(() => {
-                        // Check for return URL in query parameters or localStorage
+                    showMessageBox('تسجيل الدخول', result.message, 'success', () => {
+                         // Redirect logic based on return URL or admin status
                         const urlParams = new URLSearchParams(window.location.search);
-                        const returnUrl = urlParams.get('returnUrl') || localStorage.getItem('returnUrl');
+                        const returnUrl = urlParams.get('returnUrl');
                         
-                        if (returnUrl && returnUrl !== window.location.href) {
-                            // Clear the stored return URL
-                            localStorage.removeItem('returnUrl');
-                            // Redirect to the original page
+                        if (returnUrl) {
                             window.location.href = decodeURIComponent(returnUrl);
                         } else if (result.isAdmin) {
                             window.location.href = 'admin-dashboard.html';
                         } else {
                             window.location.href = 'index.html';
                         }
-                    }, 1500);
+                    });
                 } else {
                     showMessageBox('خطأ في تسجيل الدخول', result.error, 'error');
                 }
             } catch (error) {
                 console.error('Network or server error:', error);
                 showMessageBox('خطأ في الاتصال', 'تعذر الاتصال بالخادم. يرجى المحاولة لاحقاً.', 'error');
+            } finally {
+                signInBtn.disabled = false;
+                signInBtn.innerHTML = originalBtnHtml;
             }
         }
 
@@ -235,6 +278,7 @@
             const email = document.getElementById('signup-email').value;
             const phone = document.getElementById('signup-phone').value;
             const countryCode = document.getElementById('country-code').value;
+            const birthdate = document.getElementById('signup-birthdate').value;
             const password = document.getElementById('signup-password').value;
             const confirmPassword = document.getElementById('signup-confirm-password').value;
             const isAdmin = false;
@@ -245,6 +289,11 @@
             }
             
             const phoneNumber = countryCode + phone;
+            const signupBtn = document.getElementById('signup-btn');
+            const originalBtnHtml = signupBtn.innerHTML;
+            
+            signupBtn.disabled = true;
+            signupBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin ml-2"></i> جاري إنشاء الحساب...`;
 
             try {
                 const response = await fetch('/api/signup', {
@@ -252,23 +301,25 @@
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ name, email, phone: phoneNumber, password, is_admin: isAdmin }),
+                    body: JSON.stringify({ name, email, phone: phoneNumber, birthdate, password, is_admin: isAdmin }),
                 });
 
                 const result = await response.json();
 
                 if (response.ok) {
                     const accountType = isAdmin ? 'مدير' : 'مستخدم';
-                    showMessageBox('إنشاء حساب', `تم إنشاء حساب ${accountType} بنجاح يا ${name}. يمكنك الآن تسجيل الدخول.`, 'success');
-                    setTimeout(() => {
+                    showMessageBox('إنشاء حساب', `تم إنشاء حساب ${accountType} بنجاح يا ${name}. يمكنك الآن تسجيل الدخول.`, 'success', () => {
                         toggleForm('sign-in');
-                    }, 2000);
+                    });
                 } else {
                     showMessageBox('خطأ في إنشاء الحساب', result.error, 'error');
                 }
             } catch (error) {
                 console.error('Network or server error:', error);
                 showMessageBox('خطأ في الاتصال', 'تعذر الاتصال بالخادم. يرجى المحاولة لاحقاً.', 'error');
+            } finally {
+                signupBtn.disabled = false;
+                signupBtn.innerHTML = originalBtnHtml;
             }
         }
     </script>

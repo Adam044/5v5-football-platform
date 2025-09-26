@@ -10,16 +10,27 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap');
+        
+        :root {
+            --primary-color: #10B981;
+            --secondary-color: #3B82F6;
+            --background-color: #f0f4f8;
+            --text-color: #2c3e50;
+        }
+
         body {
             font-family: 'Cairo', sans-serif;
-            background-color: #f0f4f8;
-            color: #2c3e50;
+            background-color: var(--background-color);
+            color: var(--text-color);
         }
         .animate-fade-in {
             animation: fadeIn 0.4s ease-out forwards;
         }
         .animate-scale-in-up {
             animation: scaleInUp 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+        }
+        .animate-pulse-slow {
+            animation: pulse-slow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
         }
         @keyframes fadeIn {
             from { opacity: 0; }
@@ -28,6 +39,10 @@
         @keyframes scaleInUp {
             from { transform: translateY(30px) scale(0.95); opacity: 0; }
             to { transform: translateY(0) scale(1); opacity: 1; }
+        }
+        @keyframes pulse-slow {
+            0%, 100% { opacity: 1; }
+            50% { opacity: .7; }
         }
         ::-webkit-scrollbar {
             width: 8px;
@@ -48,7 +63,7 @@
             position: relative;
         }
         .tab-button.active {
-            color: #10b981;
+            color: var(--primary-color);
         }
         .tab-button.active::after {
             content: '';
@@ -57,7 +72,7 @@
             right: 0;
             height: 4px;
             width: 100%;
-            background-color: #10b981;
+            background-color: var(--primary-color);
             border-radius: 9999px;
         }
         .info-card {
@@ -175,20 +190,20 @@
                 <div class="bg-gradient-to-r from-yellow-500 to-yellow-600 text-white p-6 rounded-xl shadow-lg">
                     <div class="flex items-center justify-between">
                         <div>
-                            <p class="text-yellow-100 text-sm font-medium">إجمالي الأرباح</p>
-                            <p id="total-earnings" class="text-3xl font-bold">0 ₪</p>
+                            <p class="text-yellow-100 text-sm font-medium">طلبات المطابقة المعلقة</p>
+                            <p id="pending-requests" class="text-3xl font-bold">0</p>
                         </div>
-                        <i class="fa-solid fa-coins text-4xl text-yellow-200"></i>
+                        <i class="fa-solid fa-handshake-angle text-4xl text-yellow-200"></i>
                     </div>
                 </div>
                 
                 <div class="bg-gradient-to-r from-purple-500 to-purple-600 text-white p-6 rounded-xl shadow-lg">
                     <div class="flex items-center justify-between">
                         <div>
-                            <p class="text-purple-100 text-sm font-medium">طلبات معلقة</p>
-                            <p id="pending-requests" class="text-3xl font-bold">0</p>
+                            <p class="text-purple-100 text-sm font-medium">إجمالي الأرباح</p>
+                            <p id="total-earnings" class="text-3xl font-bold">0 ₪</p>
                         </div>
-                        <i class="fa-solid fa-clock text-4xl text-purple-200"></i>
+                        <i class="fa-solid fa-coins text-4xl text-purple-200"></i>
                     </div>
                 </div>
             </div>
@@ -207,8 +222,8 @@
 
         <!-- Tab Navigation -->
         <div class="bg-white rounded-2xl shadow-xl p-6 mb-12 flex flex-wrap justify-center md:justify-between gap-4">
-            <button class="tab-button active text-green-600 font-bold text-xl px-4 py-2" data-tab="requests-tab">
-                <i class="fa-solid fa-clipboard-list ml-2"></i> طلبات الحجز
+            <button class="tab-button active text-green-600 font-bold text-xl px-4 py-2" data-tab="matchmaking-requests-tab">
+                <i class="fa-solid fa-handshake-angle ml-2"></i> طلبات المطابقة
             </button>
             <button class="tab-button text-gray-600 font-bold text-xl px-4 py-2" data-tab="reservations-tab">
                 <i class="fa-solid fa-book-open-reader ml-2"></i> الحجوزات
@@ -219,9 +234,6 @@
             <button class="tab-button text-gray-600 font-bold text-xl px-4 py-2" data-tab="availability-tab">
                 <i class="fa-solid fa-calendar-alt ml-2"></i> إدارة المواعيد
             </button>
-            <button class="tab-button text-gray-600 font-bold text-xl px-4 py-2" data-tab="matchmaking-tab">
-                <i class="fa-solid fa-users-line ml-2"></i> طلبات المطابقة
-            </button>
             <button class="tab-button text-gray-600 font-bold text-xl px-4 py-2" data-tab="tournaments-tab">
                 <i class="fa-solid fa-trophy ml-2"></i> إدارة البطولات
             </button>
@@ -230,12 +242,12 @@
         <!-- Tab Content -->
         <div id="tab-content">
 
-            <!-- Tab 1: Booking Requests -->
-            <section id="requests-tab" class="tab-pane">
-                <div class="bg-white rounded-2xl shadow-xl p-8 mb-12 border-b-4 border-red-500">
+            <!-- Tab 1: Matchmaking Requests -->
+            <section id="matchmaking-requests-tab" class="tab-pane">
+                <div class="bg-white rounded-2xl shadow-xl p-8 border-b-4 border-blue-500">
                     <h4 class="text-3xl font-bold text-gray-900 mb-8 flex items-center gap-3">
-                        <i class="fa-solid fa-clipboard-list text-red-600"></i>
-                        طلبات الحجز
+                        <i class="fa-solid fa-handshake-angle text-blue-600"></i>
+                        طلبات المطابقة
                     </h4>
                     
                     <div class="overflow-x-auto">
@@ -246,12 +258,12 @@
                                     <th class="border border-gray-300 px-4 py-3 text-right font-bold">الملعب</th>
                                     <th class="border border-gray-300 px-4 py-3 text-right font-bold">التاريخ</th>
                                     <th class="border border-gray-300 px-4 py-3 text-right font-bold">الوقت</th>
-                                    <th class="border border-gray-300 px-4 py-3 text-right font-bold">السعر</th>
+                                    <th class="border border-gray-300 px-4 py-3 text-right font-bold">نوع الطلب</th>
                                     <th class="border border-gray-300 px-4 py-3 text-right font-bold">الحالة</th>
                                     <th class="border border-gray-300 px-4 py-3 text-right font-bold">الإجراءات</th>
                                 </tr>
                             </thead>
-                            <tbody id="requests-table-body">
+                            <tbody id="matchmaking-requests-table-body">
                                 <!-- Requests will be loaded here -->
                             </tbody>
                         </table>
@@ -275,7 +287,7 @@
                                     <th class="border border-gray-300 px-4 py-3 text-right font-bold">الملعب</th>
                                     <th class="border border-gray-300 px-4 py-3 text-right font-bold">التاريخ</th>
                                     <th class="border border-gray-300 px-4 py-3 text-right font-bold">الوقت</th>
-                                    <th class="border border-gray-300 px-4 py-3 text-right font-bold">السعر</th>
+                                    <th class="border border-gray-300 px-4 py-3 text-right font-bold">نوع الحجز</th>
                                     <th class="border border-gray-300 px-4 py-3 text-right font-bold">الحالة</th>
                                     <th class="border border-gray-300 px-4 py-3 text-right font-bold">الإجراءات</th>
                                 </tr>
@@ -314,80 +326,28 @@
                         إدارة المواعيد المتاحة
                     </h4>
                     
-                    <!-- Field Selection -->
-                    <div class="mb-6">
-                        <label class="block text-gray-700 text-sm font-bold mb-2">اختر الملعب:</label>
-                        <select id="availability-field-select" class="w-full md:w-1/3 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <option value="">اختر ملعب...</option>
-                        </select>
-                    </div>
-                    
-                    <!-- Date Selection -->
-                    <div class="mb-6">
-                        <label class="block text-gray-700 text-sm font-bold mb-2">اختر التاريخ:</label>
-                        <input type="date" id="availability-date-select" class="w-full md:w-1/3 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    </div>
-                    
-                    <!-- Availability Management Info -->
-                    <div class="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
-                        <p class="text-blue-800 text-sm">
-                            <i class="fa-solid fa-info-circle ml-2"></i>
-                            لإضافة مواعيد جديدة، انتقل إلى قسم "إدارة الملاعب" واضغط على "إضافة مواعيد" للملعب المطلوب
-                        </p>
+                    <!-- Field and Date Filters -->
+                    <div class="flex flex-col md:flex-row gap-4 mb-6">
+                        <div class="w-full md:w-1/2">
+                            <label class="block text-gray-700 text-sm font-bold mb-2">اختر الملعب:</label>
+                            <select id="availability-field-select" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="">اختر ملعب...</option>
+                            </select>
+                        </div>
+                        <div class="w-full md:w-1/2">
+                            <label class="block text-gray-700 text-sm font-bold mb-2">اختر التاريخ:</label>
+                            <input type="date" id="availability-date-select" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
                     </div>
                     
                     <!-- Availability Slots Display -->
-                    <div id="availability-slots" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div id="availability-slots-container" class="card-grid">
                         <!-- Availability slots will be loaded here -->
                     </div>
                 </div>
             </section>
-
-            <!-- Tab 5: Bookings (Legacy) -->
-            <section id="bookings-tab" class="tab-pane hidden">
-                <div class="bg-white rounded-2xl shadow-xl p-8 mb-12 border-b-4 border-blue-500">
-                    <h4 class="text-3xl font-bold text-gray-900 mb-8 flex items-center gap-3">
-                        <i class="fa-solid fa-book-open-reader text-blue-600"></i>
-                        الحجوزات
-                    </h4>
-                    
-                    <div id="bookings-card-container" class="card-grid">
-                        <!-- Booking cards will be injected here -->
-                    </div>
-                </div>
-            </section>
-
-            <!-- Tab 3: Matchmaking -->
-            <section id="matchmaking-tab" class="tab-pane hidden">
-                <div class="bg-white rounded-2xl shadow-xl p-8 border-b-4 border-purple-500">
-                    <h4 class="text-3xl font-bold text-gray-900 mb-8 flex items-center gap-3">
-                        <i class="fa-solid fa-users-line text-purple-600"></i>
-                        طلبات المطابقة
-                    </h4>
-                    
-                    <div class="card-grid mb-10">
-                        <div id="teams-looking-container" class="bg-gray-50 p-6 rounded-xl border-t-4 border-blue-500 shadow-sm col-span-full md:col-span-1">
-                            <h5 class="text-xl font-bold text-gray-800 mb-4">فرق تبحث عن لاعب</h5>
-                            <div id="teams-looking-cards" class="space-y-4"></div>
-                        </div>
-                        <div id="players-looking-container" class="bg-gray-50 p-6 rounded-xl border-t-4 border-green-500 shadow-sm col-span-full md:col-span-1">
-                            <h5 class="text-xl font-bold text-gray-800 mb-4">لاعبون يبحثون عن فريق</h5>
-                            <div id="players-looking-cards" class="space-y-4"></div>
-                        </div>
-                    </div>
-
-                    <h4 class="text-3xl font-bold text-gray-900 mb-8 flex items-center gap-3">
-                        <i class="fa-solid fa-handshake text-yellow-600"></i>
-                        مقترحات المطابقة
-                    </h4>
-                    
-                    <div id="matchmaking-suggestions-container" class="card-grid">
-                        <!-- Matchmaking suggestions will be injected here -->
-                    </div>
-                </div>
-            </section>
-
-            <!-- Tab 4: Manage Tournaments -->
+            
+            <!-- Tab 5: Manage Tournaments -->
             <section id="tournaments-tab" class="tab-pane hidden">
                 <div class="bg-white rounded-2xl shadow-xl p-8 border-b-4 border-orange-500">
                     <h4 class="text-3xl font-bold text-gray-900 mb-8 flex items-center gap-3">
@@ -654,8 +614,6 @@
                 return;
             }
             try {
-                // Use the admin fields endpoint to verify admin access
-                // This will automatically check admin permissions via checkAdmin middleware
                 const response = await fetch(`/api/admin/fields`, {
                     headers: {
                         'X-User-Id': userId
@@ -669,7 +627,6 @@
                     }
                     throw new Error('Failed to verify admin access');
                 }
-                // If all checks pass, fetch admin data
                 fetchData();
             } catch (error) {
                 console.error('Admin access check failed:', error);
@@ -690,22 +647,14 @@
             const badge = status && statusMap[status.toLowerCase()] ? statusMap[status.toLowerCase()] : { text: 'غير محدد', color: 'bg-gray-400 text-gray-800' };
             return `<span class="${badge.color} py-1 px-3 rounded-full text-xs font-semibold">${badge.text}</span>`;
         }
-        
-        function getReservationType(type) {
-            const typeMap = {
-                'full_team': 'فريق كامل',
-                'player_looking_for_team': 'لاعب يبحث عن فريق',
-                'team_looking_for_player': 'فريق يبحث عن لاعب'
-            };
-            return typeMap[type] || type;
-        }
 
         function getRequestType(type) {
             const typeMap = {
-                'player_looking_for_team': 'لاعب يبحث عن فريق',
-                'team_looking_for_player': 'فريق يبحث عن لاعب'
+                'players_looking_for_team': 'لاعبون يبحثون عن فريق',
+                'team_looking_for_players': 'فريق يبحث عن لاعبين',
+                'team_vs_team': 'فريق ضد فريق',
             };
-            return typeMap[type.toLowerCase()] || type;
+            return typeMap[type] || type;
         }
 
         function showMessageBox(title, content, type = 'error', callback = null, isConfirmation = false) {
@@ -743,7 +692,6 @@
             }
             msgContent.innerText = content;
             
-            // Show/hide cancel button based on confirmation type
             if (isConfirmation) {
                 cancelButton.classList.remove('hidden');
                 confirmButton.textContent = 'نعم';
@@ -773,17 +721,19 @@
         const tabs = document.querySelectorAll('.tab-button');
         const tabPanes = document.querySelectorAll('.tab-pane');
 
-        tabs.forEach(tab => {
-            tab.addEventListener('click', () => {
-                tabs.forEach(t => t.classList.remove('active', 'text-green-600'));
-                tab.classList.add('active', 'text-green-600');
+        function setActiveTab(tabId) {
+            tabs.forEach(t => t.classList.remove('active', 'text-green-600'));
+            tabPanes.forEach(p => p.classList.add('hidden'));
 
-                tabPanes.forEach(p => p.classList.add('hidden'));
-                const targetTab = document.getElementById(tab.dataset.tab);
-                if (targetTab) {
-                    targetTab.classList.remove('hidden');
-                }
-            });
+            const activeTabButton = document.querySelector(`[data-tab="${tabId}"]`);
+            const activeTabPane = document.getElementById(tabId);
+            
+            if (activeTabButton) activeTabButton.classList.add('active', 'text-green-600');
+            if (activeTabPane) activeTabPane.classList.remove('hidden');
+        }
+        
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => setActiveTab(tab.dataset.tab));
         });
 
         // --- Fetch and Render Data ---
@@ -794,46 +744,25 @@
                 'X-User-Id': userId
             };
             try {
-                // Fetch fields
+                // Fetch fields and populate dropdowns
                 const fieldsResponse = await fetch('/api/admin/fields', { headers });
-                if (!fieldsResponse.ok) {
-                    throw new Error('Failed to fetch fields');
-                }
+                if (!fieldsResponse.ok) throw new Error('Failed to fetch fields');
                 const fieldsData = await fieldsResponse.json();
                 renderFields(fieldsData.fields);
-                populateTournamentFieldDropdown(fieldsData.fields);
+                populateFieldDropdowns(fieldsData.fields);
+                
+                // Fetch all data for the tabs
+                const [reservationsData, matchmakingData, tournamentsData] = await Promise.all([
+                    fetch('/api/admin/reservations', { headers }).then(res => res.json()),
+                    fetch('/api/admin/matchmaking-requests', { headers }).then(res => res.json()),
+                    fetch('/api/admin/tournaments', { headers }).then(res => res.json()),
+                ]);
 
-                // Fetch reservations
-                const bookingsResponse = await fetch(`/api/admin/reservations`, { headers });
-                if (!bookingsResponse.ok) {
-                    throw new Error('Failed to fetch bookings');
-                }
-                const bookingsData = await bookingsResponse.json();
-                renderBookings(bookingsData.reservations);
-
-                // Fetch matchmaking requests
-                const matchmakingResponse = await fetch(`/api/admin/matchmaking-requests`, { headers });
-                if (!matchmakingResponse.ok) {
-                    throw new Error('Failed to fetch matchmaking requests');
-                }
-                const matchmakingData = await matchmakingResponse.json();
-                renderMatchmaking(matchmakingData.requests);
-
-                // Fetch matchmaking suggestions
-                const suggestionsResponse = await fetch(`/api/admin/matchmaking/suggestions`, { headers });
-                if (!suggestionsResponse.ok) {
-                    throw new Error('Failed to fetch matchmaking suggestions');
-                }
-                const suggestionsData = await suggestionsResponse.json();
-                renderMatchmakingSuggestions(suggestionsData.suggestions);
-
-                // Fetch tournaments
-                const tournamentsResponse = await fetch(`/api/admin/tournaments`, { headers });
-                if (!tournamentsResponse.ok) {
-                    throw new Error('Failed to fetch tournaments');
-                }
-                const tournamentsData = await tournamentsResponse.json();
+                renderReservations(reservationsData.reservations);
+                renderMatchmakingRequests(matchmakingData.requests);
                 renderTournaments(tournamentsData.tournaments);
+                loadAnalytics();
+                loadAvailabilitySlots();
 
             } catch (error) {
                 console.error('Failed to fetch data:', error);
@@ -846,7 +775,7 @@
             container.innerHTML = '';
             
             if (!Array.isArray(fields) || fields.length === 0) {
-                 container.innerHTML = `<p class="text-center text-gray-500">لا توجد ملاعب لعرضها.</p>`;
+                 container.innerHTML = `<p class="py-4 text-center text-gray-500">لا توجد ملاعب لعرضها.</p>`;
                  return;
             }
             fields.forEach(field => {
@@ -883,116 +812,96 @@
             });
         }
 
-        function renderBookings(bookings) {
-            const container = document.getElementById('bookings-card-container');
-            container.innerHTML = '';
+        function renderReservations(reservations) {
+            const tbody = document.getElementById('reservations-table-body');
+            tbody.innerHTML = '';
             
-            if (bookings.length === 0) {
-                 container.innerHTML = `<p class="py-4 text-center text-gray-500">لا توجد حجوزات لعرضها.</p>`;
+            if (!Array.isArray(reservations) || reservations.length === 0) {
+                 tbody.innerHTML = '<tr><td colspan="7" class="text-center py-8 text-gray-500">لا توجد حجوزات</td></tr>';
                  return;
             }
-            bookings.forEach(booking => {
-                const durationHours = (new Date(`1970/01/01 ${booking.end_time}`) - new Date(`1970/01/01 ${booking.start_time}`)) / 3600000;
+            reservations.forEach(reservation => {
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-gray-50';
                 
-                const card = document.createElement('div');
-                card.className = 'info-card';
-                card.innerHTML = `
-                    <div class="info-card-header">
-                         <div class="info-card-title">
-                            <i class="fa-solid fa-user text-blue-600"></i> ${booking.user_name}
-                         </div>
-                         ${getStatusBadge('confirmed')}
-                    </div>
-                    <div class="info-card-body space-y-2">
-                        <p><strong>الملعب:</strong> ${booking.field_name}</p>
-                        <p><strong>التاريخ:</strong> ${booking.slot_date}</p>
-                        <p><strong>الوقت:</strong> ${booking.start_time} - ${booking.end_time}</p>
-                        <p><strong>المدة:</strong> ${durationHours} ساعة</p>
-                        <p><strong>السعر:</strong> ${booking.price_per_hour * durationHours} شيكل</p>
-                    </div>
+                // Determine status badge based on is_reserved
+                let statusText, statusColor;
+                if (reservation.is_reserved === 1) {
+                    statusText = 'مؤكد';
+                    statusColor = 'bg-green-200 text-green-800';
+                } else {
+                    statusText = 'ملغى';
+                    statusColor = 'bg-red-200 text-red-800';
+                }
+
+                row.innerHTML = `
+                    <td class="border border-gray-300 px-4 py-3">${reservation.user_name || 'غير محدد'}</td>
+                    <td class="border border-gray-300 px-4 py-3">${reservation.field_name}</td>
+                    <td class="border border-gray-300 px-4 py-3">${reservation.slot_date}</td>
+                    <td class="border border-gray-300 px-4 py-3">${reservation.start_time} - ${reservation.end_time}</td>
+                    <td class="border border-gray-300 px-4 py-3">${getReservationType(reservation.reservation_type)}</td>
+                    <td class="border border-gray-300 px-4 py-3">
+                        <span class="${statusColor} py-1 px-3 rounded-full text-xs font-semibold">${statusText}</span>
+                    </td>
+                    <td class="border border-gray-300 px-4 py-3">
+                        ${reservation.is_reserved === 1 ?
+                            `<button onclick="cancelReservation(${reservation.id})" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm transition-colors duration-300">إلغاء</button>` : '-'
+                        }
+                    </td>
                 `;
-                container.appendChild(card);
+                tbody.appendChild(row);
             });
         }
 
-        function renderMatchmaking(requests) {
-            const teamsContainer = document.getElementById('teams-looking-cards');
-            const playersContainer = document.getElementById('players-looking-cards');
-            teamsContainer.innerHTML = '';
-            playersContainer.innerHTML = '';
+        function renderMatchmakingRequests(requests) {
+            const tbody = document.getElementById('matchmaking-requests-table-body');
+            tbody.innerHTML = '';
             
-            if (requests.length === 0) {
-                 teamsContainer.innerHTML = `<p class="py-4 text-center text-gray-500">لا توجد طلبات لعرضها.</p>`;
-                 playersContainer.innerHTML = `<p class="py-4 text-center text-gray-500">لا توجد طلبات لعرضها.</p>`;
+            if (!Array.isArray(requests) || requests.length === 0) {
+                 tbody.innerHTML = '<tr><td colspan="7" class="text-center py-8 text-gray-500">لا توجد طلبات مطابقة</td></tr>';
                  return;
             }
+            requests.forEach(request => {
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-gray-50';
 
-            const teamsLooking = requests.filter(r => r.request_type === 'team_looking_for_player');
-            const playersLooking = requests.filter(r => r.request_type === 'player_looking_for_team');
-            
-            teamsLooking.forEach(request => {
-                const card = document.createElement('div');
-                card.className = 'bg-white rounded-xl shadow-md p-4 space-y-2 border-r-4 border-blue-500';
-                card.innerHTML = `
-                    <p class="font-bold text-gray-900">${request.user_name}</p>
-                    <p class="text-sm text-gray-700">يبحث عن لاعب في ملعب ${request.field_name} بتاريخ ${request.slot_date} الساعة ${request.start_time}</p>
+                let statusText, statusColor;
+                if (request.status === 'pending') {
+                    statusText = 'قيد الانتظار';
+                    statusColor = 'bg-yellow-200 text-yellow-800';
+                } else if (request.status === 'confirmed') {
+                    statusText = 'مؤكد';
+                    statusColor = 'bg-green-200 text-green-800';
+                } else {
+                    statusText = 'ملغى';
+                    statusColor = 'bg-red-200 text-red-800';
+                }
+
+                row.innerHTML = `
+                    <td class="border border-gray-300 px-4 py-3">${request.user_name || 'غير محدد'}</td>
+                    <td class="border border-gray-300 px-4 py-3">${request.field_name}</td>
+                    <td class="border border-gray-300 px-4 py-3">${request.slot_date}</td>
+                    <td class="border border-gray-300 px-4 py-3">${request.start_time} - ${request.end_time}</td>
+                    <td class="border border-gray-300 px-4 py-3">${getRequestType(request.request_type)}</td>
+                    <td class="border border-gray-300 px-4 py-3">
+                        <span class="${statusColor} py-1 px-3 rounded-full text-xs font-semibold">${statusText}</span>
+                    </td>
+                    <td class="border border-gray-300 px-4 py-3">
+                        ${request.status === 'pending' ?
+                            `<button onclick="approveMatchmakingRequest(${request.id})" class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-sm ml-2 transition-colors duration-300">موافقة</button>
+                            <button onclick="rejectMatchmakingRequest(${request.id})" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm transition-colors duration-300">رفض</button>` : '-'
+                        }
+                    </td>
                 `;
-                teamsContainer.appendChild(card);
+                tbody.appendChild(row);
             });
-
-            playersLooking.forEach(request => {
-                const card = document.createElement('div');
-                card.className = 'bg-white rounded-xl shadow-md p-4 space-y-2 border-r-4 border-green-500';
-                card.innerHTML = `
-                     <p class="font-bold text-gray-900">${request.user_name}</p>
-                    <p class="text-sm text-gray-700">يبحث عن فريق في ملعب ${request.field_name} بتاريخ ${request.slot_date} الساعة ${request.start_time}</p>
-                `;
-                playersContainer.appendChild(card);
-            });
-
-            if (teamsLooking.length === 0) {
-                teamsContainer.innerHTML = `<p class="py-4 text-center text-gray-500">لا توجد طلبات فرق حالياً.</p>`;
-            }
-            if (playersLooking.length === 0) {
-                playersContainer.innerHTML = `<p class="py-4 text-center text-gray-500">لا توجد طلبات لاعبين حالياً.</p>`;
-            }
         }
         
-        function renderMatchmakingSuggestions(suggestions) {
-             const container = document.getElementById('matchmaking-suggestions-container');
-             container.innerHTML = '';
-
-             if (suggestions.length === 0) {
-                container.innerHTML = `<p class="py-4 text-center text-gray-500">لا توجد مقترحات مطابقة حالياً.</p>`;
-                return;
-             }
-             suggestions.forEach(suggestion => {
-                const card = document.createElement('div');
-                card.className = 'info-card border-b-4 border-yellow-500';
-                card.innerHTML = `
-                    <div class="info-card-header">
-                        <div class="info-card-title">
-                            <i class="fa-solid fa-handshake text-yellow-600"></i> اقتراح مطابقة
-                        </div>
-                        ${getStatusBadge('pending')}
-                    </div>
-                    <div class="info-card-body space-y-2">
-                        <p class="text-lg"><strong>اللاعب:</strong> ${suggestion.player_name}</p>
-                        <p class="text-lg"><strong>الفريق:</strong> ${suggestion.team_name}</p>
-                        <p><strong>في ملعب:</strong> ${suggestion.field_name}</p>
-                        <p><strong>بتاريخ:</strong> ${suggestion.slot_date}</p>
-                    </div>
-                `;
-                container.appendChild(card);
-             });
-        }
-
-
         function renderTournaments(tournaments) {
             const container = document.getElementById('tournaments-card-container');
             container.innerHTML = '';
             
-            if (tournaments.length === 0) {
+            if (!Array.isArray(tournaments) || tournaments.length === 0) {
                  container.innerHTML = `<p class="py-4 text-center text-gray-500">لا توجد بطولات لعرضها.</p>`;
                  return;
             }
@@ -1035,7 +944,6 @@
             document.getElementById('add-field-form').reset();
         }
 
-        // Helper function to convert file to Base64
         function fileToBase64(file) {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
@@ -1096,7 +1004,6 @@
                 document.getElementById('edit-field-location').value = field.field.location;
                 document.getElementById('edit-field-price').value = field.field.price_per_hour;
                 
-                // Set the image preview
                 const imagePreview = document.getElementById('edit-field-image-preview');
                 imagePreview.src = field.field.image ? `data:image/jpeg;base64,${field.field.image}` : `https://placehold.co/600x400/22c55e/ffffff?text=${field.field.name.replace(/\s/g, '+')}`;
 
@@ -1123,7 +1030,6 @@
             if (imageFile) {
                 imageData = await fileToBase64(imageFile);
             } else {
-                // If no new image is selected, fetch the existing one to send back
                 const response = await fetch(`/api/fields/${fieldId}?userId=${localStorage.getItem('userId')}`);
                 const field = await response.json();
                 imageData = field.field.image;
@@ -1179,7 +1085,8 @@
                          console.error('Failed to delete field:', error);
                          showMessageBox('خطأ في الشبكة', 'فشل الاتصال بالخادم.');
                      }
-                }
+                },
+                true
             );
         }
 
@@ -1221,7 +1128,6 @@
                 
                 viewContainer.innerHTML = '';
                 if (data.availability && data.availability.length > 0) {
-                    // Group by date if showing multiple dates
                     const groupedByDate = {};
                     data.availability.forEach(slot => {
                         if (!groupedByDate[slot.slot_date]) {
@@ -1231,7 +1137,6 @@
                     });
                     
                     Object.keys(groupedByDate).sort().forEach(slotDate => {
-                        // Add date header if showing multiple dates
                         if (!date && Object.keys(groupedByDate).length > 1) {
                             const dateHeader = document.createElement('div');
                             dateHeader.className = 'text-lg font-bold text-gray-700 mt-4 mb-2 border-b pb-1';
@@ -1241,8 +1146,8 @@
                         
                         groupedByDate[slotDate].forEach(slot => {
                             const slotDiv = document.createElement('div');
-                            const statusClass = slot.is_reserved ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800';
-                            const statusText = slot.is_reserved ? `محجوز (${slot.user_name || 'غير معروف'})` : 'متاح';
+                            const statusClass = slot.is_reserved === 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
+                            const statusText = slot.is_reserved === 0 ? 'متاح' : `محجوز (${slot.user_name || 'غير معروف'})`;
                             slotDiv.className = `flex items-center justify-between p-3 rounded-lg ${statusClass} font-semibold mb-2`;
                             slotDiv.innerHTML = `
                                 <span>${slot.start_time} - ${slot.end_time}</span>
@@ -1283,20 +1188,28 @@
             }
         });
         
-        // Add event listener for field selection in add slot modal
-        document.addEventListener('DOMContentLoaded', () => {
-            const slotFieldSelect = document.getElementById('slot-field-id');
-            if (slotFieldSelect) {
-                slotFieldSelect.addEventListener('change', (e) => {
-                    const fieldId = e.target.value;
-                    if (fieldId) {
-                        fetchAvailabilityForAdmin(fieldId);
-                    } else {
-                        document.getElementById('availability-view').innerHTML = '';
-                    }
-                });
+        function populateFieldDropdowns(fields) {
+            const availabilitySelect = document.getElementById('availability-field-select');
+            const tournamentSelect = document.getElementById('tournament-field');
+            
+            availabilitySelect.innerHTML = '<option value="">اختر ملعب...</option>';
+            tournamentSelect.innerHTML = '';
+            
+            fields.forEach(field => {
+                const optionAvail = document.createElement('option');
+                optionAvail.value = field.id;
+                optionAvail.textContent = field.name;
+                availabilitySelect.appendChild(optionAvail);
+
+                const optionTourn = document.createElement('option');
+                optionTourn.value = field.id;
+                optionTourn.textContent = field.name;
+                tournamentSelect.appendChild(optionTourn);
+            });
+             if (tournamentSelect.options.length > 0) {
+                tournamentSelect.dispatchEvent(new Event('change'));
             }
-        });
+        }
 
         async function handleAddSlot() {
             const fieldId = document.getElementById('slot-field-id').value;
@@ -1319,11 +1232,7 @@
 
                 if (response.ok) {
                     showMessageBox('تمت الإضافة بنجاح', 'تم إضافة المواعيد للملعب المحدد.', 'success');
-                    // Refresh the availability display in the modal
                     fetchAvailabilityForAdmin(fieldId);
-                    // Refresh the main availability section
-                    loadAvailabilitySlots();
-                    // Clear the slots container but keep the modal open to show updated availability
                     document.getElementById('slots-container').innerHTML = '';
                 } else {
                     const errorData = await response.json();
@@ -1349,7 +1258,7 @@
                 }
                 const data = await response.json();
                 const fields = data.fields;
-                populateTournamentFieldDropdown(fields);
+                populateFieldDropdowns(fields); // Reuse function
             } catch (error) {
                 console.error('Failed to open tournament modal:', error);
                 showMessageBox('خطأ في الاتصال', 'فشل تحميل قائمة الملاعب.', 'error');
@@ -1369,7 +1278,7 @@
                     if (field.field.image) {
                         imagePreview.src = `data:image/jpeg;base64,${field.field.image}`;
                         imagePreview.classList.remove('hidden');
-                        imageInput.removeAttribute('required'); // Image is now provided
+                        imageInput.removeAttribute('required');
                     } else {
                         imagePreview.classList.add('hidden');
                         imageInput.setAttribute('required', 'required');
@@ -1391,26 +1300,6 @@
             document.getElementById('tournament-image-preview').classList.add('hidden');
         }
 
-        function populateTournamentFieldDropdown(fields) {
-            const dropdown = document.getElementById('tournament-field');
-            dropdown.innerHTML = '';
-            if (!Array.isArray(fields) || fields.length === 0) {
-                const option = document.createElement('option');
-                option.innerText = 'لا توجد ملاعب متاحة';
-                option.disabled = true;
-                dropdown.appendChild(option);
-                return;
-            }
-            fields.forEach(field => {
-                const option = document.createElement('option');
-                option.value = field.id;
-                option.innerText = field.name;
-                dropdown.appendChild(option);
-            });
-             // Trigger the change event to load the image of the first field
-            dropdown.dispatchEvent(new Event('change'));
-        }
-
         async function handleAddTournament() {
             const name = document.getElementById('tournament-name').value;
             const description = document.getElementById('tournament-description').value;
@@ -1425,7 +1314,6 @@
             if (imageFile) {
                 imageData = await fileToBase64(imageFile);
             } else if (imagePreviewSrc && !imagePreviewSrc.includes('placehold.co')) {
-                // Get the base64 data from the preview image if no new file is uploaded
                 imageData = imagePreviewSrc;
             } else {
                  showMessageBox('خطأ في الصورة', 'يرجى اختيار صورة للبطولة.', 'error');
@@ -1490,7 +1378,8 @@
                          console.error('Failed to delete tournament:', error);
                          showMessageBox('خطأ في الشبكة', 'فشل الاتصال بالخادم.');
                      }
-                }
+                },
+                true
             );
         }
 
@@ -1510,16 +1399,15 @@
                 document.getElementById('total-earnings').textContent = `${data.totalEarnings || 0} ₪`;
                 document.getElementById('pending-requests').textContent = data.pendingRequests || 0;
                 
-                // Load recent reservations
                 const recentContainer = document.getElementById('recent-reservations');
                 if (data.recentReservations && data.recentReservations.length > 0) {
                     recentContainer.innerHTML = data.recentReservations.map(reservation => `
                         <div class="flex items-center justify-between p-3 bg-white rounded-lg shadow-sm">
                             <div>
                                 <p class="font-semibold text-gray-800">${reservation.user_name}</p>
-                                <p class="text-sm text-gray-600">${reservation.field_name} - ${reservation.date} ${reservation.start_time}</p>
+                                <p class="text-sm text-gray-600">${reservation.field_name} - ${reservation.slot_date} ${reservation.start_time}</p>
                             </div>
-                            <span class="text-green-600 font-bold">${reservation.price} ₪</span>
+                            <span class="text-green-600 font-bold">${reservation.price_per_hour} ₪</span>
                         </div>
                     `).join('');
                 } else {
@@ -1530,50 +1418,10 @@
             }
         }
         
-        // --- Requests Management Functions ---
-        async function loadRequests() {
+        // --- Requests & Reservations Management Functions ---
+        async function approveMatchmakingRequest(requestId) {
             try {
-                const response = await fetch(`/api/admin/reservations`, {
-                    headers: {
-                        'X-User-Id': localStorage.getItem('userId')
-                    }
-                });
-                if (!response.ok) throw new Error('Failed to fetch requests');
-                const data = await response.json();
-                
-                const tbody = document.getElementById('requests-table-body');
-                if (data.reservations && data.reservations.length > 0) {
-                    tbody.innerHTML = data.reservations.filter(r => r.status === 'pending').map(request => `
-                        <tr class="hover:bg-gray-50">
-                            <td class="border border-gray-300 px-4 py-3">${request.user_name}</td>
-                            <td class="border border-gray-300 px-4 py-3">${request.field_name}</td>
-                            <td class="border border-gray-300 px-4 py-3">${request.date}</td>
-                            <td class="border border-gray-300 px-4 py-3">${request.start_time} - ${request.end_time}</td>
-                            <td class="border border-gray-300 px-4 py-3">${request.price} ₪</td>
-                            <td class="border border-gray-300 px-4 py-3">
-                                <span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-sm">معلق</span>
-                            </td>
-                            <td class="border border-gray-300 px-4 py-3">
-                                <button onclick="approveRequest(${request.id})" class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded mr-2 text-sm">
-                                    موافقة
-                                </button>
-                                <button onclick="rejectRequest(${request.id})" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm">
-                                    رفض
-                                </button>
-                            </td>
-                        </tr>
-                    `).join('');
-                } else {
-                    tbody.innerHTML = '<tr><td colspan="7" class="text-center py-8 text-gray-500">لا توجد طلبات معلقة</td></tr>';
-                }
-            } catch (error) {
-                console.error('Failed to load requests:', error);
-            }
-        }
-        
-        async function approveRequest(requestId) {
-            try {
-                const response = await fetch(`/api/admin/reservations/${requestId}/approve`, {
+                const response = await fetch(`/api/admin/matchmaking-requests/${requestId}/approve`, {
                     method: 'PUT',
                     headers: { 
                         'Content-Type': 'application/json',
@@ -1583,10 +1431,8 @@
                 });
                 
                 if (response.ok) {
-                    loadRequests();
-                    loadReservations();
-                    loadAnalytics();
-                    showMessageBox('تمت الموافقة', 'تم قبول طلب الحجز بنجاح.', 'success');
+                    showMessageBox('تمت الموافقة', 'تم تأكيد طلب المطابقة بنجاح.', 'success');
+                    fetchData(); // Refresh all data
                 } else {
                     const errorData = await response.json();
                     showMessageBox('خطأ', errorData.error);
@@ -1597,74 +1443,36 @@
             }
         }
         
-        async function rejectRequest(requestId) {
-            try {
-                const response = await fetch(`/api/admin/reservations/${requestId}/reject`, {
-                    method: 'PUT',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'X-User-Id': localStorage.getItem('userId')
-                    },
-                    body: JSON.stringify({})
-                });
-                
-                if (response.ok) {
-                    loadRequests();
-                    loadAnalytics();
-                    showMessageBox('تم الرفض', 'تم رفض طلب الحجز.', 'success');
-                } else {
-                    const errorData = await response.json();
-                    showMessageBox('خطأ', errorData.error);
-                }
-            } catch (error) {
-                console.error('Failed to reject request:', error);
-                showMessageBox('خطأ في الشبكة', 'فشل الاتصال بالخادم.');
-            }
-        }
-        
-        // --- Reservations Management Functions ---
-        async function loadReservations() {
-            try {
-                const response = await fetch(`/api/admin/reservations`, {
-                    headers: {
-                        'X-User-Id': localStorage.getItem('userId')
+        async function rejectMatchmakingRequest(requestId) {
+            showMessageBox(
+                'تأكيد الرفض',
+                'هل أنت متأكد من رفض طلب المطابقة هذا؟',
+                'warning',
+                async () => {
+                    try {
+                        const response = await fetch(`/api/admin/matchmaking-requests/${requestId}/reject`, {
+                            method: 'PUT',
+                            headers: { 
+                                'Content-Type': 'application/json',
+                                'X-User-Id': localStorage.getItem('userId')
+                            },
+                            body: JSON.stringify({})
+                        });
+                        
+                        if (response.ok) {
+                            showMessageBox('تم الرفض', 'تم رفض طلب المطابقة بنجاح.', 'success');
+                            fetchData();
+                        } else {
+                            const errorData = await response.json();
+                            showMessageBox('خطأ', errorData.error);
+                        }
+                    } catch (error) {
+                        console.error('Failed to reject request:', error);
+                        showMessageBox('خطأ في الشبكة', 'فشل الاتصال بالخادم.');
                     }
-                });
-                if (!response.ok) throw new Error('Failed to fetch reservations');
-                const data = await response.json();
-                
-                const tbody = document.getElementById('reservations-table-body');
-                if (data.reservations && data.reservations.length > 0) {
-                    tbody.innerHTML = data.reservations.map(reservation => `
-                        <tr class="hover:bg-gray-50">
-                            <td class="border border-gray-300 px-4 py-3">${reservation.user_name}</td>
-                            <td class="border border-gray-300 px-4 py-3">${reservation.field_name}</td>
-                            <td class="border border-gray-300 px-4 py-3">${reservation.date}</td>
-                            <td class="border border-gray-300 px-4 py-3">${reservation.start_time} - ${reservation.end_time}</td>
-                            <td class="border border-gray-300 px-4 py-3">${reservation.price} ₪</td>
-                            <td class="border border-gray-300 px-4 py-3">
-                                <span class="px-2 py-1 rounded-full text-sm ${
-                                    reservation.status === 'confirmed' ? 'bg-green-100 text-green-800' :
-                                    reservation.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                                    'bg-red-100 text-red-800'
-                                }">
-                                    ${reservation.status === 'confirmed' ? 'مؤكد' : reservation.status === 'pending' ? 'معلق' : 'ملغي'}
-                                </span>
-                            </td>
-                            <td class="border border-gray-300 px-4 py-3">
-                                ${reservation.status === 'confirmed' ? 
-                                    `<button onclick="cancelReservation(${reservation.id})" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm">إلغاء</button>` :
-                                    '-'
-                                }
-                            </td>
-                        </tr>
-                    `).join('');
-                } else {
-                    tbody.innerHTML = '<tr><td colspan="7" class="text-center py-8 text-gray-500">لا توجد حجوزات</td></tr>';
-                }
-            } catch (error) {
-                console.error('Failed to load reservations:', error);
-            }
+                },
+                true
+            );
         }
         
         async function cancelReservation(reservationId) {
@@ -1684,8 +1492,7 @@
                         });
                         
                         if (response.ok) {
-                            loadReservations();
-                            loadAnalytics();
+                            fetchData();
                             showMessageBox('تم الإلغاء', 'تم إلغاء الحجز بنجاح.', 'success');
                         } else {
                             const errorData = await response.json();
@@ -1695,159 +1502,46 @@
                         console.error('Failed to cancel reservation:', error);
                         showMessageBox('خطأ في الشبكة', 'فشل الاتصال بالخادم.');
                     }
-                }
+                },
+                true
             );
-        }
-        
-        // --- Availability Management Functions ---
-        async function loadAvailabilityFields() {
-            try {
-                const response = await fetch(`/api/admin/fields`, {
-                    headers: {
-                        'X-User-Id': localStorage.getItem('userId')
-                    }
-                });
-                if (!response.ok) throw new Error('Failed to fetch fields');
-                const data = await response.json();
-                
-                const select = document.getElementById('availability-field-select');
-                select.innerHTML = '<option value="">اختر ملعب...</option>';
-                
-                // Also populate the add slot modal field select
-                const addSlotSelect = document.getElementById('slot-field-id');
-                if (addSlotSelect) {
-                    addSlotSelect.innerHTML = '<option value="">اختر ملعب...</option>';
-                }
-                
-                if (data.fields && data.fields.length > 0) {
-                    data.fields.forEach(field => {
-                        const option = document.createElement('option');
-                        option.value = field.id;
-                        option.textContent = field.name;
-                        select.appendChild(option);
-                        
-                        // Also add to add slot modal
-                        if (addSlotSelect) {
-                            const addSlotOption = document.createElement('option');
-                            addSlotOption.value = field.id;
-                            addSlotOption.textContent = field.name;
-                            addSlotSelect.appendChild(addSlotOption);
-                        }
-                    });
-                }
-                
-                // Load all availabilities by default
-                loadAllAvailabilities();
-            } catch (error) {
-                console.error('Failed to load fields for availability:', error);
-            }
-        }
-        
-        async function loadAllAvailabilities() {
-            try {
-                const response = await fetch(`/api/admin/availability`, {
-                    headers: {
-                        'X-User-Id': localStorage.getItem('userId')
-                    }
-                });
-                if (!response.ok) throw new Error('Failed to fetch availability');
-                const data = await response.json();
-                
-                const container = document.getElementById('availability-slots');
-                if (data.availability && data.availability.length > 0) {
-                    container.innerHTML = data.availability.map(slot => `
-                        <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-200 hover:shadow-xl transition-all duration-300">
-                            <div class="flex items-center justify-between mb-4">
-                                <div class="flex items-center gap-2">
-                                    <i class="fa-solid fa-clock text-blue-600"></i>
-                                    <span class="font-bold text-lg text-gray-800">${slot.start_time} - ${slot.end_time}</span>
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <i class="fa-solid fa-money-bill text-green-600"></i>
-                                    <span class="text-green-600 font-bold text-lg">${slot.price || slot.field_price || 'غير محدد'} ₪</span>
-                                </div>
-                            </div>
-                            <div class="mb-4">
-                                <div class="flex items-center gap-2 mb-2">
-                                    <i class="fa-solid fa-futbol text-purple-600"></i>
-                                    <span class="text-gray-700 font-medium">${slot.field_name}</span>
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <i class="fa-solid fa-calendar text-orange-600"></i>
-                                    <span class="text-gray-600">${slot.slot_date}</span>
-                                </div>
-                            </div>
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center gap-2">
-                                    <i class="fa-solid fa-${
-                                        slot.is_reserved ? 'user-check text-red-600' : 'check-circle text-green-600'
-                                    }"></i>
-                                    <span class="text-sm font-medium ${
-                                        slot.is_reserved ? 'text-red-600' : 'text-green-600'
-                                    }">
-                                        ${slot.is_reserved ? `محجوز - ${slot.user_name || 'غير معروف'}` : 'متاح للحجز'}
-                                    </span>
-                                </div>
-                                <div class="flex gap-2">
-                                    <button onclick="editAvailabilitySlot(${slot.id}, '${slot.start_time}', '${slot.end_time}', '${slot.slot_date}', ${slot.field_id})" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-lg text-sm transition-colors duration-300 flex items-center gap-1">
-                                        <i class="fa-solid fa-edit"></i> تعديل
-                                    </button>
-                                    <button onclick="deleteAvailabilitySlot(${slot.id})" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg text-sm transition-colors duration-300 flex items-center gap-1">
-                                        <i class="fa-solid fa-trash"></i> حذف
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    `).join('');
-                } else {
-                    container.innerHTML = '<p class="text-gray-500 text-center col-span-full">لا توجد مواعيد مضافة</p>';
-                }
-            } catch (error) {
-                console.error('Failed to load all availabilities:', error);
-                document.getElementById('availability-slots').innerHTML = '<p class="text-red-500 text-center col-span-full">خطأ في تحميل المواعيد</p>';
-            }
         }
         
         async function loadAvailabilitySlots() {
             const fieldId = document.getElementById('availability-field-select').value;
             const date = document.getElementById('availability-date-select').value;
             
-            if (!fieldId && !date) {
-                // If no filters selected, load all availabilities
-                loadAllAvailabilities();
-                return;
-            }
+            const container = document.getElementById('availability-slots-container');
+            container.innerHTML = `<p class="text-center text-gray-500 col-span-full">جاري تحميل المواعيد...</p>`;
+
+            let url = `/api/admin/availability?`;
+            const params = new URLSearchParams();
+            if (fieldId) params.append('fieldId', fieldId);
+            if (date) params.append('date', date);
+            url += params.toString();
             
             try {
-                let url = `/api/admin/availability?`;
-                const params = new URLSearchParams();
-                
-                if (fieldId) params.append('fieldId', fieldId);
-                if (date) params.append('date', date);
-                
-                url += params.toString();
-                
                 const response = await fetch(url, {
-                    headers: {
-                        'X-User-Id': localStorage.getItem('userId')
-                    }
+                    headers: { 'X-User-Id': localStorage.getItem('userId') }
                 });
                 if (!response.ok) throw new Error('Failed to fetch availability');
                 const data = await response.json();
                 
-                const container = document.getElementById('availability-slots');
+                container.innerHTML = '';
                 if (data.availability && data.availability.length > 0) {
-                    container.innerHTML = data.availability.map(slot => `
-                        <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-200 hover:shadow-xl transition-all duration-300">
+                    data.availability.forEach(slot => {
+                        const card = document.createElement('div');
+                        card.className = 'bg-white p-6 rounded-xl shadow-lg border border-gray-200 hover:shadow-xl transition-all duration-300';
+                        const statusClass = slot.is_reserved === 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
+                        const statusText = slot.is_reserved === 0 ? 'متاح' : `محجوز (${slot.user_name || 'غير معروف'})`;
+                        
+                        card.innerHTML = `
                             <div class="flex items-center justify-between mb-4">
                                 <div class="flex items-center gap-2">
                                     <i class="fa-solid fa-clock text-blue-600"></i>
                                     <span class="font-bold text-lg text-gray-800">${slot.start_time} - ${slot.end_time}</span>
                                 </div>
-                                <div class="flex items-center gap-2">
-                                    <i class="fa-solid fa-money-bill text-green-600"></i>
-                                    <span class="text-green-600 font-bold text-lg">${slot.price || slot.field_price || 'غير محدد'} ₪</span>
-                                </div>
+                                <span class="text-lg font-bold text-green-600">${slot.field_price || 'غير محدد'} ₪</span>
                             </div>
                             <div class="mb-4">
                                 <div class="flex items-center gap-2 mb-2">
@@ -1860,16 +1554,7 @@
                                 </div>
                             </div>
                             <div class="flex items-center justify-between">
-                                <div class="flex items-center gap-2">
-                                    <i class="fa-solid fa-${
-                                        slot.is_reserved ? 'user-check text-red-600' : 'check-circle text-green-600'
-                                    }"></i>
-                                    <span class="text-sm font-medium ${
-                                        slot.is_reserved ? 'text-red-600' : 'text-green-600'
-                                    }">
-                                        ${slot.is_reserved ? `محجوز - ${slot.user_name || 'غير معروف'}` : 'متاح للحجز'}
-                                    </span>
-                                </div>
+                                <span class="${statusClass} py-1 px-3 rounded-full text-xs font-semibold">${statusText}</span>
                                 <div class="flex gap-2">
                                     <button onclick="editAvailabilitySlot(${slot.id}, '${slot.start_time}', '${slot.end_time}', '${slot.slot_date}', ${slot.field_id})" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-lg text-sm transition-colors duration-300 flex items-center gap-1">
                                         <i class="fa-solid fa-edit"></i> تعديل
@@ -1879,14 +1564,15 @@
                                     </button>
                                 </div>
                             </div>
-                        </div>
-                    `).join('');
+                        `;
+                        container.appendChild(card);
+                    });
                 } else {
                     container.innerHTML = '<p class="text-gray-500 text-center col-span-full">لا توجد مواعيد متاحة للفلاتر المحددة</p>';
                 }
             } catch (error) {
                 console.error('Failed to load availability slots:', error);
-                document.getElementById('availability-slots').innerHTML = '<p class="text-red-500 text-center col-span-full">خطأ في تحميل المواعيد</p>';
+                container.innerHTML = '<p class="text-red-500 text-center col-span-full">خطأ في تحميل المواعيد</p>';
             }
         }
         
@@ -1922,7 +1608,6 @@
             );
         }
         
-        // Edit Availability Slot Function
         function editAvailabilitySlot(slotId, startTime, endTime, date, fieldId) {
             document.getElementById('edit-slot-id').value = slotId;
             document.getElementById('edit-slot-start-time').value = startTime;
@@ -1976,16 +1661,141 @@
         // Event listeners for availability management
         document.getElementById('availability-field-select').addEventListener('change', loadAvailabilitySlots);
         document.getElementById('availability-date-select').addEventListener('change', loadAvailabilitySlots);
+
+        // --- Tournament Modal Functions ---
+        async function openAddTournamentModal() {
+            document.getElementById('add-tournament-modal').classList.remove('hidden');
+            try {
+                const response = await fetch('/api/admin/fields', {
+                    headers: { 'X-User-Id': localStorage.getItem('userId') }
+                });
+                if (!response.ok) throw new Error('Failed to fetch fields');
+                const data = await response.json();
+                const fields = data.fields;
+                populateFieldDropdowns(fields);
+            } catch (error) {
+                console.error('Failed to open tournament modal:', error);
+                showMessageBox('خطأ في الاتصال', 'فشل تحميل قائمة الملاعب.', 'error');
+            }
+        }
         
-        // Update fetchData function to load all new sections
-        const originalFetchData = fetchData;
-        fetchData = async function() {
-            await originalFetchData();
-            await loadAnalytics();
-            await loadRequests();
-            await loadReservations();
-            await loadAvailabilityFields();
-        };
+        document.getElementById('tournament-field').addEventListener('change', async (e) => {
+            const fieldId = e.target.value;
+            const imagePreview = document.getElementById('tournament-image-preview');
+            const imageInput = document.getElementById('tournament-image');
+            
+            if (fieldId) {
+                 try {
+                    const response = await fetch(`/api/fields/${fieldId}?userId=${localStorage.getItem('userId')}`);
+                    if (!response.ok) throw new Error('Failed to fetch field data');
+                    const field = await response.json();
+                    if (field.field.image) {
+                        imagePreview.src = `data:image/jpeg;base64,${field.field.image}`;
+                        imagePreview.classList.remove('hidden');
+                        imageInput.removeAttribute('required');
+                    } else {
+                        imagePreview.classList.add('hidden');
+                        imageInput.setAttribute('required', 'required');
+                    }
+                } catch (error) {
+                    console.error('Failed to load field image:', error);
+                    imagePreview.classList.add('hidden');
+                    imageInput.setAttribute('required', 'required');
+                }
+            } else {
+                imagePreview.classList.add('hidden');
+                imageInput.setAttribute('required', 'required');
+            }
+        });
+
+        function closeAddTournamentModal() {
+            document.getElementById('add-tournament-modal').classList.add('hidden');
+            document.getElementById('add-tournament-form').reset();
+            document.getElementById('tournament-image-preview').classList.add('hidden');
+        }
+
+        async function handleAddTournament() {
+            const name = document.getElementById('tournament-name').value;
+            const description = document.getElementById('tournament-description').value;
+            const prize = document.getElementById('tournament-prize').value;
+            const date = document.getElementById('tournament-date').value;
+            const fieldId = document.getElementById('tournament-field').value;
+            const imageFile = document.getElementById('tournament-image').files[0];
+            const imagePreviewSrc = document.getElementById('tournament-image-preview').src;
+
+            let imageData = null;
+
+            if (imageFile) {
+                imageData = await fileToBase64(imageFile);
+            } else if (imagePreviewSrc && !imagePreviewSrc.includes('placehold.co')) {
+                imageData = imagePreviewSrc;
+            } else {
+                 showMessageBox('خطأ في الصورة', 'يرجى اختيار صورة للبطولة.', 'error');
+                 return;
+            }
+
+            try {
+                const response = await fetch('/api/admin/tournaments', {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'X-User-Id': localStorage.getItem('userId')
+                    },
+                    body: JSON.stringify({
+                        name,
+                        description,
+                        prize,
+                        date,
+                        fieldId,
+                        image: imageData
+                    })
+                });
+
+                if (response.ok) {
+                    closeAddTournamentModal();
+                    fetchData();
+                    showMessageBox('تمت الإضافة بنجاح', 'تم إضافة البطولة الجديدة.', 'success');
+                } else {
+                    const errorData = await response.json();
+                    showMessageBox('خطأ في الإضافة', errorData.error);
+                }
+            } catch (error) {
+                console.error('Failed to add tournament:', error);
+                showMessageBox('خطأ في الشبكة', 'فشل الاتصال بالخادم.');
+            }
+        }
+        
+        async function deleteTournament(tournamentId) {
+            showMessageBox(
+                'تأكيد الحذف',
+                'هل أنت متأكد من رغبتك في حذف هذه البطولة؟',
+                'warning',
+                async () => {
+                     try {
+                         const response = await fetch(`/api/admin/tournaments/${tournamentId}`, {
+                             method: 'DELETE',
+                             headers: { 
+                                 'Content-Type': 'application/json',
+                                 'X-User-Id': localStorage.getItem('userId')
+                             },
+                             body: JSON.stringify({})
+                         });
+
+                         if (response.ok) {
+                             fetchData();
+                             showMessageBox('تم الحذف', 'تم حذف البطولة بنجاح.', 'success');
+                         } else {
+                             const errorData = await response.json();
+                             showMessageBox('خطأ في الحذف', errorData.error);
+                         }
+                     } catch (error) {
+                         console.error('Failed to delete tournament:', error);
+                         showMessageBox('خطأ في الشبكة', 'فشل الاتصال بالخادم.');
+                     }
+                },
+                true
+            );
+        }
 
         // Initialize on page load
         document.addEventListener('DOMContentLoaded', () => {
