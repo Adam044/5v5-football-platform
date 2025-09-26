@@ -591,6 +591,14 @@
         </div>
     </div>
 
+    <!-- Logout Button -->
+    <div class="mt-6 mb-8 flex justify-center">
+        <button type="button" onclick="logout()" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-all duration-300 shadow-md text-sm font-medium">
+            <i class="fa-solid fa-arrow-right-from-bracket ml-2"></i>
+            تسجيل الخروج
+        </button>
+    </div>
+
     <!-- Footer -->
     <footer class="bg-gray-900 text-gray-200 py-10 mt-auto">
         <div class="container mx-auto px-6 text-center">
@@ -1801,6 +1809,13 @@
         document.addEventListener('DOMContentLoaded', () => {
             checkAdminAccess();
         });
+
+        // Logout function
+        function logout() {
+            localStorage.removeItem('userId');
+            localStorage.removeItem('userEmail');
+            window.location.href = 'index.html';
+        }
     </script>
 </body>
 </html>

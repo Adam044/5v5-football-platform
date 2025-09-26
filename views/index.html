@@ -79,6 +79,9 @@
             cursor: pointer;
             box-shadow: 0 4px 10px rgba(0,0,0,0.05);
             position: relative;
+            /* Fix for text overlap on mobile: Ensure min-height and proper wrapping */
+            min-height: 100px;
+            text-align: right;
         }
         .radio-card:hover,
         .radio-card.selected {
@@ -191,6 +194,19 @@
             transform: translateY(0);
             box-shadow: none;
         }
+
+        /* Mobile specific adjustments for modal text */
+        @media (max-width: 640px) {
+            .radio-card .text-xl {
+                font-size: 1.1rem; /* Slightly smaller title font */
+            }
+            .radio-card .text-sm {
+                font-size: 0.75rem; /* Smaller description font */
+            }
+            .radio-card-price {
+                font-size: 0.9rem;
+            }
+        }
     </style>
 </head>
 <body class="min-h-screen flex flex-col">
@@ -293,38 +309,46 @@
         const loggedInUserName = localStorage.getItem('userName');
         const loggedInUserEmail = localStorage.getItem('userEmail');
         
+        // --- UPDATED BOOKING TYPES BASED ON USER INSTRUCTIONS ---
         const bookingTypes = {
-            full_field: {
+            // 1- 2 teams ready: Min 6 per team (Total 12)
+            two_teams_ready: {
                 min: 12,
-                max: 12,
-                label: 'حجز ملعب كامل',
-                description: 'لديك فريقان كاملان جاهزان للعب',
-                flow: 'direct_reservation'
+                max: null, // No max limit specified, using null to indicate open-ended
+                label: 'فريقان جاهزان - حجز ملعب كامل',
+                description: 'لديك فريقان كاملان (6 لاعبين فأكثر لكل فريق) - حجز مؤكد',
+                flow: 'team_join_booking', // Leads to team-join page, ends in Confirmed Booking
+                min_per_team: 6
             },
+            // 2- team looking for another team: Min 6, no max
             team_vs_team: {
                 min: 6,
-                max: 6,
-                label: 'فريق ضد فريق آخر',
-                description: 'لديك فريق كامل وتبحث عن منافس',
-                flow: 'matchmaking_request'
+                max: null, 
+                label: 'فريق يبحث عن فريق آخر',
+                description: 'لديك فريق (6 لاعبين فأكثر) وتبحث عن منافس',
+                flow: 'team_join_matchmaking', // Leads to team-join page, ends in Matchmaking Request
+                min_per_team: 6
             },
+            // 3- team looking for players: Min 3, Max 5
             team_looking_for_players: {
-                min: 4,
-                max: 11,
+                min: 3,
+                max: 5,
                 label: 'فريق يبحث عن لاعبين',
-                description: 'فريقك غير مكتمل ويحتاج المزيد من اللاعبين',
-                flow: 'matchmaking_request'
+                description: 'فريقك غير مكتمل ويحتاج المزيد من اللاعبين (3-5 لاعبين)',
+                flow: 'team_join_matchmaking', // Leads to team-join page, ends in Matchmaking Request
+                min_per_team: 3
             },
+            // 4- player looking for a team: Single player only
             players_looking_for_team: {
                 min: 1,
-                max: 3,
-                label: 'لاعبون يبحثون عن فريق',
-                description: 'مجموعة من 1-3 لاعبين تريد الانضمام لفريق',
-                flow: 'matchmaking_request'
+                max: 1,
+                label: 'لاعب يبحث عن فريق',
+                description: 'لاعب واحد يريد الانضمام لفريق موجود - إرسال طلب مباشرة',
+                flow: 'matchmaking_request' // Direct Matchmaking Request - No team-join page needed
             }
         };
 
-        // --- Utility Functions for Modals ---
+        // --- Utility Functions for Modals (Unchanged) ---
         function showMessageBox(title, content, type = 'error') {
             const msgBox = document.getElementById('message-box');
             const msgTitle = document.getElementById('message-box-title');
@@ -416,7 +440,8 @@
                         'للمتابعة، يرجى تسجيل الدخول أو إنشاء حساب جديد.',
                         'warning'
                     );
-                    setTimeout(() => window.location.href = 'auth.html', 2000);
+                    // Do not redirect, just show the warning
+                    // setTimeout(() => window.location.href = 'auth.html', 2000); 
                     return;
                 }
                 
@@ -438,7 +463,8 @@
             } else if (step === 'availability') {
                 renderAvailabilityModal();
             } else if (step === 'confirm') {
-                renderConfirmationStep();
+                // This step is no longer used directly here, handled by team-join.html or direct submit
+                // renderConfirmationStep(); 
             }
         }
 
@@ -477,15 +503,18 @@
         // Step 1: Choose reservation type
         function renderReservationChoices() {
             const contentContainer = document.getElementById('modal-content-container');
+            // Determine price reference for 'two_teams_ready' (full field price)
+            const priceForFullField = selectedFieldData.price_per_hour * 2; // Assuming 2 hours if not specified, or just the hourly price for display
+            
             const choicesHtml = Object.entries(bookingTypes).map(([key, value]) => `
                 <label for="${key}" class="radio-card">
                     <input type="radio" id="${key}" name="reservation_type" value="${key}" class="hidden">
                     <span class="checkmark"></span>
-                    <div class="flex-grow flex flex-col">
+                    <div class="flex-grow flex flex-col justify-center">
                         <span class="text-xl font-bold text-gray-800">${value.label}</span>
                         <span class="text-gray-500 text-sm">${value.description}</span>
                     </div>
-                    ${value.flow === 'direct_reservation' ? `<span class="radio-card-price">${selectedFieldData.price_per_hour * (value.max/6)} شيكل</span>` : ''}
+
                 </label>
             `).join('');
 
@@ -498,10 +527,13 @@
                     <div class="space-y-4 mb-8">
                         ${choicesHtml}
                     </div>
+                    
+                    <!-- Player Count Input (only visible for 'team_looking_for_players') -->
                     <div id="player-count-input" class="mb-6 hidden">
-                        <label for="player-count" class="block text-gray-700 font-semibold mb-2 text-right">عدد اللاعبين</label>
+                        <label for="player-count" class="block text-gray-700 font-semibold mb-2 text-right">عدد اللاعبين الحاليين في فريقك</label>
                         <input type="number" id="player-count" name="player_count" class="p-3 border border-gray-300 rounded-lg w-full text-right" placeholder="أدخل عدد اللاعبين">
                     </div>
+
                     <button type="submit" id="proceed-btn" class="bg-green-600 text-white font-bold py-4 px-8 rounded-xl w-full hover:bg-green-700 transition-all duration-300 shadow-lg text-lg btn-hover-effect">
                         <i class="fa-solid fa-arrow-left ml-2"></i> التالي
                     </button>
@@ -509,7 +541,7 @@
             `;
             
             const radioButtons = document.querySelectorAll('input[name="reservation_type"]');
-            const playerCountInput = document.getElementById('player-count-input');
+            const playerCountInputContainer = document.getElementById('player-count-input');
             const playerCountField = document.getElementById('player-count');
             
             radioButtons.forEach(radio => {
@@ -520,15 +552,18 @@
                     selectedReservationType = this.value;
                     const config = bookingTypes[selectedReservationType];
                     
-                    if (config.flow === 'matchmaking_request' && selectedReservationType !== 'team_vs_team') {
-                        playerCountInput.classList.remove('hidden');
+                    // Show player count only for 'team_looking_for_players'
+                    if (selectedReservationType === 'team_looking_for_players') {
+                        playerCountInputContainer.classList.remove('hidden');
                         playerCountField.required = true;
                         playerCountField.min = config.min;
                         playerCountField.max = config.max;
+                        playerCountField.value = ''; // Clear previous value
                         playerCountField.placeholder = `أدخل عدد اللاعبين الحاليين (${config.min}-${config.max})`;
                     } else {
-                        playerCountInput.classList.add('hidden');
+                        playerCountInputContainer.classList.add('hidden');
                         playerCountField.required = false;
+                        playerCountField.value = '';
                     }
                 });
             });
@@ -538,7 +573,6 @@
             const form = document.getElementById('reservation-type-form');
             const formData = new FormData(form);
             selectedReservationType = formData.get('reservation_type');
-            selectedPlayerCount = parseInt(formData.get('player_count'));
             
             if (!selectedReservationType) {
                 showMessageBox('خطأ في التحقق', 'يرجى اختيار نوع الحجز للمتابعة.', 'error');
@@ -547,30 +581,47 @@
             
             const config = bookingTypes[selectedReservationType];
             
-            if (config.flow === 'matchmaking_request' && selectedReservationType !== 'team_vs_team') {
+            if (selectedReservationType === 'team_looking_for_players') {
+                selectedPlayerCount = parseInt(formData.get('player_count'));
                 if (isNaN(selectedPlayerCount) || selectedPlayerCount < config.min || selectedPlayerCount > config.max) {
-                    showMessageBox('خطأ في عدد اللاعبين', `عدد اللاعبين يجب أن يكون بين ${config.min} و ${config.max} لاعب.`, 'error');
+                    showMessageBox('خطأ في عدد اللاعبين', `عدد اللاعبين الحاليين يجب أن يكون بين ${config.min} و ${config.max} لاعب لفريقك.`, 'error');
                     return;
                 }
+            } else if (selectedReservationType === 'two_teams_ready') {
+                selectedPlayerCount = config.min_per_team; // Use the min required per team (6) as the initial count for the initiator
             } else if (selectedReservationType === 'team_vs_team') {
-                selectedPlayerCount = 6;
+                selectedPlayerCount = config.min_per_team; // Use the min required per team (6) as the initial count for the initiator
+            } else if (selectedReservationType === 'players_looking_for_team') {
+                selectedPlayerCount = 1; // Always 1 for single player
             } else {
-                selectedPlayerCount = 12; // full_field
+                 selectedPlayerCount = 1; // Default fallback
             }
             
             // Set the reservation flow type
-            if (selectedReservationType === 'full_field') {
-                reservationFlow = 'direct_reservation';
-            } else {
-                reservationFlow = 'matchmaking_request';
-            }
+            reservationFlow = config.flow;
             
-            openModal('availability');
+            // For single player request, go straight to handling (no availability step needed for now, but following the existing flow structure for date/time selection)
+            if (reservationFlow === 'matchmaking_request') {
+                // If it's a direct request (single player), we need to select date/time first.
+                openModal('availability');
+            } else {
+                // For team building flows, move to availability step
+                openModal('availability');
+            }
         }
 
-        // Step 2: Show availability
+        // Step 2: Show availability (Mostly Unchanged)
         async function renderAvailabilityModal() {
             const contentContainer = document.getElementById('modal-content-container');
+            const config = bookingTypes[selectedReservationType];
+            
+            let priceLabel = '';
+            if (selectedReservationType === 'two_teams_ready') {
+                priceLabel = 'السعر: سيظهر بعد اختيار الموعد';
+            } else {
+                priceLabel = 'السعر: -- شيكل';
+            }
+            
             contentContainer.innerHTML = `
                 <h4 class="text-3xl font-bold text-gray-900 mb-8 text-center">
                     <i class="fa-solid fa-calendar-alt text-green-600"></i> اختر الموعد
@@ -586,10 +637,10 @@
                     </div>
                 </div>
                 <div id="price-display" class="bg-gray-100 p-4 rounded-lg text-center font-bold text-gray-800 text-lg mb-6">
-                    السعر: -- شيكل
+                    ${priceLabel}
                 </div>
                 <button type="button" id="confirm-availability-btn" class="bg-green-600 text-white font-bold py-4 px-8 rounded-xl w-full hover:bg-green-700 transition-all duration-300 shadow-lg text-lg btn-hover-effect" disabled>
-                    <i class="fa-solid fa-check-circle ml-2"></i> تأكيد
+                    <i class="fa-solid fa-arrow-left ml-2"></i> متابعة
                 </button>
                 <button onclick="renderReservationChoices()" class="mt-4 bg-gray-600 text-white font-bold py-4 px-8 rounded-xl w-full hover:bg-gray-700 transition-all duration-300 shadow-lg text-lg btn-hover-effect">
                     <i class="fa-solid fa-arrow-right ml-2"></i> العودة
@@ -638,8 +689,24 @@
                                 const endHour = parseInt(slot.end_time.split(':')[0]);
                                 const duration = endHour - startHour;
                                 const totalPrice = duration * selectedFieldData.price_per_hour;
-                                priceDisplay.innerText = `السعر: ${totalPrice} شيكل (${duration} ساعة × ${selectedFieldData.price_per_hour} شيكل/ساعة)`;
+                                
+                                // Update price display based on reservation type
+                                let priceText;
+                                if (selectedReservationType === 'two_teams_ready') {
+                                    priceText = `السعر: ${totalPrice} شيكل`;
+                                } else {
+                                    priceText = `الوقت المحدد: ${duration} ساعة.`;
+                                }
+                                
+                                priceDisplay.innerText = priceText;
                                 confirmBtn.disabled = false;
+                                
+                                // Update button text for single player direct submit
+                                if (selectedReservationType === 'players_looking_for_team') {
+                                    confirmBtn.innerHTML = `<i class="fa-solid fa-search ml-2"></i> إرسال طلب انضمام`;
+                                } else {
+                                    confirmBtn.innerHTML = `<i class="fa-solid fa-arrow-left ml-2"></i> متابعة`;
+                                }
                             };
                             timeSlotsContainer.appendChild(slotBtn);
                         });
@@ -678,81 +745,41 @@
             });
 
             confirmBtn.onclick = () => {
-                if (reservationFlow === 'direct_reservation') {
-                    handleFullTeamReservation();
-                } else {
-                    handleMatchmakingRequest();
-                }
+                handleBookingFlow();
             };
         }
         
         // Final Step: Handle reservation or matchmaking request
-        async function handleFullTeamReservation() {
+        async function handleBookingFlow() {
             if (!selectedSlotId) {
                 showMessageBox('خطأ', 'يرجى اختيار موعد أولاً.');
                 return;
             }
 
-            const confirmBtn = document.getElementById('confirm-availability-btn');
-            const originalHtml = confirmBtn.innerHTML;
-            confirmBtn.disabled = true;
-            confirmBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin ml-2"></i> جاري تأكيد الحجز...`;
-
-            try {
-                const response = await fetch('/api/reserve', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        userId: loggedInUserId,
-                        slotId: selectedSlotId,
-                        reservationType: 'full_field'
-                    })
-                });
-
-                if (response.ok) {
-                    closeModal();
-                    showMessageBox(
-                        'حجز ناجح',
-                        'تم تأكيد حجزك. نراك قريباً في الملعب!',
-                        'success'
-                    );
-                } else {
-                    const errorData = await response.json();
-                    showMessageBox('خطأ في الحجز', errorData.error || 'فشل في تأكيد الحجز. يرجى المحاولة لاحقاً.');
-                }
-            } catch (error) {
-                console.error('Reservation failed:', error);
-                showMessageBox('خطأ في الشبكة', 'فشل الاتصال بالخادم. يرجى المحاولة لاحقاً.');
-            } finally {
-                confirmBtn.disabled = false;
-                confirmBtn.innerHTML = originalHtml;
-            }
-        }
-
-        async function handleMatchmakingRequest() {
-            if (!selectedSlotId) {
-                showMessageBox('خطأ', 'يرجى اختيار موعد أولاً.');
-                return;
-            }
+            const config = bookingTypes[selectedReservationType];
             
-            // For single players looking for a team, go straight to the request
-            if (selectedReservationType === 'players_looking_for_team' && selectedPlayerCount === 1) {
-                submitMatchmakingRequest();
-            } else {
-                // For all other team-building types, redirect to the team-join page
+            if (config.flow === 'team_join_booking' || config.flow === 'team_join_matchmaking') {
+                // Redirect to team-join page for team management
                 const params = new URLSearchParams({
                     fieldId: selectedFieldData.id,
                     slotDate: selectedDate,
                     startTime: selectedSlotData.start_time,
                     endTime: selectedSlotData.end_time,
                     bookingType: selectedReservationType,
-                    playerName: loggedInUserName,
-                    playersNeeded: selectedPlayerCount,
+                    // Pass the initial player count provided by the user (only relevant for team_looking_for_players)
+                    initialPlayerCount: selectedPlayerCount,
+                    // Pass min/max limits to team-join for client-side enforcement
+                    minTeamSize: selectedReservationType === 'two_teams_ready' ? 6 : config.min,
+                    maxTeamSize: selectedReservationType === 'team_looking_for_players' ? 5 : config.max
                 });
-                window.location.href = `/team-join.html?${params.toString()}`;
+                window.location.href = `team-join.html?${params.toString()}`;
+            } else if (config.flow === 'matchmaking_request') {
+                // Direct matchmaking request for single player
+                submitMatchmakingRequest();
             }
         }
         
+        // This function is now specifically for Option 4: Player looking for a team
         async function submitMatchmakingRequest() {
             const confirmBtn = document.getElementById('confirm-availability-btn');
             const originalHtml = confirmBtn.innerHTML;
@@ -766,11 +793,9 @@
                     body: JSON.stringify({
                         userId: loggedInUserId,
                         fieldId: selectedFieldData.id,
-                        slotDate: selectedDate,
-                        startTime: selectedSlotData.start_time,
-                        endTime: selectedSlotData.end_time,
-                        requestType: selectedReservationType,
-                        playersNeeded: selectedPlayerCount
+                        slotId: selectedSlotId,
+                        requestType: selectedReservationType, // 'players_looking_for_team'
+                        playersNeeded: 1 // Always 1 player initiating this request
                     })
                 });
 
@@ -778,7 +803,7 @@
                     closeModal();
                     showMessageBox(
                         'تم إرسال طلبك',
-                        'سيتم مراجعة طلبك من قبل الإدارة وسيتم إعلامك عند العثور على شريك.',
+                        'تم إرسال طلب انضمام كلاعب منفرد بنجاح. سيتم إعلامك عند العثور على فريق.',
                         'success'
                     );
                 } else {
@@ -794,7 +819,7 @@
             }
         }
 
-        // --- Render Fields ---
+        // --- Render Fields (Updated) ---
         async function renderFields() {
             const container = document.getElementById('fields-container');
             container.innerHTML = ''; // Clear existing fields
@@ -808,6 +833,30 @@
                         const fieldCard = document.createElement('div');
                         fieldCard.className = 'bg-white rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden transform hover:-translate-y-2 border border-gray-100';
                         const imageUrl = field.image ? `data:image/jpeg;base64,${field.image}` : `https://placehold.co/600x400/22c55e/ffffff?text=${field.name.replace(/\s/g, '+')}`;
+                        
+                        // New details display section
+                        const detailsHtml = `
+                            <div class="space-y-3 mt-4 text-right text-gray-700">
+                                <!-- Address / Location -->
+                                <div class="flex items-start">
+                                    <i class="fa-solid fa-location-dot text-red-500 mt-1 ml-3 flex-shrink-0"></i>
+                                    <span class="text-sm font-medium">${field.location || 'العنوان غير متوفر'}</span>
+                                </div>
+                                
+                                <!-- Price Per Hour -->
+                                <div class="flex items-center">
+                                    <i class="fa-solid fa-money-bill-wave text-green-600 ml-3 flex-shrink-0"></i>
+                                    <span class="text-md font-bold text-green-700">${field.price_per_hour} شيكل / ساعة</span>
+                                </div>
+
+                                <!-- Description (Shortened for card view) -->
+                                <div class="flex items-start pt-2 border-t border-gray-100">
+                                    <i class="fa-solid fa-circle-info text-blue-500 mt-1 ml-3 flex-shrink-0"></i>
+                                    <p class="text-xs text-gray-600 leading-relaxed line-clamp-3">${field.description || 'لا يوجد وصف متاح لهذا الملعب.'}</p>
+                                </div>
+                            </div>
+                        `;
+
                         fieldCard.innerHTML = `
                             <img
                                 src="${imageUrl}"
@@ -816,14 +865,16 @@
                                 onerror="this.onerror=null;this.src='https://placehold.co/600x400/22c55e/ffffff?text=${field.name.replace(/\s/g, '+')}'"
                             />
                             <div class="p-6">
-                                <h4 class="text-2xl font-bold mb-2 text-gray-900 flex items-center gap-2">
+                                <h4 class="text-2xl font-bold mb-2 text-gray-900 flex items-center justify-center gap-2 text-center">
                                     <i class="fa-solid fa-futbol text-green-600"></i>
                                     ${field.name}
                                 </h4>
-                                <p class="text-gray-700 text-sm mb-4 leading-relaxed">${field.description}</p>
+                                
+                                ${detailsHtml}
+                                
                                 <button
                                     onclick="openModal('field-details', ${field.id})"
-                                    class="bg-gradient-to-r from-blue-600 to-blue-500 text-white px-8 py-3 rounded-xl hover:from-blue-700 hover:to-blue-600 transition-all duration-300 shadow-lg w-full text-lg transform hover:-translate-y-1 flex items-center justify-center gap-2 btn-hover-effect"
+                                    class="bg-gradient-to-r from-blue-600 to-blue-500 text-white px-8 py-3 rounded-xl hover:from-blue-700 hover:to-blue-600 transition-all duration-300 shadow-lg w-full text-lg transform hover:-translate-y-1 flex items-center justify-center gap-2 btn-hover-effect mt-6"
                                 >
                                     <i class="fa-solid fa-calendar-plus"></i> احجز الآن
                                 </button>

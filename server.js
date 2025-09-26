@@ -37,7 +37,7 @@ const db = new sqlite3.Database(path.join(__dirname, '5v5.db'), (err) => {
             email TEXT NOT NULL UNIQUE,
             phone_number TEXT NOT NULL,
             birthdate TEXT,
-            hashed_password TEXT NOT NULL,
+            password TEXT NOT NULL,
             is_admin INTEGER DEFAULT 0,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
@@ -100,9 +100,33 @@ const db = new sqlite3.Database(path.join(__dirname, '5v5.db'), (err) => {
             FOREIGN KEY (tournament_id) REFERENCES tournaments(id),
             FOREIGN KEY (user_id) REFERENCES users(id)
         );
+        -- Team building sessions for managing team formation
+        CREATE TABLE IF NOT EXISTS team_sessions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            invitation_code TEXT NOT NULL UNIQUE,
+            creator_id INTEGER NOT NULL,
+            booking_type TEXT NOT NULL, -- 'two_teams_ready', 'team_vs_team', 'team_looking_for_players', 'players_looking_for_team'
+            field_id INTEGER NOT NULL,
+            slot_date TEXT NOT NULL,
+            start_time TEXT NOT NULL,
+            end_time TEXT NOT NULL,
+            status TEXT DEFAULT 'active', -- 'active', 'completed', 'cancelled'
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (creator_id) REFERENCES users(id),
+            FOREIGN KEY (field_id) REFERENCES fields(id)
+        );
+        -- Team members for tracking players in team building sessions
+        CREATE TABLE IF NOT EXISTS team_members (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            session_id INTEGER NOT NULL,
+            user_id INTEGER NOT NULL,
+            team_designation TEXT NOT NULL, -- 'A', 'B', or 'single' for single team scenarios
+            joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (session_id) REFERENCES team_sessions(id),
+            FOREIGN KEY (user_id) REFERENCES users(id),
+            UNIQUE (session_id, user_id)
+        );
     `);
-    //Removed `booking_requests` and `team_members` tables to simplify the logic. 
-    //Matchmaking and full-field bookings are now handled directly by their respective tables.
     
     // Add is_admin column if it doesn't exist (for existing databases)
     db.run(`ALTER TABLE users ADD COLUMN is_admin INTEGER DEFAULT 0`, (err) => {
@@ -126,6 +150,13 @@ const db = new sqlite3.Database(path.join(__dirname, '5v5.db'), (err) => {
     db.run(`ALTER TABLE fields ADD COLUMN image BLOB`, (err) => {
         if (err && !err.message.includes('duplicate column name')) {
             console.log('Image column migration not needed or already exists');
+        }
+    });
+
+    // Add unique constraint to team_members
+    db.run(`CREATE UNIQUE INDEX IF NOT EXISTS idx_session_user ON team_members (session_id, user_id)`, (err) => {
+        if (err && !err.message.includes('already exists')) {
+            console.error('Error adding unique index to team_members:', err);
         }
     });
 });
@@ -231,7 +262,7 @@ app.post('/api/signup', (req, res) => {
             return res.status(500).json({ error: 'Could not create account.' });
         }
 
-        const sql = `INSERT INTO users (name, email, phone_number, hashed_password, is_admin) VALUES (?, ?, ?, ?, ?)`;
+        const sql = `INSERT INTO users (name, email, phone_number, password, is_admin) VALUES (?, ?, ?, ?, ?)`;
         db.run(sql, [name, email, phone, hashedPassword, is_admin ? 1 : 0], function (err) {
             if (err) {
                 console.error('Error inserting user:', err);
@@ -253,7 +284,7 @@ app.post('/api/login', (req, res) => {
         return res.status(400).json({ error: 'Email and password are required.' });
     }
 
-    const sql = `SELECT id, name, email, hashed_password, is_admin FROM users WHERE email = ?`;
+    const sql = `SELECT id, name, email, password, is_admin FROM users WHERE email = ?`;
     db.get(sql, [email], (err, user) => {
         if (err) {
             console.error('Error fetching user:', err);
@@ -263,7 +294,7 @@ app.post('/api/login', (req, res) => {
             return res.status(401).json({ error: 'Invalid email or password.' });
         }
 
-        bcrypt.compare(password, user.hashed_password, (err, result) => {
+        bcrypt.compare(password, user.password, (err, result) => {
             if (err) {
                 console.error('Error comparing passwords:', err);
                 return res.status(500).json({ error: 'Server error. Please try again later.' });
@@ -363,14 +394,19 @@ app.post('/api/reserve', (req, res) => {
     });
 });
 
-// API for handling all types of matchmaking requests
+// API for handling all types of matchmaking requests (used by Option 4: Player looking for a team)
 app.post('/api/matchmake', (req, res) => {
     const { userId, fieldId, slotId, requestType, playersNeeded } = req.body;
     
     if (!userId || !fieldId || !slotId || !requestType) {
         return res.status(400).json({ error: 'All required fields must be provided.' });
     }
-
+    
+    // Ensure requestType is valid for direct matchmake (Option 4)
+    if (requestType !== 'players_looking_for_team') {
+         return res.status(400).json({ error: 'Invalid request type for direct matchmaking.' });
+    }
+    
     // Get slot details (date, start_time, end_time) from the slotId
     const slotSql = `SELECT slot_date, start_time, end_time FROM availability_slots WHERE id = ?`;
     db.get(slotSql, [slotId], (err, slot) => {
@@ -385,7 +421,7 @@ app.post('/api/matchmake', (req, res) => {
             ) VALUES (?, ?, ?, ?, ?, ?, ?)
         `;
         db.run(insertSql, [
-            userId, fieldId, slot.slot_date, slot.start_time, slot.end_time, requestType, playersNeeded || 1
+            userId, fieldId, slot.slot_date, slot.start_time, slot.end_time, requestType, 1 // Always 1 for single player request
         ], function(err) {
             if (err) {
                 console.error('Error inserting matchmaking request:', err);
@@ -722,8 +758,8 @@ app.get('/api/admin/matchmaking/suggestions', checkAdmin, (req, res) => {
             ON t.user_id = team_user.id
         INNER JOIN fields AS field
             ON p.field_id = field.id
-        WHERE p.request_type = 'players_looking_team'
-            AND t.request_type = 'team_looking_players'
+        WHERE p.request_type = 'players_looking_for_team'
+            AND t.request_type = 'team_looking_for_players'
             AND p.status = 'pending'
             AND t.status = 'pending'
     `;
@@ -925,7 +961,7 @@ app.post('/api/admin/matchmaking-requests/:requestId/approve', checkAdmin, (req,
             }
             
             // Check if the corresponding availability slot is available
-            const checkSlotSql = `SELECT is_reserved FROM availability_slots WHERE field_id = ? AND slot_date = ? AND start_time = ? AND is_reserved = 0`;
+            const checkSlotSql = `SELECT id FROM availability_slots WHERE field_id = ? AND slot_date = ? AND start_time = ? AND is_reserved = 0`;
             db.get(checkSlotSql, [request.field_id, request.slot_date, request.start_time], (err, slot) => {
                 if (err || !slot) {
                     db.run("ROLLBACK;");
@@ -942,8 +978,8 @@ app.post('/api/admin/matchmaking-requests/:requestId/approve', checkAdmin, (req,
                     }
                     
                     // Update the availability slot
-                    const updateSlotSql = `UPDATE availability_slots SET is_reserved = 1, reservation_type = ?, user_id = ? WHERE field_id = ? AND slot_date = ? AND start_time = ?`;
-                    db.run(updateSlotSql, [request.request_type, request.user_id, request.field_id, request.slot_date, request.start_time], (slotErr) => {
+                    const updateSlotSql = `UPDATE availability_slots SET is_reserved = 1, reservation_type = ?, user_id = ? WHERE id = ?`;
+                    db.run(updateSlotSql, [request.request_type, request.user_id, slot.id], (slotErr) => {
                         if (slotErr) {
                             console.error('Error reserving slot:', slotErr);
                             db.run("ROLLBACK;");
@@ -1003,6 +1039,369 @@ app.get('/api/admin/matchmaking-requests', checkAdmin, (req, res) => {
     });
 });
 
+// Team Building API Endpoints
+app.post('/api/team-building/initiate', (req, res) => {
+    const { userId, fieldId, slotDate, startTime, endTime, bookingType } = req.body;
+    
+    if (!userId || !fieldId || !slotDate || !startTime || !endTime || !bookingType) {
+        return res.status(400).json({ error: 'Missing required fields.' });
+    }
+    
+    const invitationCode = crypto.randomBytes(8).toString('hex'); // Shorter, more practical code
+    
+    db.serialize(() => {
+        db.run("BEGIN TRANSACTION;");
+        
+        // Check if the slot is already reserved or part of an active session
+        const checkSlotSql = `SELECT is_reserved FROM availability_slots WHERE field_id = ? AND slot_date = ? AND start_time = ? AND is_reserved = 1`;
+        db.get(checkSlotSql, [fieldId, slotDate, startTime], (err, row) => {
+            if (err || (row && row.is_reserved === 1)) {
+                db.run("ROLLBACK;");
+                return res.status(409).json({ error: 'The selected time slot is already reserved.' });
+            }
+
+            // Determine initial team designation for the creator
+            const teamDesignation = bookingType === 'two_teams_ready' ? 'A' : 'single';
+            
+            // 1. Create team building session
+            const createSessionSql = `
+                INSERT INTO team_sessions (
+                    invitation_code, creator_id, field_id, slot_date, start_time, end_time, booking_type
+                ) VALUES (?, ?, ?, ?, ?, ?, ?)
+            `;
+            
+            db.run(createSessionSql, [invitationCode, userId, fieldId, slotDate, startTime, endTime, bookingType], function(err) {
+                if (err) {
+                    console.error('Error creating team session:', err);
+                    db.run("ROLLBACK;");
+                    return res.status(500).json({ error: 'Failed to create team session.' });
+                }
+                
+                const sessionId = this.lastID;
+                
+                // 2. Add creator as first member
+                const addMemberSql = `
+                    INSERT INTO team_members (session_id, user_id, team_designation)
+                    VALUES (?, ?, ?)
+                `;
+                
+                db.run(addMemberSql, [sessionId, userId, teamDesignation], (memberErr) => {
+                    if (memberErr) {
+                        console.error('Error adding creator to team:', memberErr);
+                        db.run("ROLLBACK;");
+                        return res.status(500).json({ error: 'Failed to add creator to team.' });
+                    }
+                    
+                    db.run("COMMIT;", (commitErr) => {
+                        if (commitErr) {
+                            console.error('Commit error:', commitErr);
+                            return res.status(500).json({ error: 'Transaction failed.' });
+                        }
+                        res.json({ invitationCode, sessionId });
+                    });
+                });
+            });
+        });
+    });
+});
+
+app.get('/api/team-building/:invitationCode', (req, res) => {
+    const { invitationCode } = req.params;
+    
+    // 1. Get session details
+    const sessionSql = `
+        SELECT ts.*, f.name as field_name, f.location as field_address, f.image as field_image, f.price_per_hour
+        FROM team_sessions ts
+        JOIN fields f ON ts.field_id = f.id
+        WHERE ts.invitation_code = ? AND ts.status = 'active'
+    `;
+    
+    db.get(sessionSql, [invitationCode], (err, session) => {
+        if (err || !session) {
+            return res.status(404).json({ error: 'Team session not found or inactive.' });
+        }
+        
+        // 2. Get team members
+        const membersSql = `
+            SELECT tm.id, tm.session_id, tm.user_id, u.name as player_name, tm.team_designation
+            FROM team_members tm
+            JOIN users u ON tm.user_id = u.id
+            WHERE tm.session_id = ?
+            ORDER BY tm.joined_at
+        `;
+        
+        db.all(membersSql, [session.id], (membersErr, members) => {
+            if (membersErr) {
+                console.error('Error fetching team members:', membersErr);
+                return res.status(500).json({ error: 'Failed to fetch team members.' });
+            }
+            
+            // Convert field image to base64 if it exists
+            if (session.field_image) {
+                session.field_image = Buffer.from(session.field_image).toString('base64');
+            }
+            
+            res.json({ session, members });
+        });
+    });
+});
+
+app.post('/api/team-building/join', (req, res) => {
+    const { invitationCode, userId, teamDesignation } = req.body;
+    
+    if (!invitationCode || !userId || !['A', 'B', 'single'].includes(teamDesignation)) {
+        return res.status(400).json({ error: 'Missing or invalid required fields (invitationCode, userId, teamDesignation).' });
+    }
+    
+    // 1. Get the session
+    const sessionSql = `SELECT * FROM team_sessions WHERE invitation_code = ? AND status = 'active'`;
+    
+    db.get(sessionSql, [invitationCode], (err, session) => {
+        if (err || !session) {
+            return res.status(404).json({ error: 'Team session not found or inactive.' });
+        }
+        
+        // 2. Check if user is already in this session
+        const checkMemberSql = `SELECT * FROM team_members WHERE session_id = ? AND user_id = ?`;
+        
+        db.get(checkMemberSql, [session.id, userId], (checkErr, existingMember) => {
+            if (checkErr) {
+                return res.status(500).json({ error: 'Database error during member check.' });
+            }
+            
+            if (existingMember) {
+                return res.status(400).json({ error: 'User already in this team session.' });
+            }
+            
+            // 3. Check for team capacity limit (Option 3 only: team_looking_for_players max 5)
+            if (session.booking_type === 'team_looking_for_players') {
+                const countSql = `SELECT COUNT(*) as current_count FROM team_members WHERE session_id = ? AND team_designation = 'single'`;
+                db.get(countSql, [session.id], (countErr, row) => {
+                    if (countErr) return res.status(500).json({ error: 'Database error counting players.' });
+                    
+                    if (row.current_count >= 5) {
+                        return res.status(400).json({ error: 'Team is full (max 5 players).' });
+                    }
+                    
+                    // Proceed to add member
+                    addMemberToTeam(session.id, userId, teamDesignation, res);
+                });
+            } else {
+                 // Proceed to add member (no max limit for Option 1/2)
+                addMemberToTeam(session.id, userId, teamDesignation, res);
+            }
+        });
+    });
+});
+
+function addMemberToTeam(sessionId, userId, teamDesignation, res) {
+    const addMemberSql = `
+        INSERT INTO team_members (session_id, user_id, team_designation)
+        VALUES (?, ?, ?)
+    `;
+    
+    db.run(addMemberSql, [sessionId, userId, teamDesignation], function(addErr) {
+        if (addErr) {
+            console.error('Error adding team member:', addErr);
+            return res.status(500).json({ error: 'Failed to join team.' });
+        }
+        
+        res.json({ message: 'Successfully joined team.' });
+    });
+}
+
+app.post('/api/team-building/remove-player', (req, res) => {
+    const { invitationCode, userId, targetUserId } = req.body;
+    
+    if (!invitationCode || !userId || !targetUserId) {
+        return res.status(400).json({ error: 'Missing required fields.' });
+    }
+    
+    // 1. Get session and verify user is creator
+    const sessionSql = `SELECT * FROM team_sessions WHERE invitation_code = ? AND creator_id = ? AND status = 'active'`;
+    
+    db.get(sessionSql, [invitationCode, userId], (err, session) => {
+        if (err || !session) {
+            return res.status(403).json({ error: 'Unauthorized or session not found.' });
+        }
+        
+        // Prevent creator from removing themselves
+        if (parseInt(targetUserId) === parseInt(userId)) {
+             return res.status(400).json({ error: 'Cannot remove the team creator.' });
+        }
+        
+        // 2. Remove the target user
+        const removeSql = `DELETE FROM team_members WHERE session_id = ? AND user_id = ?`;
+        
+        db.run(removeSql, [session.id, targetUserId], function(removeErr) {
+            if (removeErr || this.changes === 0) {
+                return res.status(500).json({ error: 'Failed to remove player.' });
+            }
+            
+            res.json({ message: 'Player removed successfully.' });
+        });
+    });
+});
+
+// Option 1: Confirm Booking (Two Teams Ready)
+app.post('/api/team-building/confirm-booking', (req, res) => {
+    const { invitationCode, userId } = req.body;
+    
+    if (!invitationCode || !userId) {
+        return res.status(400).json({ error: 'Missing required fields.' });
+    }
+    
+    db.serialize(() => {
+        db.run("BEGIN TRANSACTION;");
+        
+        // 1. Get session, verify user is creator, and check player counts
+        const sessionSql = `SELECT * FROM team_sessions WHERE invitation_code = ? AND creator_id = ? AND status = 'active' AND booking_type = 'two_teams_ready'`;
+        
+        db.get(sessionSql, [invitationCode, userId], (err, session) => {
+            if (err || !session) {
+                db.run("ROLLBACK;");
+                return res.status(403).json({ error: 'Unauthorized, session not found, or booking type mismatch.' });
+            }
+            
+            const countSql = `SELECT team_designation, COUNT(*) as count FROM team_members WHERE session_id = ? GROUP BY team_designation`;
+            db.all(countSql, [session.id], (countErr, results) => {
+                if (countErr) {
+                    db.run("ROLLBACK;");
+                    return res.status(500).json({ error: 'Database error checking player counts.' });
+                }
+                
+                const teamA = results.find(r => r.team_designation === 'A')?.count || 0;
+                const teamB = results.find(r => r.team_designation === 'B')?.count || 0;
+                
+                if (teamA < 6 || teamB < 6) {
+                    db.run("ROLLBACK;");
+                    return res.status(400).json({ error: 'Reservation failed: Both teams must have at least 6 players.' });
+                }
+
+                // 2. Create availability slot reservation
+                const reserveSql = `
+                    UPDATE availability_slots 
+                    SET is_reserved = 1, reservation_type = 'two_teams_ready', user_id = ? 
+                    WHERE field_id = ? AND slot_date = ? AND start_time = ? AND is_reserved = 0
+                `;
+                
+                db.run(reserveSql, [userId, session.field_id, session.slot_date, session.start_time], function(reserveErr) {
+                    if (reserveErr || this.changes === 0) {
+                        console.error('Error creating reservation:', reserveErr);
+                        db.run("ROLLBACK;");
+                        return res.status(500).json({ error: 'Failed to reserve the slot. It may already be taken.' });
+                    }
+                    
+                    // 3. Update session status
+                    const updateSessionSql = `UPDATE team_sessions SET status = 'completed' WHERE id = ?`;
+                    
+                    db.run(updateSessionSql, [session.id], (updateErr) => {
+                        if (updateErr) {
+                            console.error('Error updating session:', updateErr);
+                            db.run("ROLLBACK;");
+                            return res.status(500).json({ error: 'Failed to update session status.' });
+                        }
+                        
+                        db.run("COMMIT;", (commitErr) => {
+                            if (commitErr) {
+                                console.error('Commit error:', commitErr);
+                                return res.status(500).json({ error: 'Transaction failed.' });
+                            }
+                            res.json({ message: 'Booking confirmed successfully!' });
+                        });
+                    });
+                });
+            });
+        });
+    });
+});
+
+// Option 2 & 3: Submit Matchmaking Request
+app.post('/api/team-building/submit-matchmaking', (req, res) => {
+    const { invitationCode, userId, currentPlayers } = req.body;
+    
+    if (!invitationCode || !userId || typeof currentPlayers !== 'number') {
+        return res.status(400).json({ error: 'Missing required fields or invalid player count.' });
+    }
+    
+    db.serialize(() => {
+        db.run("BEGIN TRANSACTION;");
+
+        // 1. Get session and verify user is creator
+        const sessionSql = `SELECT * FROM team_sessions WHERE invitation_code = ? AND creator_id = ? AND status = 'active' AND booking_type IN ('team_vs_team', 'team_looking_for_players')`;
+        
+        db.get(sessionSql, [invitationCode, userId], (err, session) => {
+            if (err || !session) {
+                db.run("ROLLBACK;");
+                return res.status(403).json({ error: 'Unauthorized, session not found, or booking type mismatch.' });
+            }
+            
+            const bookingType = session.booking_type;
+            const requiredMin = bookingType === 'team_vs_team' ? 6 : 3;
+
+            if (currentPlayers < requiredMin) {
+                db.run("ROLLBACK;");
+                return res.status(400).json({ error: `Matchmaking failed: Team must have at least ${requiredMin} players.` });
+            }
+
+            // 2. Calculate players needed for the *matchmaking pool*
+            const playersNeededForPool = getPlayersNeededForMatchmaking(bookingType, currentPlayers);
+
+            // 3. Create matchmaking request
+            const matchmakingSql = `
+                INSERT INTO matchmaking_requests (user_id, field_id, slot_date, start_time, end_time, request_type, players_needed)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+            `;
+            
+            db.run(matchmakingSql, [userId, session.field_id, session.slot_date, session.start_time, session.end_time, bookingType, playersNeededForPool], function(matchErr) {
+                if (matchErr) {
+                    console.error('Error creating matchmaking request:', matchErr);
+                    db.run("ROLLBACK;");
+                    return res.status(500).json({ error: 'Failed to create matchmaking request.' });
+                }
+                
+                // 4. Update session status
+                const updateSessionSql = `UPDATE team_sessions SET status = 'completed' WHERE id = ?`;
+                
+                db.run(updateSessionSql, [session.id], (updateErr) => {
+                    if (updateErr) {
+                        console.error('Error updating session:', updateErr);
+                        db.run("ROLLBACK;");
+                        return res.status(500).json({ error: 'Failed to update session status.' });
+                    }
+                    
+                    db.run("COMMIT;", (commitErr) => {
+                        if (commitErr) {
+                            console.error('Commit error:', commitErr);
+                            return res.status(500).json({ error: 'Transaction failed.' });
+                        }
+                        res.json({ message: 'Matchmaking request submitted successfully!' });
+                    });
+                });
+            });
+        });
+    });
+});
+
+// Helper function to calculate players needed for matchmaking
+function getPlayersNeededForMatchmaking(bookingType, currentPlayers) {
+    switch (bookingType) {
+        case 'team_vs_team':
+            // If team has 6 players, it needs 6 more for the opposing team (6v6).
+            // We use 12 (6v6) as the standard game size.
+            return 12 - currentPlayers; 
+        case 'team_looking_for_players':
+            // Team size is 5 max. If the team has N players, it needs (5 - N) individual players to complete the team.
+            // Matchmaking goal is finding individual players to complete the team of 5.
+            return 5 - currentPlayers; 
+        case 'players_looking_for_team':
+            // Single player needs 9 others for a 5v5 game (total 10 players). This is handled by direct /api/matchmake
+            return 9; 
+        default:
+            return 0;
+    }
+}
+
 // Route to serve main pages
 app.get('/index.html', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
@@ -1025,7 +1424,12 @@ app.get('/tournaments.html', (req, res) => {
 });
 
 app.get('/team-join.html', (req, res) => {
-    res.sendFile(path.join(__dirname, 'views', 'team-join.html'));
+    res.sendFile(path.join(__dirname, 'team-join.html'));
+});
+
+// Route to handle team-join URLs with invitation codes
+app.get('/join/:invitationCode', (req, res) => {
+    res.sendFile(path.join(__dirname, 'team-join.html'));
 });
 
 // Start the server
