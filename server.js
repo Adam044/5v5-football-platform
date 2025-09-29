@@ -250,9 +250,9 @@ app.get('/api/availability/:fieldId', (req, res) => {
 
 // API endpoint for user sign-up
 app.post('/api/signup', (req, res) => {
-    const { name, email, phone, password, is_admin } = req.body;
+    const { name, email, phone, birthdate, sex, password, is_admin } = req.body;
 
-    if (!name || !email || !phone || !password) {
+    if (!name || !email || !phone || !birthdate || !sex || !password) {
         return res.status(400).json({ error: 'Please provide all required fields.' });
     }
 
@@ -262,8 +262,8 @@ app.post('/api/signup', (req, res) => {
             return res.status(500).json({ error: 'Could not create account.' });
         }
 
-        const sql = `INSERT INTO users (name, email, phone_number, password, is_admin) VALUES (?, ?, ?, ?, ?)`;
-        db.run(sql, [name, email, phone, hashedPassword, is_admin ? 1 : 0], function (err) {
+        const sql = `INSERT INTO users (name, email, phone_number, birthdate, sex, password, is_admin) VALUES (?, ?, ?, ?, ?, ?, ?)`;
+        db.run(sql, [name, email, phone, birthdate, sex, hashedPassword, is_admin ? 1 : 0], function (err) {
             if (err) {
                 console.error('Error inserting user:', err);
                 if (err.message.includes('UNIQUE constraint failed')) {
@@ -345,7 +345,7 @@ app.get('/api/user/reservations/:userId', (req, res) => {
 // API endpoint to get a user's profile information
 app.get('/api/user/:userId', (req, res) => {
     const { userId } = req.params;
-    const sql = `SELECT id, name, email, phone_number, is_admin FROM users WHERE id = ?`;
+    const sql = `SELECT id, name, email, phone_number, birthdate, sex, is_admin FROM users WHERE id = ?`;
     db.get(sql, [userId], (err, row) => {
         if (err) {
             console.error('Error fetching user:', err);
@@ -355,6 +355,54 @@ app.get('/api/user/:userId', (req, res) => {
             return res.status(404).json({ error: 'User not found.' });
         }
         res.json({ user: row });
+    });
+});
+
+// API endpoint to get users with birthdays in the upcoming week
+app.get('/api/users/upcoming-birthdays', (req, res) => {
+    // Get current date and date 7 days from now
+    const today = new Date();
+    const nextWeek = new Date();
+    nextWeek.setDate(today.getDate() + 7);
+    
+    // Format dates to MM-DD for comparison (ignoring year)
+    const todayFormatted = String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
+    const nextWeekFormatted = String(nextWeek.getMonth() + 1).padStart(2, '0') + '-' + String(nextWeek.getDate()).padStart(2, '0');
+    
+    let sql;
+    let params;
+    
+    // Handle year-end case (e.g., Dec 28 to Jan 4)
+    if (nextWeek.getFullYear() > today.getFullYear() || (nextWeek.getMonth() < today.getMonth())) {
+        // Cross year boundary
+        sql = `SELECT id, name, email, phone_number, birthdate, sex FROM users 
+               WHERE (strftime('%m-%d', birthdate) >= ? OR strftime('%m-%d', birthdate) <= ?)
+               AND birthdate IS NOT NULL`;
+        params = [todayFormatted, nextWeekFormatted];
+    } else {
+        // Same year
+        sql = `SELECT id, name, email, phone_number, birthdate, sex FROM users 
+               WHERE strftime('%m-%d', birthdate) >= ? AND strftime('%m-%d', birthdate) <= ?
+               AND birthdate IS NOT NULL`;
+        params = [todayFormatted, nextWeekFormatted];
+    }
+    
+    db.all(sql, params, (err, rows) => {
+        if (err) {
+            console.error('Error fetching birthday users:', err);
+            return res.status(500).json({ error: err.message });
+        }
+        
+        // Sort by birthday date (month-day)
+        const sortedUsers = rows.sort((a, b) => {
+            const aDate = new Date(a.birthdate);
+            const bDate = new Date(b.birthdate);
+            const aFormatted = String(aDate.getMonth() + 1).padStart(2, '0') + '-' + String(aDate.getDate()).padStart(2, '0');
+            const bFormatted = String(bDate.getMonth() + 1).padStart(2, '0') + '-' + String(bDate.getDate()).padStart(2, '0');
+            return aFormatted.localeCompare(bFormatted);
+        });
+        
+        res.json({ users: sortedUsers });
     });
 });
 
@@ -884,6 +932,781 @@ app.delete('/api/admin/tournaments/:tournamentId', checkAdmin, (req, res) => {
         }
         res.json({ message: 'Tournament deleted successfully!' });
     });
+});
+
+// Get tournament teams for admin dashboard
+app.get('/api/admin/tournaments/:tournamentId/teams', checkAdmin, (req, res) => {
+    const { tournamentId } = req.params;
+    const sql = `
+        SELECT 
+            tt.id,
+            tt.team_name,
+            tt.registration_date,
+            tt.status,
+            u.name as captain_name,
+            u.email as captain_email,
+            u.phone_number as captain_phone,
+            COUNT(tm.id) as team_size
+        FROM tournament_teams tt
+        JOIN users u ON tt.captain_id = u.id
+        LEFT JOIN team_members tm ON tt.session_id = tm.session_id
+        WHERE tt.tournament_id = ?
+        GROUP BY tt.id, tt.team_name, tt.registration_date, tt.status, u.name, u.email, u.phone_number
+        ORDER BY tt.registration_date DESC
+    `;
+    
+    db.all(sql, [tournamentId], (err, teams) => {
+        if (err) {
+            console.error('Error fetching tournament teams:', err);
+            return res.status(500).json({ error: err.message });
+        }
+        
+        // Get team members for each team
+        const teamsWithMembers = [];
+        let completed = 0;
+        
+        if (teams.length === 0) {
+            return res.json({ teams: [] });
+        }
+        
+        teams.forEach(team => {
+            const membersSql = `
+                SELECT 
+                    u.name,
+                    u.email,
+                    u.phone_number,
+                    tm.team_designation,
+                    tm.joined_at
+                FROM team_members tm
+                JOIN users u ON tm.user_id = u.id
+                WHERE tm.session_id = (
+                    SELECT session_id FROM tournament_teams WHERE id = ?
+                )
+                ORDER BY tm.joined_at ASC
+            `;
+            
+            db.all(membersSql, [team.id], (err, members) => {
+                if (err) {
+                    console.error('Error fetching team members:', err);
+                    members = [];
+                }
+                
+                teamsWithMembers.push({
+                    ...team,
+                    members: members
+                });
+                
+                completed++;
+                if (completed === teams.length) {
+                    res.json({ teams: teamsWithMembers });
+                }
+            });
+        });
+    });
+});
+
+// Get single tournament details (public endpoint)
+app.get('/api/tournaments/:tournamentId', (req, res) => {
+    const { tournamentId } = req.params;
+    
+    const sql = `
+        SELECT
+            t.id,
+            t.name,
+            t.tournament_date,
+            t.prize,
+            t.description,
+            t.image_data,
+            f.name AS field_name,
+            f.image as field_image,
+            f.id as field_id
+        FROM tournaments t
+        JOIN fields f ON t.field_id = f.id
+        WHERE t.id = ?;
+    `;
+    
+    db.get(sql, [tournamentId], (err, row) => {
+        if (err) {
+            return res.status(500).json({ error: err.message });
+        }
+        
+        if (!row) {
+            return res.status(404).json({ error: 'Tournament not found' });
+        }
+        
+        // Convert image data to base64 if exists
+        if (row.image_data) {
+            row.image = Buffer.from(row.image_data).toString('base64');
+        }
+        
+        res.json({ tournament: row });
+    });
+});
+
+// Public endpoint to get tournament teams (for the teams modal)
+app.get('/api/tournaments/:tournamentId/teams', (req, res) => {
+    const { tournamentId } = req.params;
+    
+    // First get tournament info
+    const tournamentSql = 'SELECT name FROM tournaments WHERE id = ?';
+    db.get(tournamentSql, [tournamentId], (err, tournament) => {
+        if (err) {
+            console.error('Error fetching tournament:', err);
+            return res.status(500).json({ success: false, message: 'خطأ في الخادم' });
+        }
+        
+        if (!tournament) {
+            return res.status(404).json({ success: false, message: 'البطولة غير موجودة' });
+        }
+        
+        // Get teams for this tournament
+        const teamsSql = `
+            SELECT 
+                tt.team_name,
+                u.name as captain_name,
+                tt.registration_date
+            FROM tournament_teams tt
+            JOIN users u ON tt.captain_id = u.id
+            WHERE tt.tournament_id = ?
+            ORDER BY tt.registration_date ASC
+        `;
+        
+        db.all(teamsSql, [tournamentId], (err, teams) => {
+            if (err) {
+                console.error('Error fetching tournament teams:', err);
+                return res.status(500).json({ success: false, message: 'خطأ في تحميل الفرق' });
+            }
+            
+            res.json({ 
+                success: true, 
+                tournament: tournament,
+                teams: teams || []
+            });
+        });
+    });
+});
+
+// Tournament registration endpoint
+app.post('/api/tournaments/:tournamentId/register', (req, res) => {
+    const { tournamentId } = req.params;
+    const { teamName, captainId, sessionId } = req.body;
+    
+    if (!teamName || !captainId || !sessionId) {
+        return res.status(400).json({ error: 'Team name, captain ID, and session ID are required.' });
+    }
+    
+    // Check if tournament exists and is open for registration
+    const checkTournamentSql = `SELECT * FROM tournaments WHERE id = ?`;
+    db.get(checkTournamentSql, [tournamentId], (err, tournament) => {
+        if (err) {
+            console.error('Error checking tournament:', err);
+            return res.status(500).json({ error: err.message });
+        }
+        
+        if (!tournament) {
+            return res.status(404).json({ error: 'Tournament not found.' });
+        }
+        
+        // Check if team already registered for this tournament
+        const checkExistingSql = `SELECT * FROM tournament_teams WHERE tournament_id = ? AND session_id = ?`;
+        db.get(checkExistingSql, [tournamentId, sessionId], (err, existing) => {
+            if (err) {
+                console.error('Error checking existing registration:', err);
+                return res.status(500).json({ error: err.message });
+            }
+            
+            if (existing) {
+                return res.status(400).json({ error: 'Team already registered for this tournament.' });
+            }
+            
+            // Register the team
+            const insertSql = `
+                INSERT INTO tournament_teams (tournament_id, team_name, captain_id, session_id, status)
+                VALUES (?, ?, ?, ?, 'pending')
+            `;
+            
+            db.run(insertSql, [tournamentId, teamName, captainId, sessionId], function(err) {
+                if (err) {
+                    console.error('Error registering team:', err);
+                    return res.status(500).json({ error: err.message });
+                }
+                
+                res.status(201).json({ 
+                    message: 'Team registered successfully!',
+                    registrationId: this.lastID
+                });
+            });
+        });
+    });
+});
+
+// Team signup endpoints for tournaments
+// Create team session (pre-registration) endpoint
+app.post('/api/team-signup/create-session', (req, res) => {
+    const { tournamentId, teamName, creatorId, creatorName } = req.body;
+    
+    if (!tournamentId || !teamName || !creatorId || !creatorName) {
+        return res.status(400).json({ error: 'Missing required fields' });
+    }
+    
+    // Generate unique invitation code
+    const invitationCode = crypto.randomBytes(16).toString('hex');
+    
+    // Create team session (pre-registration) in team_sessions table
+    const createSessionSql = `
+        INSERT INTO team_sessions (tournament_id, team_name, creator_id, captain_id, invitation_code, booking_type, field_id, slot_date, start_time, end_time, status, created_at)
+        VALUES (?, ?, ?, ?, ?, 'tournament', 1, 'TBD', 'TBD', 'TBD', 'forming', datetime('now'))
+    `;
+    
+    db.run(createSessionSql, [tournamentId, teamName, creatorId, creatorId, invitationCode], function(err) {
+        if (err) {
+            console.error('Error creating team session:', err);
+            return res.status(500).json({ error: 'Failed to create team session' });
+        }
+        
+        const sessionId = this.lastID;
+        
+        // Add creator as first session member
+        const addCreatorSql = `
+            INSERT INTO team_session_members (session_id, user_id, user_name, is_captain, joined_at)
+            VALUES (?, ?, ?, 1, datetime('now'))
+        `;
+        
+        db.run(addCreatorSql, [sessionId, creatorId, creatorName], (err) => {
+            if (err) {
+                console.error('Error adding creator to session:', err);
+                return res.status(500).json({ error: 'Failed to add creator to session' });
+            }
+            
+            res.status(201).json({
+                session: {
+                    id: sessionId,
+                    name: teamName,
+                    creator_id: creatorId,
+                    invitation_code: invitationCode
+                },
+                invitationCode: invitationCode,
+                creator: {
+                    user_id: creatorId,
+                    name: creatorName
+                }
+            });
+        });
+    });
+});
+
+app.post('/api/team-signup/create', (req, res) => {
+    const { tournamentId, teamName, creatorId, creatorName } = req.body;
+    
+    if (!tournamentId || !teamName || !creatorId || !creatorName) {
+        return res.status(400).json({ error: 'Missing required fields' });
+    }
+    
+    // Generate unique invitation code
+    const invitationCode = crypto.randomBytes(16).toString('hex');
+    
+    // Create team
+    const createTeamSql = `
+        INSERT INTO tournament_teams (tournament_id, team_name, captain_id, invitation_code, status, created_at)
+        VALUES (?, ?, ?, ?, 'forming', datetime('now'))
+    `;
+    
+    db.run(createTeamSql, [tournamentId, teamName, creatorId, invitationCode], function(err) {
+        if (err) {
+            console.error('Error creating team:', err);
+            return res.status(500).json({ error: 'Failed to create team' });
+        }
+        
+        const teamId = this.lastID;
+        
+        // Add creator as first team member
+        const addCreatorSql = `
+            INSERT INTO tournament_team_members (team_id, user_id, user_name, is_captain, joined_at)
+            VALUES (?, ?, ?, 1, datetime('now'))
+        `;
+        
+        db.run(addCreatorSql, [teamId, creatorId, creatorName], (err) => {
+            if (err) {
+                console.error('Error adding creator to team:', err);
+                return res.status(500).json({ error: 'Failed to add creator to team' });
+            }
+            
+            res.status(201).json({
+                team: {
+                    id: teamId,
+                    name: teamName,
+                    creator_id: creatorId,
+                    invitation_code: invitationCode
+                },
+                invitationCode: invitationCode,
+                creator: {
+                    user_id: creatorId,
+                    name: creatorName
+                }
+            });
+        });
+    });
+});
+
+app.get('/api/team-signup/session/:invitationCode', (req, res) => {
+    const { invitationCode } = req.params;
+    
+    // Get session details
+    const sessionSql = `
+        SELECT ts.*, t.name as tournament_name, t.tournament_date, t.prize, t.description,
+               f.name as field_name, f.location as field_location
+        FROM team_sessions ts
+        JOIN tournaments t ON ts.tournament_id = t.id
+        JOIN fields f ON t.field_id = f.id
+        WHERE ts.invitation_code = ?
+    `;
+    
+    db.get(sessionSql, [invitationCode], (err, session) => {
+        if (err) {
+            console.error('Error fetching session:', err);
+            return res.status(500).json({ error: 'Database error' });
+        }
+        
+        if (!session) {
+            return res.status(404).json({ error: 'Invalid invitation code' });
+        }
+        
+        // Get session members
+        const membersSql = `
+            SELECT user_id, user_name as name, is_captain, joined_at
+            FROM team_session_members
+            WHERE session_id = ?
+            ORDER BY is_captain DESC, joined_at ASC
+        `;
+        
+        db.all(membersSql, [session.id], (err, members) => {
+            if (err) {
+                console.error('Error fetching session members:', err);
+                return res.status(500).json({ error: 'Database error' });
+            }
+            
+            res.json({
+                session: {
+                    id: session.id,
+                    name: session.team_name,
+                    creator_id: session.captain_id,
+                    invitation_code: session.invitation_code,
+                    status: session.status
+                },
+                tournament: {
+                    id: session.tournament_id,
+                    name: session.tournament_name,
+                    tournament_date: session.tournament_date,
+                    prize: session.prize,
+                    description: session.description,
+                    field_name: session.field_name,
+                    field_location: session.field_location
+                },
+                players: members || []
+            });
+        });
+    });
+});
+
+app.get('/api/team-signup/:invitationCode', (req, res) => {
+    const { invitationCode } = req.params;
+    
+    // Get team details
+    const teamSql = `
+        SELECT tt.*, t.name as tournament_name, t.tournament_date, t.prize, t.description,
+               f.name as field_name, f.location as field_location
+        FROM tournament_teams tt
+        JOIN tournaments t ON tt.tournament_id = t.id
+        JOIN fields f ON t.field_id = f.id
+        WHERE tt.invitation_code = ?
+    `;
+    
+    db.get(teamSql, [invitationCode], (err, team) => {
+        if (err) {
+            console.error('Error fetching team:', err);
+            return res.status(500).json({ error: 'Database error' });
+        }
+        
+        if (!team) {
+            return res.status(404).json({ error: 'Invalid invitation code' });
+        }
+        
+        // Get team members
+        const membersSql = `
+            SELECT user_id, user_name as name, is_captain, joined_at
+            FROM tournament_team_members
+            WHERE team_id = ?
+            ORDER BY is_captain DESC, joined_at ASC
+        `;
+        
+        db.all(membersSql, [team.id], (err, members) => {
+            if (err) {
+                console.error('Error fetching team members:', err);
+                return res.status(500).json({ error: 'Database error' });
+            }
+            
+            res.json({
+                team: {
+                    id: team.id,
+                    name: team.team_name,
+                    creator_id: team.captain_id,
+                    invitation_code: team.invitation_code,
+                    status: team.status
+                },
+                tournament: {
+                    id: team.tournament_id,
+                    name: team.tournament_name,
+                    tournament_date: team.tournament_date,
+                    prize: team.prize,
+                    description: team.description,
+                    field_name: team.field_name,
+                    field_location: team.field_location
+                },
+                players: members || []
+            });
+        });
+    });
+});
+
+app.post('/api/team-signup/join-session', (req, res) => {
+    const { invitationCode, userId, userName } = req.body;
+    
+    if (!invitationCode || !userId || !userName) {
+        return res.status(400).json({ error: 'Missing required fields' });
+    }
+    
+    // Get session details
+    const sessionSql = `SELECT id, status FROM team_sessions WHERE invitation_code = ?`;
+    
+    db.get(sessionSql, [invitationCode], (err, session) => {
+        if (err) {
+            console.error('Error fetching session:', err);
+            return res.status(500).json({ error: 'Database error' });
+        }
+        
+        if (!session) {
+            return res.status(404).json({ error: 'Invalid invitation code' });
+        }
+        
+        if (session.status !== 'forming') {
+            return res.status(400).json({ error: 'Session is no longer accepting members' });
+        }
+        
+        // Check if user is already in session
+        const checkMemberSql = `SELECT id FROM team_session_members WHERE session_id = ? AND user_id = ?`;
+        
+        db.get(checkMemberSql, [session.id, userId], (err, existing) => {
+            if (err) {
+                console.error('Error checking existing member:', err);
+                return res.status(500).json({ error: 'Database error' });
+            }
+            
+            if (existing) {
+                return res.status(400).json({ error: 'User already in session' });
+            }
+            
+            // Check session size limit
+            const countSql = `SELECT COUNT(*) as count FROM team_session_members WHERE session_id = ?`;
+            
+            db.get(countSql, [session.id], (err, result) => {
+                if (err) {
+                    console.error('Error counting session members:', err);
+                    return res.status(500).json({ error: 'Database error' });
+                }
+                
+                if (result.count >= 8) { // MAX_TEAM_SIZE
+                    return res.status(400).json({ error: 'Session is full' });
+                }
+                
+                // Add user to session
+                const addMemberSql = `
+                    INSERT INTO team_session_members (session_id, user_id, user_name, is_captain, joined_at)
+                    VALUES (?, ?, ?, 0, datetime('now'))
+                `;
+                
+                db.run(addMemberSql, [session.id, userId, userName], (err) => {
+                    if (err) {
+                        console.error('Error adding session member:', err);
+                        return res.status(500).json({ error: 'Failed to join session' });
+                    }
+                    
+                    res.json({ message: 'Successfully joined session' });
+                });
+            });
+        });
+    });
+});
+
+app.post('/api/team-signup/join', (req, res) => {
+    const { invitationCode, userId, userName } = req.body;
+    
+    if (!invitationCode || !userId || !userName) {
+        return res.status(400).json({ error: 'Missing required fields' });
+    }
+    
+    // Get team details
+    const teamSql = `SELECT id, status FROM tournament_teams WHERE invitation_code = ?`;
+    
+    db.get(teamSql, [invitationCode], (err, team) => {
+        if (err) {
+            console.error('Error fetching team:', err);
+            return res.status(500).json({ error: 'Database error' });
+        }
+        
+        if (!team) {
+            return res.status(404).json({ error: 'Invalid invitation code' });
+        }
+        
+        if (team.status !== 'forming') {
+            return res.status(400).json({ error: 'Team is no longer accepting members' });
+        }
+        
+        // Check if user is already in team
+        const checkMemberSql = `SELECT id FROM tournament_team_members WHERE team_id = ? AND user_id = ?`;
+        
+        db.get(checkMemberSql, [team.id, userId], (err, existing) => {
+            if (err) {
+                console.error('Error checking existing member:', err);
+                return res.status(500).json({ error: 'Database error' });
+            }
+            
+            if (existing) {
+                return res.status(400).json({ error: 'User already in team' });
+            }
+            
+            // Check team size limit
+            const countSql = `SELECT COUNT(*) as count FROM tournament_team_members WHERE team_id = ?`;
+            
+            db.get(countSql, [team.id], (err, result) => {
+                if (err) {
+                    console.error('Error counting team members:', err);
+                    return res.status(500).json({ error: 'Database error' });
+                }
+                
+                if (result.count >= 8) { // MAX_TEAM_SIZE
+                    return res.status(400).json({ error: 'Team is full' });
+                }
+                
+                // Add user to team
+                const addMemberSql = `
+                    INSERT INTO tournament_team_members (team_id, user_id, user_name, is_captain, joined_at)
+                    VALUES (?, ?, ?, 0, datetime('now'))
+                `;
+                
+                db.run(addMemberSql, [team.id, userId, userName], (err) => {
+                    if (err) {
+                        console.error('Error adding team member:', err);
+                        return res.status(500).json({ error: 'Failed to join team' });
+                    }
+                    
+                    res.json({ message: 'Successfully joined team' });
+                });
+            });
+        });
+    });
+});
+
+app.post('/api/team-signup/remove-player', (req, res) => {
+    const { invitationCode, userId } = req.body;
+    
+    if (!invitationCode || !userId) {
+        return res.status(400).json({ error: 'Missing required fields' });
+    }
+    
+    // Get team details
+    const teamSql = `SELECT id, captain_id FROM tournament_teams WHERE invitation_code = ?`;
+    
+    db.get(teamSql, [invitationCode], (err, team) => {
+        if (err) {
+            console.error('Error fetching team:', err);
+            return res.status(500).json({ error: 'Database error' });
+        }
+        
+        if (!team) {
+            return res.status(404).json({ error: 'Invalid invitation code' });
+        }
+        
+        // Remove player from team (cannot remove captain)
+        const removeSql = `
+            DELETE FROM tournament_team_members 
+            WHERE team_id = ? AND user_id = ? AND is_captain = 0
+        `;
+        
+        db.run(removeSql, [team.id, userId], function(err) {
+            if (err) {
+                console.error('Error removing player:', err);
+                return res.status(500).json({ error: 'Failed to remove player' });
+            }
+            
+            if (this.changes === 0) {
+                return res.status(400).json({ error: 'Player not found or cannot be removed' });
+            }
+            
+            res.json({ message: 'Player removed successfully' });
+        });
+    });
+});
+
+app.post('/api/team-signup/register-from-session', (req, res) => {
+    const { invitationCode, tournamentId } = req.body;
+    
+    if (!invitationCode || !tournamentId) {
+        return res.status(400).json({ error: 'Missing required fields' });
+    }
+    
+    // Get session details and member count
+    const sessionSql = `
+        SELECT ts.id, ts.team_name, ts.captain_id, COUNT(tsm.id) as member_count
+        FROM team_sessions ts
+        LEFT JOIN team_session_members tsm ON ts.id = tsm.session_id
+        WHERE ts.invitation_code = ? AND ts.tournament_id = ?
+        GROUP BY ts.id
+    `;
+    
+    db.get(sessionSql, [invitationCode, tournamentId], (err, session) => {
+        if (err) {
+            console.error('Error fetching session:', err);
+            return res.status(500).json({ error: 'Database error' });
+        }
+        
+        if (!session) {
+            return res.status(404).json({ error: 'Session not found' });
+        }
+        
+        if (session.member_count < 6) { // MIN_TEAM_SIZE
+            return res.status(400).json({ error: 'Team needs at least 6 members' });
+        }
+        
+        // Begin transaction to create team from session
+        db.serialize(() => {
+            db.run('BEGIN TRANSACTION');
+            
+            // Create the actual team
+            const createTeamSql = `
+                INSERT INTO tournament_teams (team_name, captain_id, tournament_id, session_id, status, registration_date)
+                VALUES (?, ?, ?, ?, 'registered', datetime('now'))
+            `;
+            
+            db.run(createTeamSql, [session.team_name, session.captain_id, tournamentId, session.id], function(err) {
+                if (err) {
+                    console.error('Error creating team:', err);
+                    db.run('ROLLBACK');
+                    return res.status(500).json({ error: 'Failed to create team' });
+                }
+                
+                const teamId = this.lastID;
+                
+                // Get all session members
+                const getMembersSql = `SELECT user_id, user_name, is_captain FROM team_session_members WHERE session_id = ?`;
+                
+                db.all(getMembersSql, [session.id], (err, members) => {
+                    if (err) {
+                        console.error('Error fetching session members:', err);
+                        db.run('ROLLBACK');
+                        return res.status(500).json({ error: 'Failed to fetch members' });
+                    }
+                    
+                    // Insert all members into team
+                    const insertMemberSql = `
+                        INSERT INTO tournament_team_members (team_id, user_id, user_name, is_captain, joined_at)
+                        VALUES (?, ?, ?, ?, datetime('now'))
+                    `;
+                    
+                    let completed = 0;
+                    let hasError = false;
+                    
+                    members.forEach(member => {
+                        db.run(insertMemberSql, [teamId, member.user_id, member.user_name, member.is_captain], (err) => {
+                            if (err && !hasError) {
+                                console.error('Error adding team member:', err);
+                                hasError = true;
+                                db.run('ROLLBACK');
+                                return res.status(500).json({ error: 'Failed to add team members' });
+                            }
+                            
+                            completed++;
+                            if (completed === members.length && !hasError) {
+                                // Delete the session and its members
+                                db.run('DELETE FROM team_session_members WHERE session_id = ?', [session.id], (err) => {
+                                    if (err) {
+                                        console.error('Error deleting session members:', err);
+                                        // Don't fail the transaction for cleanup errors
+                                    }
+                                    
+                                    db.run('DELETE FROM team_sessions WHERE id = ?', [session.id], (err) => {
+                                        if (err) {
+                                            console.error('Error deleting session:', err);
+                                            // Don't fail the transaction for cleanup errors
+                                        }
+                                        
+                                        db.run('COMMIT');
+                                        res.json({ 
+                                            message: 'Team registered successfully',
+                                            teamId: teamId,
+                                            teamName: session.team_name
+                                        });
+                                    });
+                                });
+                            }
+                        });
+                    });
+                });
+            });
+        });
+    });
+});
+
+app.post('/api/team-signup/confirm', (req, res) => {
+    const { invitationCode, tournamentId } = req.body;
+    
+    if (!invitationCode || !tournamentId) {
+        return res.status(400).json({ error: 'Missing required fields' });
+    }
+    
+    // Get team details and member count
+    const teamSql = `
+        SELECT tt.id, tt.team_name, tt.captain_id, COUNT(ttm.id) as member_count
+        FROM tournament_teams tt
+        LEFT JOIN tournament_team_members ttm ON tt.id = ttm.team_id
+        WHERE tt.invitation_code = ? AND tt.tournament_id = ?
+        GROUP BY tt.id
+    `;
+    
+    db.get(teamSql, [invitationCode, tournamentId], (err, team) => {
+        if (err) {
+            console.error('Error fetching team:', err);
+            return res.status(500).json({ error: 'Database error' });
+        }
+        
+        if (!team) {
+            return res.status(404).json({ error: 'Team not found' });
+        }
+        
+        if (team.member_count < 6) { // MIN_TEAM_SIZE
+            return res.status(400).json({ error: 'Team needs at least 6 members' });
+        }
+        
+        // Update team status to registered
+        const updateSql = `UPDATE tournament_teams SET status = 'registered' WHERE id = ?`;
+        
+        db.run(updateSql, [team.id], (err) => {
+            if (err) {
+                console.error('Error confirming registration:', err);
+                return res.status(500).json({ error: 'Failed to confirm registration' });
+            }
+            
+            res.json({ 
+                message: 'Team registered successfully',
+                teamId: team.id,
+                teamName: team.team_name
+            });
+        });
+    });
+});
+
+// Route for team signup page
+app.get('/team-signup.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'views', 'team-signup.html'));
 });
 
 // Admin analytics endpoints

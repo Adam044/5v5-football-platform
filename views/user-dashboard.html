@@ -235,6 +235,10 @@
                     <label for="birthdate" class="block text-gray-700 text-lg font-medium mb-2">تاريخ الميلاد</label>
                     <input type="date" id="birthdate" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-right bg-gray-50 text-gray-700 cursor-not-allowed" disabled/>
                 </div>
+                <div>
+                    <label for="sex" class="block text-gray-700 text-lg font-medium mb-2">الجنس</label>
+                    <input type="text" id="sex" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-right bg-gray-50 text-gray-700 cursor-not-allowed" disabled/>
+                </div>
                 <div class="md:col-span-2 mt-6 flex justify-center gap-3">
 
                     <button type="button" onclick="handleLogout()" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-all duration-300 shadow-md text-sm font-medium">
@@ -340,6 +344,7 @@
                     document.getElementById('email').value = user.email;
                     document.getElementById('phone').value = user.phone_number;
                     document.getElementById('birthdate').value = user.birthdate;
+                    document.getElementById('sex').value = user.sex === 'male' ? 'ذكر' : user.sex === 'female' ? 'أنثى' : '';
                 } else {
                     showMessageBox('خطأ في البيانات', 'تعذر تحميل بيانات المستخدم.', 'error');
                 }

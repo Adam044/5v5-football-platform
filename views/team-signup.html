@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>5ع5 - تسجيل الفريق</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap');
+        
+        :root {
+            --primary-color: #10B981;
+            --secondary-color: #3B82F6;
+            --background-color: #f0f4f8;
+            --text-color: #2c3e50;
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+        
+        .card {
+            background-color: white;
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            padding: 2.5rem;
+            width: 100%;
+            max-width: 800px;
+            text-align: center;
+        }
+
+        .tournament-info {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            color: white;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .team-section {
+            background-color: #f9fafb;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            border-left: 4px solid var(--primary-color);
+            margin-bottom: 2rem;
+        }
+
+        .player-card {
+            background-color: white;
+            border-radius: 0.75rem;
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.75rem;
+            border: 1px solid #e2e8f0;
+            transition: all 0.2s;
+        }
+        
+        .player-card.creator {
+            background-color: #D1FAE5;
+            border-color: var(--primary-color);
+        }
+        
+        .progress-bar-container {
+            height: 12px;
+            background-color: #e2e8f0;
+            border-radius: 9999px;
+            overflow: hidden;
+            margin-top: 1rem;
+        }
+        .progress-bar-fill {
+            height: 100%;
+            background-color: var(--primary-color);
+            transition: width 0.3s ease;
+        }
+
+        .btn {
+            padding: 1rem 2rem;
+            border-radius: 0.75rem;
+            font-weight: 700;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .btn-primary {
+            background: linear-gradient(to right, var(--primary-color), #34D399);
+            color: white;
+        }
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #4b5563;
+        }
+        .btn-primary:hover, .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        }
+        
+        .pulse {
+            animation: pulse 1s infinite cubic-bezier(0.66, 0, 0, 1);
+        }
+        @keyframes pulse {
+            to {
+                box-shadow: 0 0 0 10px rgba(16, 185, 129, 0);
+            }
+        }
+
+        .logo {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
+            border: 3px solid var(--primary-color);
+        }
+
+        /* Modal styles */
+        .modal-content {
+            transform: scale(0.95);
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .modal:not(.hidden) .modal-content {
+            transform: scale(1);
+        }
+    </style>
+</head>
+<body>
+
+    <main class="card">
+        <!-- Logo Section -->
+        <div class="flex items-center justify-center mb-6">
+            <img src="/images/logo.jpg" alt="5ع5 Logo" class="logo">
+        </div>
+        
+        <h1 class="text-3xl font-extrabold text-gray-900 mb-6 flex items-center justify-center gap-3">
+            <i class="fa-solid fa-users text-green-600"></i>
+            تسجيل الفريق
+        </h1>
+        
+        <!-- Loading State -->
+        <div id="loading-state" class="py-12">
+            <div class="animate-spin rounded-full h-16 w-16 border-b-2 border-green-600 mx-auto mb-4"></div>
+            <p class="text-xl font-semibold text-gray-700">جاري التحميل...</p>
+        </div>
+
+        <!-- Tournament Info -->
+        <div id="tournament-info" class="tournament-info hidden">
+            <!-- Tournament details will be populated here -->
+        </div>
+
+        <!-- Team Creation Flow (for creators) -->
+        <div id="team-creation-flow" class="hidden">
+            <div class="mb-8">
+                <h2 class="text-2xl font-bold text-gray-900 mb-4">
+                    <i class="fa-solid fa-flag text-yellow-500 ml-2"></i>
+                    اسم الفريق
+                </h2>
+                <input id="team-name-input" type="text" placeholder="أدخل اسم الفريق" 
+                       class="w-full p-4 text-xl border-2 border-gray-300 rounded-xl focus:border-green-500 focus:outline-none text-center">
+                <button id="save-team-name-btn" onclick="saveTeamName()" 
+                        class="btn btn-primary w-full mt-4 text-lg">
+                    <i class="fa-solid fa-save ml-2"></i>
+                    حفظ اسم الفريق
+                </button>
+            </div>
+
+            <!-- Invitation Section -->
+            <div id="invitation-section" class="hidden mb-8 border-b pb-8">
+                <h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-share-nodes text-green-600"></i>
+                    شارك الدعوة
+                </h2>
+                <p class="text-gray-600 mb-6">شارك الرابط أو رمز QR مع أصدقائك للانضمام للفريق.</p>
+                
+                <div class="flex flex-col gap-4 max-w-xl mx-auto">
+                    <!-- Invitation Link Container -->
+                    <div class="bg-white p-4 rounded-xl shadow-md border border-gray-200">
+                        <label class="block text-gray-700 font-semibold mb-2 text-right text-sm">رابط الدعوة</label>
+                        <div class="flex gap-2 items-stretch">
+                            <input id="invitation-link" type="text" readonly 
+                                   class="flex-grow p-2 rounded bg-gray-50 text-sm border border-gray-300 text-right font-mono min-w-0" value="">
+                            <button onclick="copyLink()" 
+                                    class="btn bg-blue-500 text-white flex-shrink-0 px-4 py-2 text-sm rounded-xl hover:bg-blue-600 transition-colors">
+                                <i class="fa-solid fa-copy"></i> نسخ
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- QR Code Toggle Button -->
+                    <button id="toggle-qr-btn" onclick="toggleQrModal()" 
+                            class="btn btn-primary w-full py-3 text-lg mt-2 pulse">
+                         <i class="fa-solid fa-qrcode ml-2"></i> عرض رمز QR
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Team Join Flow (for joiners) -->
+        <div id="team-join-flow" class="hidden">
+            <div id="join-form" class="mb-8 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                <p class="text-lg font-semibold text-gray-800 mb-4">
+                    انضم إلى الفريق الآن لتأكيد مكانك!
+                </p>
+                <button id="join-btn" onclick="joinTeam()" class="btn btn-primary w-full pulse">
+                    <i class="fa-solid fa-plus-circle ml-2"></i>
+                    انضمام
+                </button>
+            </div>
+        </div>
+
+        <!-- Team Display Section -->
+        <div id="team-display" class="team-section hidden">
+            <h3 id="team-name-display" class="text-2xl font-bold mb-4 text-center bg-green-50 p-3 rounded-lg text-green-800">
+                <i class="fa-solid fa-users text-green-600 ml-2"></i>
+                اسم الفريق
+            </h3>
+            
+            <div class="player-count text-xl font-bold mb-4 text-gray-800">
+                <i class="fa-solid fa-user-friends text-green-600 ml-2"></i>
+                اللاعبون الحاليون: <span id="current-players">0</span> 
+                <span class="text-base font-normal text-gray-500">
+                    (الحد الأدنى <span id="min-players">6</span> - الحد الأقصى <span id="max-players">8</span>)
+                </span>
+            </div>
+            
+            <div class="progress-bar-container mb-4">
+                <div id="progress-bar-fill" class="progress-bar-fill" style="width: 0%;"></div>
+            </div>
+            
+            <div id="team-status" class="text-md font-semibold text-center mb-6"></div>
+            
+            <h4 class="text-xl font-bold mt-6 mb-4 text-gray-800 border-b pb-2">قائمة اللاعبين</h4>
+            <div id="player-list-container" class="space-y-2 max-h-60 overflow-y-auto pr-2">
+                <!-- Players will be added here -->
+            </div>
+        </div>
+        
+        <!-- Confirmation Section -->
+        <div id="confirmation-section" class="mt-8 hidden">
+            <button id="confirm-registration-btn" onclick="confirmRegistration()" 
+                    class="btn bg-green-600 text-white w-full hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled>
+                <i class="fa-solid fa-check-circle ml-2"></i>
+                تأكيد التسجيل في البطولة
+            </button>
+        </div>
+    </main>
+    
+    <!-- QR Code Modal -->
+    <div id="qr-modal" class="modal hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-2xl shadow-3xl w-full max-w-sm relative p-8 modal-content border-b-4 border-green-600">
+            <button onclick="toggleQrModal()" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 transition-colors duration-300 rounded-full bg-gray-100 p-2 hover:bg-gray-200">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <h3 class="text-3xl font-bold mb-6 text-center text-gray-900">
+                <i class="fa-solid fa-qrcode text-green-600 ml-2"></i>
+                رمز QR للدعوة
+            </h3>
+            <div class="flex justify-center items-center p-6 bg-gray-100 rounded-xl shadow-inner">
+                <canvas id="qrcode-canvas" class="w-60 h-60"></canvas>
+            </div>
+            <p class="text-center text-md font-medium text-gray-600 mt-4">امسح الرمز للانضمام مباشرةً</p>
+        </div>
+    </div>
+
+    <!-- Message Box -->
+    <div id="message-box" class="modal hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-2xl shadow-3xl p-8 w-full max-w-sm relative text-center border-t-4 border-red-500 modal-content">
+            <h4 id="message-box-title" class="text-2xl font-bold mb-4 text-gray-900 flex items-center justify-center gap-2"></h4>
+            <p id="message-box-content" class="text-gray-700 mb-6 text-lg"></p>
+            <button onclick="closeMessageBox()" class="bg-red-600 text-white px-7 py-3 rounded-xl hover:bg-red-700 transition-all duration-300 shadow-md text-lg">
+                حسناً
+            </button>
+        </div>
+    </div>
+
+    <script src="header.js"></script>
+    <script>
+        // Global variables
+        let tournamentData = null;
+        let teamData = null;
+        let invitationCode = null;
+        let isCreator = false;
+        let teamPlayers = [];
+        let pollingInterval = null;
+        
+        const loggedInUserId = localStorage.getItem('userId');
+        const loggedInUserName = localStorage.getItem('userName');
+        const tournamentId = localStorage.getItem('tournamentId');
+        
+        // Constants
+        const MIN_TEAM_SIZE = 6;
+        const MAX_TEAM_SIZE = 8;
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', initializePage);
+
+        async function initializePage() {
+            // Check if this is a join flow (invitation code in URL)
+            const urlParams = new URLSearchParams(window.location.search);
+            invitationCode = urlParams.get('code') || window.location.pathname.split('/').pop();
+            
+            if (invitationCode && invitationCode !== 'team-signup.html') {
+                // Join existing team flow - check authentication first
+                if (!loggedInUserId) {
+                    showMessageBox('تسجيل الدخول مطلوب', 'للانضمام للفريق، يرجى تسجيل الدخول أولاً.', 'warning');
+                    return;
+                }
+                await joinExistingTeam();
+            } else if (tournamentId) {
+                // Create new team flow - check authentication first
+                if (!loggedInUserId) {
+                    showMessageBox('تسجيل الدخول مطلوب', 'للتسجيل في البطولة، يرجى تسجيل الدخول أولاً.', 'warning');
+                    return;
+                }
+                await startTeamCreation();
+            } else {
+                showMessageBox('خطأ', 'الرجاء البدء من صفحة البطولات.');
+                document.getElementById('loading-state').classList.add('hidden');
+            }
+        }
+
+        async function startTeamCreation() {
+            try {
+                // Load tournament data
+                const response = await fetch(`/api/tournaments/${tournamentId}`);
+                if (!response.ok) {
+                    throw new Error('فشل في تحميل بيانات البطولة');
+                }
+                
+                const result = await response.json();
+                tournamentData = result.tournament;
+                isCreator = true;
+                
+                renderTournamentInfo();
+                showTeamCreationFlow();
+                
+            } catch (error) {
+                console.error('Error starting team creation:', error);
+                showMessageBox('خطأ', error.message);
+                document.getElementById('loading-state').classList.add('hidden');
+            }
+        }
+
+        async function joinExistingTeam() {
+            try {
+                // Fetch session details using invitation code
+                const response = await fetch(`/api/team-signup/session/${invitationCode}`);
+                if (!response.ok) {
+                    throw new Error('رمز الدعوة غير صالح');
+                }
+                
+                const data = await response.json();
+                teamData = data.session;
+                tournamentData = data.tournament;
+                teamPlayers = data.players || [];
+                
+                renderTournamentInfo();
+                showTeamJoinFlow();
+                showTeamDisplay();
+                
+            } catch (error) {
+                console.error('Error joining existing session:', error);
+                showMessageBox('خطأ', error.message);
+                document.getElementById('loading-state').classList.add('hidden');
+            }
+        }
+
+        function renderTournamentInfo() {
+            const tournamentInfo = document.getElementById('tournament-info');
+            tournamentInfo.innerHTML = `
+                <h2 class="text-2xl font-bold mb-4 flex items-center justify-center">
+                    <i class="fa-solid fa-trophy text-yellow-400 ml-3"></i>
+                    ${tournamentData.name}
+                </h2>
+                <div class="grid md:grid-cols-2 gap-4 text-right">
+                    <div class="flex items-center justify-center md:justify-start">
+                        <i class="fa-solid fa-map-marker-alt text-red-400 ml-2"></i>
+                        <span class="font-semibold">الملعب:</span>
+                        <span class="mr-2">${tournamentData.field_name}</span>
+                    </div>
+                    <div class="flex items-center justify-center md:justify-start">
+                        <i class="fa-solid fa-calendar-alt text-blue-400 ml-2"></i>
+                        <span class="font-semibold">التاريخ:</span>
+                        <span class="mr-2">${new Date(tournamentData.tournament_date).toLocaleDateString('ar-SA')}</span>
+                    </div>
+                    <div class="flex items-center justify-center md:justify-start">
+                        <i class="fa-solid fa-trophy text-yellow-400 ml-2"></i>
+                        <span class="font-semibold">الجائزة:</span>
+                        <span class="mr-2">${tournamentData.prize} شيكل</span>
+                    </div>
+                    <div class="flex items-center justify-center md:justify-start">
+                        <i class="fa-solid fa-info-circle text-green-400 ml-2"></i>
+                        <span class="font-semibold">الوصف:</span>
+                        <span class="mr-2">${tournamentData.description}</span>
+                    </div>
+                </div>
+            `;
+            tournamentInfo.classList.remove('hidden');
+            document.getElementById('loading-state').classList.add('hidden');
+        }
+
+        function showTeamCreationFlow() {
+            document.getElementById('team-creation-flow').classList.remove('hidden');
+        }
+
+        function showTeamJoinFlow() {
+            // Check if user is already in team
+            const userInTeam = teamPlayers.some(p => p.user_id == loggedInUserId);
+            // Check if user is the team creator/owner
+            const isTeamCreator = teamData && teamData.creator_id == loggedInUserId;
+            
+            if (!userInTeam && !isTeamCreator) {
+                document.getElementById('team-join-flow').classList.remove('hidden');
+            }
+        }
+
+        function showTeamDisplay() {
+            const teamDisplay = document.getElementById('team-display');
+            const teamNameDisplay = document.getElementById('team-name-display');
+            
+            if (teamData && teamData.name) {
+                teamNameDisplay.innerHTML = `
+                    <i class="fa-solid fa-users text-green-600 ml-2"></i>
+                    ${teamData.name}
+                `;
+            }
+            
+            updateTeamProgress();
+            renderPlayerList();
+            teamDisplay.classList.remove('hidden');
+            
+            // Show confirmation button for creator if team is ready
+            if (isCreator && teamPlayers.length >= MIN_TEAM_SIZE) {
+                document.getElementById('confirmation-section').classList.remove('hidden');
+            }
+        }
+
+        async function saveTeamName() {
+            const teamNameInput = document.getElementById('team-name-input');
+            const teamName = teamNameInput.value.trim();
+            
+            if (!teamName) {
+                showMessageBox('خطأ', 'يرجى إدخال اسم الفريق');
+                return;
+            }
+            
+            const saveBtn = document.getElementById('save-team-name-btn');
+            const originalHtml = saveBtn.innerHTML;
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin ml-2"></i> جاري الحفظ...`;
+            
+            try {
+                // Create a pre-registration session instead of actual team
+                const response = await fetch('/api/team-signup/create-session', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        tournamentId: tournamentId,
+                        teamName: teamName,
+                        creatorId: loggedInUserId,
+                        creatorName: loggedInUserName
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.error || 'فشل في إنشاء جلسة الفريق');
+                }
+                
+                // Store session data instead of team data
+                teamData = { name: teamName, id: null }; // No team ID yet
+                invitationCode = data.invitationCode;
+                teamPlayers = [data.creator];
+                
+                // Update UI
+                setupInvitationSection();
+                showTeamDisplay();
+                
+                showMessageBox('تم إنشاء جلسة الفريق!', 'تم إنشاء جلسة الفريق بنجاح. شارك الرابط مع أصدقائك. سيتم إنشاء الفريق فقط بعد انضمام جميع الأعضاء المطلوبين.', 'success');
+                
+            } catch (error) {
+                console.error('Error creating team session:', error);
+                showMessageBox('خطأ', error.message);
+            } finally {
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = originalHtml;
+            }
+        }
+
+        function setupInvitationSection() {
+            const invitationSection = document.getElementById('invitation-section');
+            const invitationLink = document.getElementById('invitation-link');
+            
+            const fullLink = `${window.location.origin}/team-signup.html?code=${invitationCode}`;
+            invitationLink.value = fullLink;
+            
+            invitationSection.classList.remove('hidden');
+            generateQRCode(fullLink);
+            
+            // Start polling for new members
+            startPolling();
+        }
+
+        async function joinTeam() {
+            const joinBtn = document.getElementById('join-btn');
+            const originalHtml = joinBtn.innerHTML;
+            joinBtn.disabled = true;
+            joinBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin ml-2"></i> جاري الانضمام...`;
+            
+            try {
+                const response = await fetch('/api/team-signup/join-session', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        invitationCode: invitationCode,
+                        userId: loggedInUserId,
+                        userName: loggedInUserName
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.error || 'فشل في الانضمام');
+                }
+                
+                // Add user to team
+                teamPlayers.push({
+                    user_id: loggedInUserId,
+                    name: loggedInUserName
+                });
+                
+                // Hide join form
+                document.getElementById('team-join-flow').classList.add('hidden');
+                
+                // Update team display
+                updateTeamProgress();
+                renderPlayerList();
+                
+                showMessageBox('تم الانضمام بنجاح!', 'تم انضمامك للفريق بنجاح.', 'success');
+                
+            } catch (error) {
+                console.error('Error joining team:', error);
+                showMessageBox('خطأ', error.message);
+                joinBtn.disabled = false;
+                joinBtn.innerHTML = originalHtml;
+            }
+        }
+
+        function updateTeamProgress() {
+            const current = teamPlayers.length;
+            const progressFill = document.getElementById('progress-bar-fill');
+            const currentPlayersSpan = document.getElementById('current-players');
+            const teamStatus = document.getElementById('team-status');
+            const confirmationSection = document.getElementById('confirmation-section');
+            const confirmBtn = document.getElementById('confirm-registration-btn');
+            
+            currentPlayersSpan.textContent = current;
+            
+            const progressPercentage = Math.min((current / MIN_TEAM_SIZE) * 100, 100);
+            progressFill.style.width = `${progressPercentage}%`;
+            
+            if (current < MIN_TEAM_SIZE) {
+                teamStatus.innerHTML = `<span class="text-yellow-600">يحتاج ${MIN_TEAM_SIZE - current} لاعبين إضافيين</span>`;
+                // Hide registration button if team is not complete
+                if (isCreator) {
+                    confirmationSection.classList.add('hidden');
+                }
+            } else if (current >= MIN_TEAM_SIZE && current < MAX_TEAM_SIZE) {
+                teamStatus.innerHTML = `<span class="text-green-600">الفريق جاهز للتسجيل! يمكن إضافة ${MAX_TEAM_SIZE - current} لاعبين إضافيين</span>`;
+                // Show registration button when team is complete
+                if (isCreator) {
+                    confirmationSection.classList.remove('hidden');
+                    confirmBtn.disabled = false;
+                    confirmBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                }
+            } else {
+                teamStatus.innerHTML = `<span class="text-blue-600">الفريق مكتمل بالحد الأقصى</span>`;
+                // Show registration button when team is at max capacity
+                if (isCreator) {
+                    confirmationSection.classList.remove('hidden');
+                    confirmBtn.disabled = false;
+                    confirmBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                }
+            }
+        }
+
+        function renderPlayerList() {
+            const container = document.getElementById('player-list-container');
+            container.innerHTML = '';
+            
+            teamPlayers.forEach(player => {
+                const isCreatorPlayer = player.user_id == teamData.creator_id;
+                const playerDiv = document.createElement('div');
+                playerDiv.className = `player-card ${isCreatorPlayer ? 'creator' : ''}`;
+                
+                playerDiv.innerHTML = `
+                    <div class="flex items-center">
+                        <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center ml-3">
+                            <i class="fa-solid fa-user text-green-600"></i>
+                        </div>
+                        <div class="text-right">
+                            <div class="font-semibold text-gray-800">${player.name}</div>
+                            ${isCreatorPlayer ? '<div class="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full inline-block mt-1">قائد الفريق</div>' : ''}
+                        </div>
+                    </div>
+                    ${(isCreator && player.user_id != loggedInUserId) ? `<button onclick="removePlayer('${player.user_id}')" class="text-red-500 hover:text-red-700 text-xl"><i class="fa-solid fa-times"></i></button>` : ''}
+                `;
+                container.appendChild(playerDiv);
+            });
+        }
+
+        async function removePlayer(userId) {
+            try {
+                const response = await fetch('/api/team-signup/remove-player', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        invitationCode: invitationCode,
+                        userId: userId
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error('فشل في إزالة اللاعب');
+                }
+                
+                // Remove player from local array
+                teamPlayers = teamPlayers.filter(p => p.user_id != userId);
+                
+                // Update UI
+                updateTeamProgress();
+                renderPlayerList();
+                
+                showMessageBox('تم إزالة اللاعب', 'تم إزالة اللاعب من الفريق بنجاح.', 'success');
+                
+            } catch (error) {
+                console.error('Error removing player:', error);
+                showMessageBox('خطأ', error.message);
+            }
+        }
+
+        async function confirmRegistration() {
+            if (teamPlayers.length < MIN_TEAM_SIZE) {
+                showMessageBox('فريق غير مكتمل', `يحتاج الفريق إلى ${MIN_TEAM_SIZE - teamPlayers.length} لاعبين إضافيين على الأقل.`);
+                return;
+            }
+            
+            const confirmBtn = document.getElementById('confirm-registration-btn');
+            const originalHtml = confirmBtn.innerHTML;
+            confirmBtn.disabled = true;
+            confirmBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin ml-2"></i> جاري التأكيد...`;
+            
+            try {
+                const response = await fetch('/api/team-signup/register-from-session', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        invitationCode: invitationCode,
+                        tournamentId: tournamentId
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.error || 'فشل في تأكيد التسجيل');
+                }
+                
+                showMessageBox('تم التسجيل بنجاح!', 'تم تسجيل الفريق في البطولة بنجاح. سيتم توجيهك إلى لوحة التحكم.', 'success');
+                
+                // Redirect to user dashboard after 3 seconds
+                setTimeout(() => {
+                    window.location.href = 'user-dashboard.html';
+                }, 3000);
+                
+            } catch (error) {
+                console.error('Error confirming registration:', error);
+                showMessageBox('خطأ', error.message);
+                confirmBtn.disabled = false;
+                confirmBtn.innerHTML = originalHtml;
+            }
+        }
+
+        function startPolling() {
+            pollingInterval = setInterval(async () => {
+                try {
+                    const response = await fetch(`/api/team-signup/session/${invitationCode}`);
+                    if (response.ok) {
+                        const data = await response.json();
+                        teamPlayers = data.players || [];
+                        updateTeamProgress();
+                        renderPlayerList();
+                    }
+                } catch (error) {
+                    console.error('Polling error:', error);
+                }
+            }, 3000);
+        }
+
+        function generateQRCode(text) {
+            const canvas = document.getElementById('qrcode-canvas');
+            const qr = qrcode(0, 'M');
+            qr.addData(text);
+            qr.make();
+            
+            const cellSize = 4;
+            const margin = 4;
+            const size = qr.getModuleCount() * cellSize + margin * 2;
+            
+            canvas.width = size;
+            canvas.height = size;
+            
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(0, 0, size, size);
+            ctx.fillStyle = '#000000';
+            
+            for (let row = 0; row < qr.getModuleCount(); row++) {
+                for (let col = 0; col < qr.getModuleCount(); col++) {
+                    if (qr.isDark(row, col)) {
+                        ctx.fillRect(col * cellSize + margin, row * cellSize + margin, cellSize, cellSize);
+                    }
+                }
+            }
+        }
+
+        function toggleQrModal() {
+            const modal = document.getElementById('qr-modal');
+            modal.classList.toggle('hidden');
+        }
+
+        function copyLink() {
+            const invitationLink = document.getElementById('invitation-link');
+            invitationLink.select();
+            invitationLink.setSelectionRange(0, 99999);
+            document.execCommand('copy');
+            showMessageBox('تم النسخ!', 'تم نسخ رابط الدعوة بنجاح.', 'success');
+        }
+
+        function showMessageBox(title, content, type = 'error') {
+            const msgBox = document.getElementById('message-box');
+            const msgTitle = document.getElementById('message-box-title');
+            const msgContent = document.getElementById('message-box-content');
+            const msgButton = msgBox.querySelector('button');
+
+            msgTitle.innerHTML = '';
+            if (type === 'success') {
+                msgTitle.innerHTML = '<i class="fa-solid fa-check-circle text-green-600 ml-2"></i>';
+                msgBox.querySelector('.modal-content').className = 'bg-white rounded-2xl shadow-3xl p-8 w-full max-w-sm relative text-center border-t-4 border-green-500 modal-content';
+                msgButton.className = 'bg-green-600 text-white px-7 py-3 rounded-xl hover:bg-green-700 transition-all duration-300 shadow-md text-lg';
+            } else if (type === 'warning') {
+                msgTitle.innerHTML = '<i class="fa-solid fa-exclamation-triangle text-yellow-600 ml-2"></i>';
+                msgBox.querySelector('.modal-content').className = 'bg-white rounded-2xl shadow-3xl p-8 w-full max-w-sm relative text-center border-t-4 border-yellow-500 modal-content';
+                msgButton.className = 'bg-yellow-600 text-white px-7 py-3 rounded-xl hover:bg-yellow-700 transition-all duration-300 shadow-md text-lg';
+            } else {
+                msgTitle.innerHTML = '<i class="fa-solid fa-exclamation-circle text-red-600 ml-2"></i>';
+                msgBox.querySelector('.modal-content').className = 'bg-white rounded-2xl shadow-3xl p-8 w-full max-w-sm relative text-center border-t-4 border-red-500 modal-content';
+                msgButton.className = 'bg-red-600 text-white px-7 py-3 rounded-xl hover:bg-red-700 transition-all duration-300 shadow-md text-lg';
+            }
+
+            msgTitle.innerHTML += title;
+            msgContent.textContent = content;
+            msgBox.classList.remove('hidden');
+        }
+
+        function closeMessageBox() {
+            document.getElementById('message-box').classList.add('hidden');
+        }
+
+        // Cleanup polling on page unload
+        window.addEventListener('beforeunload', () => {
+            if (pollingInterval) {
+                clearInterval(pollingInterval);
+            }
+        });
+    </script>
+</body>
+</html>

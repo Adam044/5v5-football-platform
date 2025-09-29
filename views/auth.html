@@ -134,6 +134,14 @@
                         <input type="date" id="signup-birthdate" class="p-3 border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-right bg-white" required>
                     </div>
                     <div class="mb-5 text-right">
+                        <label for="signup-sex" class="block text-gray-700 font-semibold mb-2">الجنس</label>
+                        <select id="signup-sex" class="p-3 border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-right bg-white" required>
+                            <option value="">اختر الجنس</option>
+                            <option value="male">ذكر</option>
+                            <option value="female">أنثى</option>
+                        </select>
+                    </div>
+                    <div class="mb-5 text-right">
                         <label for="signup-password" class="block text-gray-700 font-semibold mb-2">كلمة المرور</label>
                         <input type="password" id="signup-password" class="p-3 border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-right bg-white" required>
                     </div>
@@ -279,6 +287,7 @@
             const phone = document.getElementById('signup-phone').value;
             const countryCode = document.getElementById('country-code').value;
             const birthdate = document.getElementById('signup-birthdate').value;
+            const sex = document.getElementById('signup-sex').value;
             const password = document.getElementById('signup-password').value;
             const confirmPassword = document.getElementById('signup-confirm-password').value;
             const isAdmin = false;
@@ -301,7 +310,7 @@
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ name, email, phone: phoneNumber, birthdate, password, is_admin: isAdmin }),
+                    body: JSON.stringify({ name, email, phone: phoneNumber, birthdate, sex, password, is_admin: isAdmin }),
                 });
 
                 const result = await response.json();

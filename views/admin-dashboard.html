@@ -267,6 +267,9 @@
             <button class="tab-button text-gray-600 font-bold text-xl px-4 py-2" data-tab="tournaments-tab">
                 <i class="fa-solid fa-trophy ml-2"></i> إدارة البطولات
             </button>
+            <button class="tab-button text-gray-600 font-bold text-xl px-4 py-2" data-tab="birthday-gifts-tab">
+                <i class="fa-solid fa-gift ml-2"></i> هدايا أعياد الميلاد
+            </button>
         </div>
 
         <!-- Tab Content -->
@@ -403,13 +406,68 @@
                         إدارة البطولات
                     </h4>
                     
-                    <div id="tournaments-card-container" class="card-grid">
-                        <!-- Tournament cards will be injected here -->
+                    <!-- Tournament List -->
+                    <div class="mb-8">
+                        <h5 class="text-xl font-bold text-gray-800 mb-4">البطولات المتاحة</h5>
+                        <div id="tournaments-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+                            <!-- Tournament cards will be loaded here -->
+                        </div>
                     </div>
+                    
+                    <!-- Tournament Teams Section -->
+                    <div id="tournament-teams-section" class="hidden">
+                        <div class="bg-blue-50 border border-blue-200 rounded-xl p-6 mb-6">
+                            <h5 class="text-xl font-bold text-blue-800 mb-2 flex items-center gap-2">
+                                <i class="fa-solid fa-users text-blue-600"></i>
+                                <span id="selected-tournament-name">فرق البطولة</span>
+                            </h5>
+                            <button onclick="closeTournamentTeams()" class="text-blue-600 hover:text-blue-800 font-medium">
+                                <i class="fa-solid fa-arrow-right ml-1"></i>
+                                العودة للبطولات
+                            </button>
+                        </div>
+                        
+                        <div id="tournament-teams-container" class="space-y-4">
+                            <!-- Tournament teams will be loaded here -->
+                        </div>
+                        
+                        <div id="no-teams-message" class="hidden text-center py-12">
+                            <i class="fa-solid fa-users-slash text-6xl text-gray-300 mb-4"></i>
+                            <p class="text-gray-500 text-lg">لا توجد فرق مسجلة في هذه البطولة بعد</p>
+                        </div>
+                    </div>
+                    
+
 
                     <button onclick="openAddTournamentModal()" class="mt-8 bg-orange-600 text-white font-bold py-3 px-6 rounded-xl hover:bg-orange-700 transition-all duration-300 shadow-md">
                         إضافة بطولة جديدة
                     </button>
+                </div>
+            </section>
+            
+            <!-- Tab 6: Birthday Gifts -->
+            <section id="birthday-gifts-tab" class="tab-pane hidden">
+                <div class="bg-white rounded-2xl shadow-xl p-8 border-b-4 border-pink-500">
+                    <h4 class="text-3xl font-bold text-gray-900 mb-8 flex items-center gap-3">
+                        <i class="fa-solid fa-gift text-pink-600"></i>
+                        هدايا أعياد الميلاد
+                    </h4>
+                    
+                    <div class="mb-6 bg-pink-50 border border-pink-200 rounded-xl p-4">
+                        <p class="text-pink-800 text-center font-medium">
+                            <i class="fa-solid fa-calendar-days ml-2"></i>
+                            المستخدمون الذين لديهم أعياد ميلاد في الأسبوع القادم
+                        </p>
+                    </div>
+                    
+                    <div id="birthday-users-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <!-- Birthday users will be loaded here -->
+                    </div>
+                    
+                    <div id="no-birthdays-message" class="hidden text-center py-12">
+                        <i class="fa-solid fa-cake-candles text-6xl text-gray-300 mb-4"></i>
+                        <p class="text-gray-500 text-lg">لا توجد أعياد ميلاد في الأسبوع القادم</p>
+                    </div>
                 </div>
             </section>
             
@@ -788,6 +846,16 @@
             
             if (activeTabButton) activeTabButton.classList.add('active', 'text-green-600');
             if (activeTabPane) activeTabPane.classList.remove('hidden');
+            
+            // Load birthday users when birthday gifts tab is activated
+            if (tabId === 'birthday-gifts-tab') {
+                fetchBirthdayUsers();
+            }
+            
+            // Load tournaments when tournaments tab is activated
+            if (tabId === 'tournaments-tab') {
+                fetchTournaments();
+            }
         }
         
         tabs.forEach(tab => {
@@ -818,7 +886,7 @@
 
                 renderReservations(reservationsData.reservations);
                 renderMatchmakingCategorized(categorizedMatchmakingData); // NEW RENDER FUNCTION
-                renderTournaments(tournamentsData.tournaments);
+                renderTournamentsList(tournamentsData.tournaments);
                 loadAnalytics();
                 loadAvailabilitySlots();
 
@@ -1024,42 +1092,7 @@
             });
         }
         
-        function renderTournaments(tournaments) {
-            const container = document.getElementById('tournaments-card-container');
-            container.innerHTML = '';
-            
-            if (!Array.isArray(tournaments) || tournaments.length === 0) {
-                 container.innerHTML = `<p class="py-4 text-center text-gray-500">لا توجد بطولات لعرضها.</p>`;
-                 return;
-            }
-            tournaments.forEach(tournament => {
-                const status = (new Date(tournament.tournament_date) < new Date()) ? 'past' : 'upcoming';
-                const imageUrl = tournament.image_data ? `data:image/jpeg;base64,${tournament.image_data}` : `https://placehold.co/600x400/8b5cf6/ffffff?text=${tournament.name.replace(/\s/g, '+')}`;
-                const card = document.createElement('div');
-                card.className = 'info-card';
-                card.innerHTML = `
-                    <div class="info-card-header">
-                        <div class="info-card-title">
-                            <i class="fa-solid fa-trophy text-orange-600"></i> ${tournament.name}
-                        </div>
-                        ${getStatusBadge(status)}
-                    </div>
-                     <img src="${imageUrl}" alt="${tournament.name}" class="w-full h-48 object-cover rounded-xl mb-4" onerror="this.onerror=null;this.src='https://placehold.co/600x400/8b5cf6/ffffff?text=${tournament.name.replace(/\s/g, '+')}'" />
-                     <div class="info-card-body space-y-2">
-                        <p><strong>الملعب:</strong> ${tournament.field_name}</p>
-                        <p><strong>التاريخ:</strong> ${tournament.tournament_date}</p>
-                        <p><strong>الجائزة:</strong> ${tournament.prize || 'غير محددة'}</p>
-                        <p><strong>الوصف:</strong> ${tournament.description || '-'}</p>
-                    </div>
-                    <div class="info-card-footer">
-                        <button onclick="deleteTournament(${tournament.id})" class="info-card-button bg-red-500 text-white hover:bg-red-600">
-                           <i class="fa-solid fa-trash ml-2"></i> حذف
-                        </button>
-                    </div>
-                `;
-                container.appendChild(card);
-            });
-        }
+
         
         // --- MODAL AND ACTION FUNCTIONS (Kept for completeness) ---
         
@@ -1786,6 +1819,237 @@
                 console.error('Failed to edit availability slot:', error);
                 showMessageBox('خطأ في الشبكة', 'فشل الاتصال بالخادم.');
             }
+        }
+        
+        // --- Tournament Management Functions ---
+        async function fetchTournaments() {
+            try {
+                const response = await fetch('/api/admin/tournaments', {
+                    headers: {
+                        'X-User-Id': localStorage.getItem('userId')
+                    }
+                });
+                if (!response.ok) throw new Error('Failed to fetch tournaments');
+                
+                const data = await response.json();
+                renderTournamentsList(data.tournaments);
+            } catch (error) {
+                console.error('Failed to fetch tournaments:', error);
+                showMessageBox('خطأ في تحميل البيانات', 'فشل تحميل بيانات البطولات.', 'error');
+            }
+        }
+        
+        function renderTournamentsList(tournaments) {
+            const container = document.getElementById('tournaments-list');
+            
+            if (!tournaments || tournaments.length === 0) {
+                container.innerHTML = `
+                    <div class="col-span-full text-center py-12">
+                        <i class="fa-solid fa-trophy text-6xl text-gray-300 mb-4"></i>
+                        <p class="text-gray-500 text-lg">لا توجد بطولات متاحة</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = tournaments.map(tournament => `
+                <div class="bg-gradient-to-br from-orange-50 to-yellow-50 border border-orange-200 rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300">
+                    <div class="text-center">
+                        <div class="bg-orange-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fa-solid fa-trophy text-2xl text-orange-600"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-800 mb-2">${tournament.name}</h3>
+                        <div class="space-y-2 text-sm text-gray-600">
+                            <p><i class="fa-solid fa-calendar ml-1 text-orange-500"></i> ${tournament.tournament_date}</p>
+                            <p><i class="fa-solid fa-gift ml-1 text-orange-500"></i> ${tournament.prize}</p>
+                            <p><i class="fa-solid fa-map-marker-alt ml-1 text-orange-500"></i> ${tournament.field_name}</p>
+                        </div>
+                        <div class="mt-4 flex gap-2">
+                            <button onclick="viewTournamentTeams(${tournament.id}, '${tournament.name}')" 
+                                    class="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium">
+                                <i class="fa-solid fa-users ml-1"></i>
+                                عرض الفرق
+                            </button>
+                            <button onclick="deleteTournament(${tournament.id})" 
+                                    class="bg-red-600 text-white py-2 px-3 rounded-lg hover:bg-red-700 transition-colors text-sm">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        async function viewTournamentTeams(tournamentId, tournamentName) {
+            try {
+                // Hide tournaments list and show teams section
+                document.getElementById('tournaments-list').parentElement.classList.add('hidden');
+                document.getElementById('tournament-teams-section').classList.remove('hidden');
+                document.getElementById('selected-tournament-name').textContent = `فرق ${tournamentName}`;
+                
+                // Fetch tournament teams
+                const response = await fetch(`/api/admin/tournaments/${tournamentId}/teams`, {
+                    headers: {
+                        'X-User-Id': localStorage.getItem('userId')
+                    }
+                });
+                if (!response.ok) throw new Error('Failed to fetch tournament teams');
+                
+                const data = await response.json();
+                renderTournamentTeams(data.teams);
+            } catch (error) {
+                console.error('Failed to fetch tournament teams:', error);
+                showMessageBox('خطأ في تحميل البيانات', 'فشل تحميل بيانات فرق البطولة.', 'error');
+            }
+        }
+        
+        function renderTournamentTeams(teams) {
+            const container = document.getElementById('tournament-teams-container');
+            const noMessage = document.getElementById('no-teams-message');
+            
+            if (!teams || teams.length === 0) {
+                container.innerHTML = '';
+                noMessage.classList.remove('hidden');
+                return;
+            }
+            
+            noMessage.classList.add('hidden');
+            
+            container.innerHTML = teams.map(team => {
+                const statusColor = team.status === 'approved' ? 'green' : 
+                                  team.status === 'rejected' ? 'red' : 'yellow';
+                const statusText = team.status === 'approved' ? 'مقبول' : 
+                                 team.status === 'rejected' ? 'مرفوض' : 'في الانتظار';
+                
+                const membersHtml = team.members.map(member => `
+                    <div class="bg-gray-50 rounded-lg p-3 border">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <p class="font-medium text-gray-800">${member.name}</p>
+                                <p class="text-sm text-gray-600">${member.email}</p>
+                                ${member.phone_number ? `<p class="text-sm text-gray-600">${member.phone_number}</p>` : ''}
+                            </div>
+                            <div class="text-right">
+                                <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                                    فريق ${member.team_designation}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+                
+                return `
+                    <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-lg">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <h3 class="text-xl font-bold text-gray-800 mb-2 flex items-center gap-2">
+                                    <i class="fa-solid fa-users text-blue-600"></i>
+                                    ${team.team_name}
+                                </h3>
+                                <div class="space-y-1 text-sm text-gray-600">
+                                    <p><i class="fa-solid fa-user-tie ml-1 text-blue-500"></i> قائد الفريق: ${team.captain_name}</p>
+                                    <p><i class="fa-solid fa-envelope ml-1 text-blue-500"></i> ${team.captain_email}</p>
+                                    ${team.captain_phone ? `<p><i class="fa-solid fa-phone ml-1 text-blue-500"></i> ${team.captain_phone}</p>` : ''}
+                                    <p><i class="fa-solid fa-calendar ml-1 text-blue-500"></i> تاريخ التسجيل: ${new Date(team.registration_date).toLocaleDateString('ar-EG')}</p>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <span class="bg-${statusColor}-100 text-${statusColor}-800 px-3 py-1 rounded-full text-sm font-medium">
+                                    ${statusText}
+                                </span>
+                                <p class="text-sm text-gray-500 mt-2">
+                                    <i class="fa-solid fa-users ml-1"></i>
+                                    ${team.team_size} لاعبين
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <div class="border-t pt-4">
+                            <h4 class="font-bold text-gray-700 mb-3">أعضاء الفريق:</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                ${membersHtml}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        function closeTournamentTeams() {
+            document.getElementById('tournament-teams-section').classList.add('hidden');
+            document.getElementById('tournaments-list').parentElement.classList.remove('hidden');
+        }
+        
+        // --- Birthday Users Functions ---
+        async function fetchBirthdayUsers() {
+            try {
+                const response = await fetch('/api/users/upcoming-birthdays');
+                if (!response.ok) throw new Error('Failed to fetch birthday users');
+                
+                const data = await response.json();
+                renderBirthdayUsers(data.users);
+            } catch (error) {
+                console.error('Failed to fetch birthday users:', error);
+                showMessageBox('خطأ في تحميل البيانات', 'فشل تحميل بيانات أعياد الميلاد.', 'error');
+            }
+        }
+        
+        function renderBirthdayUsers(users) {
+            const container = document.getElementById('birthday-users-container');
+            const noMessage = document.getElementById('no-birthdays-message');
+            
+            if (!users || users.length === 0) {
+                container.innerHTML = '';
+                noMessage.classList.remove('hidden');
+                return;
+            }
+            
+            noMessage.classList.add('hidden');
+            
+            container.innerHTML = users.map(user => {
+                const birthDate = new Date(user.birthdate);
+                const today = new Date();
+                const currentYear = today.getFullYear();
+                
+                // Calculate this year's birthday
+                const thisYearBirthday = new Date(currentYear, birthDate.getMonth(), birthDate.getDate());
+                
+                // If birthday already passed this year, calculate next year's birthday
+                if (thisYearBirthday < today) {
+                    thisYearBirthday.setFullYear(currentYear + 1);
+                }
+                
+                // Calculate days until birthday
+                const timeDiff = thisYearBirthday.getTime() - today.getTime();
+                const daysUntil = Math.ceil(timeDiff / (1000 * 3600 * 24));
+                
+                const formattedDate = birthDate.toLocaleDateString('ar-EG', {
+                    day: 'numeric',
+                    month: 'long'
+                });
+                
+                const sexText = user.sex === 'male' ? 'ذكر' : user.sex === 'female' ? 'أنثى' : '';
+                
+                return `
+                    <div class="bg-gradient-to-br from-pink-50 to-purple-50 border border-pink-200 rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300">
+                        <div class="text-center">
+                            <div class="bg-pink-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <i class="fa-solid fa-birthday-cake text-2xl text-pink-600"></i>
+                            </div>
+                            <h3 class="text-xl font-bold text-gray-800 mb-2">${user.name}</h3>
+                            <div class="space-y-2 text-sm text-gray-600">
+                                <p><i class="fa-solid fa-envelope ml-1 text-pink-500"></i> ${user.email}</p>
+                                <p><i class="fa-solid fa-phone ml-1 text-pink-500"></i> ${user.phone_number || 'غير محدد'}</p>
+                                ${sexText ? `<p><i class="fa-solid fa-user ml-1 text-pink-500"></i> ${sexText}</p>` : ''}
+                                <p><i class="fa-solid fa-calendar ml-1 text-pink-500"></i> ${formattedDate}</p>
+                            </div>
+                            <div class="mt-4 bg-pink-500 text-white px-4 py-2 rounded-full text-sm font-medium">
+                                ${daysUntil === 0 ? 'اليوم!' : daysUntil === 1 ? 'غداً' : `خلال ${daysUntil} أيام`}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
         }
         
         // Event listeners for availability management

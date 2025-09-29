@@ -180,6 +180,37 @@
         </div>
     </div>
 
+    <!-- Teams Modal -->
+    <div id="teams-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg p-6 w-full max-w-2xl mx-4 max-h-[80vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold text-gray-800">الفرق المسجلة</h3>
+                <button onclick="closeTeamsModal()" class="text-gray-500 hover:text-gray-700">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            
+            <div class="mb-4">
+                <p class="text-gray-600 mb-2">البطولة: <span id="teams-modal-tournament-name" class="font-semibold"></span></p>
+                <p class="text-gray-600 mb-4">عدد الفرق المسجلة: <span id="teams-count" class="font-semibold text-blue-600">0</span></p>
+            </div>
+
+            <div id="teams-list" class="space-y-3">
+                <!-- Teams will be loaded here -->
+            </div>
+
+            <div id="no-teams-message" class="text-center py-8 text-gray-500 hidden">
+                <svg class="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                </svg>
+                <p class="text-lg font-medium">لا توجد فرق مسجلة بعد</p>
+                <p class="text-sm">كن أول من يسجل في هذه البطولة!</p>
+            </div>
+        </div>
+    </div>
+
     <!-- Footer -->
     <footer class="bg-gray-900 text-gray-200 py-10 mt-auto">
         <div class="container mx-auto px-6 text-center">
@@ -280,16 +311,34 @@
             tournamentCard.className = 'bg-white rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden transform hover:-translate-y-2 border border-gray-100';
 
             const buttonHtml = (status === 'upcoming') ? `
-                <button
-                    onclick="openParticipationModal(${tournament.id})"
-                    class="bg-gradient-to-r from-blue-600 to-blue-500 text-white px-8 py-3 rounded-xl hover:from-blue-700 hover:to-blue-600 transition-all duration-300 shadow-lg w-full text-lg transform hover:-translate-y-1 flex items-center justify-center gap-2"
-                >
-                    <i class="fa-solid fa-user-plus ml-2"></i> سجل فريقك الآن
-                </button>
+                <div class="flex gap-2">
+                    <button
+                        onclick="registerForTournament(${tournament.id})"
+                        class="bg-gradient-to-r from-blue-600 to-blue-500 text-white px-6 py-3 rounded-xl hover:from-blue-700 hover:to-blue-600 transition-all duration-300 shadow-lg flex-1 text-lg transform hover:-translate-y-1 flex items-center justify-center gap-2"
+                    >
+                        <i class="fa-solid fa-user-plus ml-2"></i> سجل فريقك الآن
+                    </button>
+                    <button
+                        onclick="viewTournamentTeams(${tournament.id})"
+                        class="bg-gradient-to-r from-purple-600 to-purple-500 text-white px-4 py-3 rounded-xl hover:from-purple-700 hover:to-purple-600 transition-all duration-300 shadow-lg text-lg transform hover:-translate-y-1 flex items-center justify-center gap-2"
+                        title="عرض الفرق المسجلة"
+                    >
+                        <i class="fa-solid fa-users ml-1"></i> الفرق
+                    </button>
+                </div>
             ` : `
-                <button class="bg-gray-300 text-gray-700 px-8 py-3 rounded-xl cursor-not-allowed w-full text-lg flex items-center justify-center gap-2" disabled>
-                    <i class="fa-solid fa-circle-check ml-2"></i> انتهت البطولة
-                </button>
+                <div class="flex gap-2">
+                    <button class="bg-gray-300 text-gray-700 px-6 py-3 rounded-xl cursor-not-allowed flex-1 text-lg flex items-center justify-center gap-2" disabled>
+                        <i class="fa-solid fa-circle-check ml-2"></i> انتهت البطولة
+                    </button>
+                    <button
+                        onclick="viewTournamentTeams(${tournament.id})"
+                        class="bg-gradient-to-r from-purple-600 to-purple-500 text-white px-4 py-3 rounded-xl hover:from-purple-700 hover:to-purple-600 transition-all duration-300 shadow-lg text-lg transform hover:-translate-y-1 flex items-center justify-center gap-2"
+                        title="عرض الفرق المسجلة"
+                    >
+                        <i class="fa-solid fa-users ml-1"></i> الفرق
+                    </button>
+                </div>
             `;
             const imageUrl = tournament.image ? `data:image/jpeg;base64,${tournament.image}` : (tournament.field_image ? `data:image/jpeg;base64,${tournament.field_image}` : `https://placehold.co/600x400/8b5cf6/ffffff?text=${tournament.name.replace(/\s/g, '+')}`);
 
@@ -326,7 +375,27 @@
             return tournamentCard;
         }
 
-        // --- Participation Modal Functions ---
+        // --- Tournament Registration Functions ---
+        function registerForTournament(tournamentId) {
+            const loggedInUserId = localStorage.getItem('userId');
+            if (!loggedInUserId) {
+                showMessageBox(
+                    'تسجيل الدخول مطلوب',
+                    'للمشاركة في البطولة، يرجى تسجيل الدخول أولاً.',
+                    'error'
+                );
+                return;
+            }
+
+            // Store tournament ID for team signup page
+            localStorage.setItem('tournamentId', tournamentId);
+            localStorage.setItem('registrationType', 'tournament');
+            
+            // Redirect to team signup page
+            window.location.href = 'team-signup.html';
+        }
+
+        // --- Participation Modal Functions (Legacy - kept for compatibility) ---
         function openParticipationModal(tournamentId) {
             const loggedInUserId = localStorage.getItem('userId');
             if (!loggedInUserId) {
@@ -374,6 +443,93 @@
 
             showMessageBox('تم استلام طلبك', `شكراً لفريق ${teamName} على اهتمامكم بالبطولة. سنتواصل معكم قريباً!`, 'success');
             closeParticipationModal();
+        }
+
+        // --- Teams Modal Functions ---
+        async function viewTournamentTeams(tournamentId) {
+            try {
+                const response = await fetch(`/api/tournaments/${tournamentId}/teams`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    const tournament = data.tournament;
+                    const teams = data.teams || [];
+                    
+                    document.getElementById('teams-modal-tournament-name').textContent = tournament.name;
+                    document.getElementById('teams-count').textContent = teams.length;
+                    
+                    const teamsList = document.getElementById('teams-list');
+                    const noTeamsMessage = document.getElementById('no-teams-message');
+                    
+                    if (teams.length > 0) {
+                        teamsList.innerHTML = '';
+                        noTeamsMessage.classList.add('hidden');
+                        
+                        teams.forEach((team, index) => {
+                            const teamCard = document.createElement('div');
+                            teamCard.className = 'bg-gray-50 rounded-lg p-4 border border-gray-200';
+                            
+                            // Check if current user is the team owner
+                            const loggedInUserId = localStorage.getItem('userId');
+                            const isOwner = loggedInUserId && parseInt(loggedInUserId) === team.creator_id;
+                            
+                            // Create join button HTML
+                            let joinButtonHtml = '';
+                            if (isOwner) {
+                                joinButtonHtml = `
+                                    <button class="bg-gray-300 text-gray-500 px-3 py-1 rounded-lg text-sm cursor-not-allowed" disabled>
+                                        <i class="fa-solid fa-crown ml-1"></i> مالك الفريق
+                                    </button>
+                                `;
+                            } else {
+                                joinButtonHtml = `
+                                    <button onclick="joinTeam('${team.invitation_code}')" class="bg-blue-600 text-white px-3 py-1 rounded-lg text-sm hover:bg-blue-700 transition-colors">
+                                        <i class="fa-solid fa-user-plus ml-1"></i> انضم للفريق
+                                    </button>
+                                `;
+                            }
+                            
+                            teamCard.innerHTML = `
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center space-x-3 space-x-reverse">
+                                        <div class="bg-blue-100 text-blue-800 rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm">
+                                            ${index + 1}
+                                        </div>
+                                        <div>
+                                            <h4 class="font-semibold text-gray-800">${team.team_name}</h4>
+                                            <p class="text-sm text-gray-600">قائد الفريق: ${team.captain_name}</p>
+                                        </div>
+                                    </div>
+                                    <div class="text-right flex items-center gap-2">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                            <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                            </svg>
+                                            مسجل
+                                        </span>
+                                        ${joinButtonHtml}
+                                    </div>
+                                </div>
+                            `;
+                            teamsList.appendChild(teamCard);
+                        });
+                    } else {
+                        teamsList.innerHTML = '';
+                        noTeamsMessage.classList.remove('hidden');
+                    }
+                    
+                    document.getElementById('teams-modal').classList.remove('hidden');
+                } else {
+                    showMessageBox('خطأ', data.message || 'فشل في تحميل الفرق المسجلة', 'error');
+                }
+            } catch (error) {
+                console.error('Error fetching tournament teams:', error);
+                showMessageBox('خطأ في الشبكة', 'تعذر الاتصال بالخادم لتحميل الفرق', 'error');
+            }
+        }
+
+        function closeTeamsModal() {
+            document.getElementById('teams-modal').classList.add('hidden');
         }
 
         // Initialize on page load
