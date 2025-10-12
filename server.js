@@ -11,17 +11,23 @@ const app = express();
 const port = process.env.PORT || 3002;
 const saltRounds = 10;
 
-// CORS middleware
+// =========================================================
+// CRITICAL FIX: CORS and OPTIONS handling for deployment (Render/Hosting)
+// =========================================================
 app.use((req, res, next) => {
+    // Allow all origins (*) as defined before. If you know your domain, replace '*'
     res.header('Access-Control-Allow-Origin', '*');
     res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
     res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, X-User-Id');
-    if (req.method === 'OPTIONS') {
-        res.sendStatus(200);
-    } else {
-        next();
-    }
+    next();
 });
+
+// Handle preflight OPTIONS requests explicitly before any route matching logic
+// This ensures the browser can correctly complete its CORS handshake.
+app.options('*', (req, res) => {
+    res.sendStatus(200);
+});
+// =========================================================
 
 // Increase the JSON body size limit to handle image uploads
 app.use(express.json({ limit: '50mb' }));
@@ -1084,7 +1090,7 @@ app.post('/api/team-signup/create', async (req, res) => {
             VALUES ($1, $2, $3, 1, NOW())
         `;
         
-        await client.query(addCreatorSql, [teamId, creatorName, creatorName]); // Note: user_id is the key, user_name is the display name
+        await client.query(addCreatorSql, [teamId, creatorId, creatorName]); // NOTE: Corrected the creatorName/creatorId mapping in the previous version, ensuring correct data types are passed here.
             
         await client.query("COMMIT");
         
