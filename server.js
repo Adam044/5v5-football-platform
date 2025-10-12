@@ -12,20 +12,23 @@ const port = process.env.PORT || 3002;
 const saltRounds = 10;
 
 // =========================================================
-// CRITICAL FIX: CORS and OPTIONS handling for deployment (Render/Hosting)
+// CRITICAL FIX: CORS and OPTIONS handling for deployment (Reverted and fixed)
 // =========================================================
 app.use((req, res, next) => {
-    // Allow all origins (*) as defined before. If you know your domain, replace '*'
+    // Allow all origins
     res.header('Access-Control-Allow-Origin', '*');
+    // Allow necessary methods
     res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    // Allow necessary headers
     res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, X-User-Id');
-    next();
-});
-
-// Handle preflight OPTIONS requests explicitly before any route matching logic
-// This ensures the browser can correctly complete its CORS handshake.
-app.options('*', (req, res) => {
-    res.sendStatus(200);
+    
+    // Handle preflight OPTIONS requests immediately
+    if (req.method === 'OPTIONS') {
+        // Send a successful response and terminate the request chain
+        res.sendStatus(200); 
+    } else {
+        next();
+    }
 });
 // =========================================================
 
@@ -1777,7 +1780,7 @@ app.get('/api/admin/matchmaking/suggestions', checkAdmin, async (req, res) => {
         INNER JOIN users AS team_user
             ON t.user_id = team_user.id
         INNER JOIN fields AS field
-            ON p.field_id = field.id
+            ON p.field_id = f.id
         WHERE p.request_type = 'players_looking_for_team'
             AND t.request_type = 'team_looking_for_players'
             AND p.status = 'pending'
