@@ -8,6 +8,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Font Awesome CDN -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- API base config -->
+    <script src="/config.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap');
         body {
@@ -293,7 +295,7 @@
             pastContainer.innerHTML = '';
 
             try {
-                const response = await fetch('/api/tournaments');
+                const response = await fetch(((window.API_BASE_URL || '')) + '/api/tournaments');
                 const data = await response.json();
                 const tournaments = data.tournaments;
 
@@ -472,7 +474,7 @@
         // --- Teams Modal Functions ---
         async function viewTournamentTeams(tournamentId) {
             try {
-                const response = await fetch(`/api/tournaments/${tournamentId}/teams`);
+                const response = await fetch(((window.API_BASE_URL || '')) + `/api/tournaments/${tournamentId}/teams`);
                 const data = await response.json();
                 
                 if (data.success) {

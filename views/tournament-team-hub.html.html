@@ -9,6 +9,8 @@
     <!-- Font Awesome CDN -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+    <!-- API Base Config -->
+    <script src="../components/config.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap');
         
@@ -434,7 +436,7 @@
 
         async function fetchTournamentDetails(id) {
             try {
-                const response = await fetch(`/api/tournaments/${id}`);
+                const response = await fetch(((window.API_BASE_URL || '')) + `/api/tournaments/${id}`);
                 const data = await response.json();
                 if (!response.ok || !data.tournament) throw new Error(data.error || 'فشل في تحميل بيانات البطولة');
                 tournamentData = data.tournament;
@@ -447,7 +449,7 @@
 
         async function fetchTeamDetailsByCode(code) {
              try {
-                const response = await fetch(`/api/team-signup/${code}`);
+                const response = await fetch(((window.API_BASE_URL || '')) + `/api/team-signup/${code}`);
                 const data = await response.json();
                 
                 if (!response.ok || !data.team) throw new Error(data.error || 'رمز الدعوة غير صالح أو انتهت صلاحيته.');
@@ -512,7 +514,7 @@
             createBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin ml-2"></i> جاري الإنشاء...`;
 
             try {
-                const response = await fetch('/api/team-signup/create', {
+                const response = await fetch(((window.API_BASE_URL || '')) + '/api/team-signup/create', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -564,7 +566,7 @@
             joinBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin ml-2"></i> جاري الانضمام...`;
             
             try {
-                const response = await fetch('/api/team-signup/join', {
+                const response = await fetch(((window.API_BASE_URL || '')) + '/api/team-signup/join', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -601,7 +603,7 @@
                 
                 const isLeaving = parseInt(targetUserId) === parseInt(loggedInUserId);
                 
-                const response = await fetch('/api/team-signup/remove-player', {
+                const response = await fetch(((window.API_BASE_URL || '')) + '/api/team-signup/remove-player', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -648,7 +650,7 @@
             confirmBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin ml-2"></i> جاري التسجيل...`;
             
             try {
-                 const response = await fetch('/api/team-signup/confirm', {
+                 const response = await fetch(((window.API_BASE_URL || '')) + '/api/team-signup/confirm', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({

@@ -8,6 +8,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Font Awesome CDN -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- API base config -->
+    <script src="/config.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap');
         
@@ -482,7 +484,7 @@
                 selectedField = fieldId;
                 
                 try {
-                    const response = await fetch(`/api/fields/${fieldId}?userId=${loggedInUserId}`);
+                    const response = await fetch(((window.API_BASE_URL || '')) + `/api/fields/${fieldId}?userId=${loggedInUserId}`);
                     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                     
                     const data = await response.json();
@@ -708,7 +710,7 @@
                 confirmBtn.disabled = true;
                 
                 try {
-                    const response = await fetch(`/api/availability/${selectedFieldData.id}?date=${date}`);
+                    const response = await fetch(((window.API_BASE_URL || '')) + `/api/availability/${selectedFieldData.id}?date=${date}`);
                     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                     
                     const data = await response.json();
@@ -836,7 +838,7 @@
             confirmBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin ml-2"></i> جاري إرسال الطلب...`;
 
             try {
-                const response = await fetch('/api/matchmake', {
+                const response = await fetch(((window.API_BASE_URL || '')) + '/api/matchmake', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -874,7 +876,7 @@
             const container = document.getElementById('fields-container');
             container.innerHTML = ''; // Clear existing fields
             try {
-                const response = await fetch('/api/fields');
+                const response = await fetch(((window.API_BASE_URL || '')) + '/api/fields');
                 const data = await response.json();
                 const fields = data.fields;
 

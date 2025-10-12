@@ -8,6 +8,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Font Awesome CDN -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- API base config -->
+    <script src="/config.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap');
         
@@ -255,7 +257,7 @@
             signInBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin ml-2"></i> جاري تسجيل الدخول...`;
 
             try {
-                const response = await fetch('/api/login', {
+                const response = await fetch(((window.API_BASE_URL || '')) + '/api/login', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -334,7 +336,7 @@
             signupBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin ml-2"></i> جاري إنشاء الحساب...`;
 
             try {
-                const response = await fetch('/api/signup', {
+                const response = await fetch(((window.API_BASE_URL || '')) + '/api/signup', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
