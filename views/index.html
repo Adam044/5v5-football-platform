@@ -444,6 +444,13 @@
 
         // --- Main Modal Functions ---
         async function openModal(step, fieldId = null) {
+            
+            // --- CRITICAL STEP: CLEAR OLD TOURNAMENT STATE ---
+            // Ensure no accidental tournament state is carried over from tournaments.html
+            localStorage.removeItem('tournamentId');
+            localStorage.removeItem('registrationType');
+            // --------------------------------------------------
+            
             const modal = document.getElementById('main-modal');
             const contentContainer = document.getElementById('modal-content-container');
             

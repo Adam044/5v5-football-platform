@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>5ع5 - مركز تسجيل الفرق للبطولات</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap');
+        
+        :root {
+            --primary-color: #9333ea; /* Purple for tournaments */
+            --secondary-color: #f97316;
+            --background-color: #f0f4f8;
+            --text-color: #2c3e50;
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 2rem;
+        }
+        
+        .card {
+            background-color: white;
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            padding: 2.5rem;
+            width: 100%;
+            max-width: 900px;
+            text-align: center;
+        }
+
+        .tournament-info-box {
+            background-color: #f3e8ff; /* Light Purple */
+            border-radius: 1rem;
+            padding: 1.5rem;
+            border-left: 4px solid var(--primary-color);
+            margin-bottom: 2rem;
+            text-align: right;
+        }
+
+        .team-section {
+            padding: 1.5rem;
+            border-radius: 1rem;
+            border: 2px solid var(--primary-color);
+            transition: all 0.3s ease;
+        }
+        
+        .player-card {
+            background-color: #f0f4f8;
+            border-radius: 0.75rem;
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.75rem;
+            border: 1px solid #e2e8f0;
+            transition: all 0.2s;
+        }
+        .player-card.captain {
+            background-color: #fef9c3; /* Light Yellow */
+            border-color: var(--secondary-color);
+        }
+        
+        .progress-bar-container {
+            height: 12px;
+            background-color: #e2e8f0;
+            border-radius: 9999px;
+            overflow: hidden;
+            margin-top: 1rem;
+        }
+        .progress-bar-fill {
+            height: 100%;
+            background-color: var(--primary-color);
+            transition: width 0.3s ease;
+        }
+        
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            font-weight: 600;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .status-forming {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+        .status-ready {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+
+        /* Button styles */
+        .btn-primary {
+            background: linear-gradient(to right, var(--primary-color), #a855f7);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 0.75rem;
+            font-weight: 700;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(147, 51, 234, 0.3);
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(147, 51, 234, 0.4);
+        }
+        .pulse {
+            animation: pulse 1s infinite cubic-bezier(0.66, 0, 0, 1);
+        }
+        @keyframes pulse {
+            to {
+                box-shadow: 0 0 0 10px rgba(147, 51, 234, 0);
+            }
+        }
+        
+    </style>
+</head>
+<body>
+
+    <main class="card">
+        <!-- Logo Section -->
+        <div class="flex items-center justify-center mb-6">
+            <img src="/images/logo.jpg" alt="5ع5 Logo" class="w-20 h-20 rounded-full object-cover shadow-md border-4 border-purple-600">
+        </div>
+        
+        <h1 class="text-3xl font-extrabold text-gray-900 mb-6 flex items-center justify-center gap-3">
+            <i class="fa-solid fa-trophy text-yellow-500"></i>
+            مركز تسجيل الفرق للبطولة
+        </h1>
+        
+        <!-- Loading State -->
+        <div id="loading-state" class="py-12">
+            <div class="animate-spin rounded-full h-16 w-16 border-b-2 border-purple-600 mx-auto mb-4"></div>
+            <p class="text-xl font-semibold text-gray-700">جاري تحميل بيانات البطولة...</p>
+        </div>
+
+        <!-- Main Content -->
+        <div id="main-content" class="hidden">
+            
+            <!-- Tournament Info Section -->
+            <div id="tournament-info" class="tournament-info-box mb-8">
+                <!-- Tournament details will be populated here -->
+            </div>
+            
+            <!-- Team Name Input (Visible if user needs to create the team) -->
+            <div id="team-creation-form" class="hidden mb-8 p-6 border border-gray-200 rounded-xl bg-gray-50">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center gap-2 justify-center">
+                    <i class="fa-solid fa-pen-to-square text-purple-600"></i>
+                    ابدأ فريقك
+                </h2>
+                <p class="text-gray-600 mb-4">أنت قائد الفريق. أدخل اسم فريقك لبدء عملية التسجيل.</p>
+                <input
+                    type="text"
+                    id="team-name-input"
+                    class="p-3 border border-gray-300 rounded-lg w-full text-right focus:ring-purple-500 focus:border-purple-500 transition-all duration-200"
+                    placeholder="اسم الفريق (مثال: النسور الخضراء)"
+                    required
+                />
+                <button
+                    onclick="createTournamentTeam()"
+                    id="create-team-btn"
+                    class="btn-primary w-full py-3 text-lg mt-4"
+                >
+                    <i class="fa-solid fa-user-plus ml-2"></i> إنشاء الفريق
+                </button>
+            </div>
+            
+            <!-- Team Hub Section (Visible once team exists) -->
+            <div id="team-hub" class="hidden">
+                <div id="team-status-header" class="text-xl font-semibold text-gray-700 mb-6 text-right">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-4 flex items-center gap-3 justify-center">
+                        <i class="fa-solid fa-users-viewfinder text-purple-600"></i>
+                        فريق: <span id="current-team-name" class="text-purple-600"></span>
+                    </h2>
+                    <div id="status-display" class="text-center">
+                        <!-- Status badge will go here -->
+                    </div>
+                </div>
+
+                <!-- Invitation Section -->
+                <div id="invitation-section" class="mb-8 p-6 border-b border-gray-200 hidden">
+                    <h3 class="text-2xl font-bold text-gray-900 mb-6 flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-share-nodes text-orange-500"></i>
+                        شارك الدعوة
+                    </h3>
+                    <p class="text-gray-600 mb-6 text-center">شارك الرابط أو رمز QR مع أصدقائك للانضمام لفريقك في البطولة.</p>
+                    
+                    <div class="flex flex-col md:flex-row gap-4 max-w-xl mx-auto">
+                        <div class="bg-white p-4 rounded-xl shadow-md border border-gray-200 flex-1">
+                            <label class="block text-gray-700 font-semibold mb-2 text-right text-sm">رابط الدعوة</label>
+                            <div class="flex gap-2 items-stretch">
+                                <input id="invitation-link" type="text" readonly class="flex-grow p-2 rounded bg-gray-50 text-sm border border-gray-300 text-right font-mono min-w-0" value="">
+                                <button onclick="copyLink()" class="btn bg-blue-500 text-white flex-shrink-0 px-4 py-2 text-sm rounded-xl hover:bg-blue-600 transition-colors">
+                                    <i class="fa-solid fa-copy"></i> نسخ
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- QR Code Toggle Button -->
+                        <button onclick="toggleQrModal()" class="btn-primary flex-shrink-0 py-3 px-6 text-lg mt-2 pulse hover:shadow-xl">
+                            <i class="fa-solid fa-qrcode ml-2"></i> رمز QR
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Player List and Registration -->
+                <div class="team-section mt-8">
+                    <h3 class="text-2xl font-bold mb-6 text-center bg-purple-50 p-3 rounded-lg text-purple-800">
+                        <i class="fa-solid fa-users-line text-purple-600 ml-2"></i>
+                        قائمة اللاعبين (<span id="current-player-count">0</span> / 8)
+                    </h3>
+                    <p id="team-ready-message" class="text-center text-sm font-medium mb-4"></p>
+                    
+                    <div class="progress-bar-container mb-6">
+                        <div id="team-progress" class="progress-bar-fill" style="width: 0%;"></div>
+                    </div>
+
+                    <div id="player-list-container" class="space-y-3 max-h-60 overflow-y-auto pr-2">
+                        <!-- Players will be added here -->
+                    </div>
+                </div>
+                
+                <!-- Final Registration Button (Visible only to Captain) -->
+                <div id="registration-button-section" class="mt-8 hidden">
+                    <button id="register-team-btn" onclick="confirmTournamentRegistration()" class="btn-primary w-full py-4 text-xl" disabled>
+                        <i class="fa-solid fa-shield-halved ml-2"></i>
+                        تأكيد التسجيل النهائي في البطولة
+                    </button>
+                    <p id="registration-message" class="text-red-500 text-sm mt-3 font-semibold"></p>
+                </div>
+            </div>
+            
+            <!-- Join Button for Members -->
+             <div id="join-team-section" class="mt-8 hidden">
+                <div class="p-6 bg-yellow-50 rounded-xl border-2 border-yellow-300 text-center">
+                    <h3 class="text-xl font-bold text-yellow-800 mb-4">تمت دعوتك!</h3>
+                    <p class="text-gray-700 mb-6">انضم إلى الفريق الآن لتأكيد مكانك في البطولة.</p>
+                    <button id="join-team-member-btn" onclick="joinTournamentTeam()" class="btn-primary bg-yellow-600 hover:bg-yellow-700 w-full py-3 text-lg">
+                        <i class="fa-solid fa-user-plus ml-2"></i> انضم للفريق
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- QR Code Modal -->
+    <div id="qr-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-2xl shadow-3xl w-full max-w-sm relative p-8 qr-modal-content border-b-4 border-purple-600">
+            <button onclick="toggleQrModal()" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 transition-colors duration-300 rounded-full bg-gray-100 p-2 hover:bg-gray-200">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <h3 class="text-3xl font-bold mb-6 text-center text-gray-900">
+                <i class="fa-solid fa-qrcode text-purple-600 ml-2"></i>
+                رمز QR للدعوة
+            </h3>
+            <div class="flex justify-center items-center p-6 bg-gray-100 rounded-xl shadow-inner">
+                <canvas id="qrcode-canvas" class="w-60 h-60"></canvas>
+            </div>
+            <p class="text-center text-md font-medium text-gray-600 mt-4">امسح الرمز للانضمام مباشرةً</p>
+        </div>
+    </div>
+
+
+    <!-- Message Box (replaces alert) -->
+    <div id="message-box" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-2xl shadow-3xl p-8 w-full max-w-sm relative text-center border-t-4 border-red-500">
+            <h4 id="message-box-title" class="text-2xl font-bold mb-4 text-gray-900 flex items-center justify-center gap-2"></h4>
+            <p id="message-box-content" class="text-gray-700 mb-6 text-lg"></p>
+            <div id="message-box-actions" class="flex items-center justify-center gap-3">
+                <button onclick="closeMessageBox()" class="bg-red-600 text-white px-7 py-3 rounded-xl hover:bg-red-700 transition-all duration-300 shadow-md text-lg">حسناً</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        let tournamentId = urlParams.get('tournamentId');
+        let invitationCode = urlParams.get('invitationCode') || window.location.pathname.split('/').pop();
+        
+        let tournamentData = null;
+        let teamData = null;
+        let teamPlayers = [];
+
+        let isCaptain = false;
+        let isMember = false;
+        let pollingInterval;
+        
+        const MIN_PLAYERS = 6;
+        const MAX_PLAYERS = 8;
+        
+        const loggedInUserId = localStorage.getItem('userId');
+        const loggedInUserName = localStorage.getItem('userName');
+        const loggedInUserEmail = localStorage.getItem('userEmail');
+
+
+        // --- Utility Functions (re-defined locally to be self-contained) ---
+        function showMessageBox(title, content, type = 'error') {
+            const msgBox = document.getElementById('message-box');
+            const msgTitle = document.getElementById('message-box-title');
+            const msgContent = document.getElementById('message-box-content');
+            const actionsContainer = document.getElementById('message-box-actions');
+            
+            msgTitle.innerHTML = '';
+            const box = msgBox.querySelector('.bg-white');
+            box.classList.remove('border-t-4', 'border-red-500', 'border-green-600', 'border-yellow-500', 'border-blue-500');
+
+            let icon = '', color = 'red', buttonText = 'حسناً';
+            let buttonClass = 'bg-red-600';
+            switch(type) {
+                case 'success':
+                    icon = `<i class="fa-solid fa-circle-check text-green-600 ml-2"></i>`;
+                    color = 'green';
+                    buttonText = 'رائع!';
+                    buttonClass = 'bg-green-600';
+                    break;
+                case 'warning':
+                    icon = `<i class="fa-solid fa-triangle-exclamation text-yellow-500 ml-2"></i>`;
+                    color = 'yellow';
+                    buttonText = 'حسناً';
+                    buttonClass = 'bg-yellow-600';
+                    break;
+                default:
+                    icon = `<i class="fa-solid fa-octagon-xmark text-red-500 ml-2"></i>`;
+                    color = 'red';
+                    buttonText = 'حسناً';
+                    buttonClass = 'bg-red-600';
+            }
+
+            msgTitle.innerHTML = `${icon}${title}`;
+            box.classList.add('border-t-4', `border-${color}-500`);
+            msgContent.innerText = content;
+
+            actionsContainer.innerHTML = `
+                <button onclick="closeMessageBox()" class="text-white px-7 py-3 rounded-xl hover:opacity-90 transition-all duration-300 shadow-md text-lg ${buttonClass}">${buttonText}</button>
+            `;
+            
+            msgBox.classList.remove('hidden');
+        }
+
+        function closeMessageBox() {
+            document.getElementById('message-box').classList.add('hidden');
+        }
+
+        function generateQRCode(text) {
+            const canvas = document.getElementById('qrcode-canvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            try {
+                const qr = qrcode(0, 'H');
+                qr.addData(text);
+                qr.make();
+                const size = 240;
+                const cell = size / qr.getModuleCount();
+                canvas.width = size;
+                canvas.height = size;
+                for (let r = 0; r < qr.getModuleCount(); r++) {
+                    for (let c = 0; c < qr.getModuleCount(); c++) {
+                        if (qr.isDark(r, c)) {
+                            ctx.fillStyle = '#2c3e50';
+                            ctx.fillRect(c * cell, r * cell, cell, cell);
+                        }
+                    }
+                }
+            } catch (e) {
+                const size = 240;
+                canvas.width = size;
+                canvas.height = size;
+                ctx.fillStyle = '#ef4444';
+                ctx.font = '16px Cairo, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('QR Failed', size / 2, size / 2);
+            }
+        }
+        
+        function toggleQrModal() {
+            document.getElementById('qr-modal').classList.toggle('hidden');
+        }
+
+        function setupInvitationLink() {
+            const invitationLinkInput = document.getElementById('invitation-link');
+            // This is the URL structure for an invited member
+            const fullUrl = `${window.location.origin}/tournament-team-hub.html?invitationCode=${teamData.invitation_code}`; 
+            invitationLinkInput.value = fullUrl;
+            generateQRCode(fullUrl); 
+        }
+
+        // --- Core Fetching & State Logic ---
+
+        async function loadTournamentHub() {
+            const loadingState = document.getElementById('loading-state');
+            const mainContent = document.getElementById('main-content');
+            loadingState.classList.remove('hidden');
+            mainContent.classList.add('hidden');
+            
+            if (!loggedInUserId) {
+                 showMessageBox(
+                    'تسجيل الدخول مطلوب',
+                    'للتسجيل في البطولة، يرجى تسجيل الدخول أولاً.',
+                    'warning'
+                );
+                return;
+            }
+
+            if (invitationCode && invitationCode !== 'tournament-team-hub.html') {
+                 // Flow 1: User joining via invitation code (or creator revisiting)
+                 await fetchTeamDetailsByCode(invitationCode);
+            } else if (tournamentId) {
+                // Flow 2: Creator started registration from tournaments.html
+                await fetchTournamentDetails(tournamentId);
+                // Assume creator starts the flow, check or show creation form
+                await checkOrCreateTeam(tournamentId);
+            } else {
+                showMessageBox('خطأ في الرابط', 'الرجاء الوصول إلى هذه الصفحة من خلال صفحة البطولات أو رابط دعوة صحيح.');
+                loadingState.classList.add('hidden');
+            }
+        }
+
+        async function fetchTournamentDetails(id) {
+            try {
+                const response = await fetch(`/api/tournaments/${id}`);
+                const data = await response.json();
+                if (!response.ok || !data.tournament) throw new Error(data.error || 'فشل في تحميل بيانات البطولة');
+                tournamentData = data.tournament;
+                renderTournamentInfo();
+            } catch (error) {
+                console.error('Error fetching tournament details:', error);
+                showMessageBox('خطأ في تحميل البطولة', error.message);
+            }
+        }
+
+        async function fetchTeamDetailsByCode(code) {
+             try {
+                const response = await fetch(`/api/team-signup/${code}`);
+                const data = await response.json();
+                
+                if (!response.ok || !data.team) throw new Error(data.error || 'رمز الدعوة غير صالح أو انتهت صلاحيته.');
+                
+                teamData = data.team;
+                tournamentData = data.tournament;
+                teamPlayers = data.players || [];
+                
+                isCaptain = teamData.captain_id === parseInt(loggedInUserId);
+                isMember = teamPlayers.some(p => p.user_id === parseInt(loggedInUserId));
+                
+                renderTournamentInfo();
+                renderTeamHub();
+
+                // Start polling only if the team is still forming
+                if (teamData.status === 'forming') {
+                    if (!pollingInterval) {
+                         pollingInterval = setInterval(() => fetchTeamDetailsByCode(code), 5000);
+                    }
+                } else {
+                    if (pollingInterval) clearInterval(pollingInterval);
+                }
+
+            } catch (error) {
+                console.error('Error fetching team details by code:', error);
+                showMessageBox('خطأ في الفريق', error.message);
+                document.getElementById('loading-state').classList.add('hidden');
+            }
+        }
+        
+        async function checkOrCreateTeam(id) {
+            // Since there is no explicit endpoint to check a user's existing team for a tournament, 
+            // we will proceed to show the creation form if no invitationCode was provided in the URL.
+            // If the server's /api/team-signup/create endpoint handles duplicates (which it should), 
+            // the user will either create a new team or be told the team already exists for this tournament.
+            
+            if (!teamData) {
+                document.getElementById('team-creation-form').classList.remove('hidden');
+            } else {
+                 // If teamData exists (e.g., from a successful redirect after creation), render the hub directly
+                 renderTeamHub();
+            }
+            
+            document.getElementById('loading-state').classList.add('hidden');
+            document.getElementById('main-content').classList.remove('hidden');
+        }
+
+        // --- Action Functions ---
+
+        async function createTournamentTeam() {
+            const teamNameInput = document.getElementById('team-name-input');
+            const teamName = teamNameInput.value.trim();
+            const createBtn = document.getElementById('create-team-btn');
+            
+            if (!teamName) {
+                showMessageBox('اسم الفريق مطلوب', 'الرجاء إدخال اسم لفريقك.');
+                return;
+            }
+            
+            const originalHtml = createBtn.innerHTML;
+            createBtn.disabled = true;
+            createBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin ml-2"></i> جاري الإنشاء...`;
+
+            try {
+                const response = await fetch('/api/team-signup/create', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        tournamentId: tournamentData.id,
+                        teamName,
+                        creatorId: loggedInUserId,
+                        creatorName: loggedInUserName
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.error || 'فشل في إنشاء الفريق');
+                }
+                
+                teamData = data.team;
+                teamPlayers = [{ user_id: parseInt(loggedInUserId), user_name: loggedInUserName, is_captain: 1 }]; // Mock adding player until next poll
+                isCaptain = true;
+                
+                // Update URL with invitation code to handle refresh/sharing
+                history.replaceState(null, '', `?invitationCode=${teamData.invitation_code}`);
+
+                showMessageBox('تم إنشاء الفريق!', 'لقد تم إنشاء فريقك بنجاح، يمكنك الآن دعوة اللاعبين.', 'success');
+                renderTeamHub();
+                
+            } catch (error) {
+                console.error('Error creating team:', error);
+                showMessageBox('خطأ في الإنشاء', error.message);
+            } finally {
+                createBtn.disabled = false;
+                createBtn.innerHTML = originalHtml;
+            }
+        }
+        
+        async function joinTournamentTeam() {
+            if (teamData.status === 'registered') {
+                showMessageBox('الفريق مسجل بالفعل', 'هذا الفريق مسجل بالفعل في البطولة ولا يقبل أعضاء جدد.');
+                return;
+            }
+            if (isMember) {
+                showMessageBox('أنت مسجل بالفعل', 'أنت مسجل بالفعل في هذا الفريق.');
+                return;
+            }
+            
+            const joinBtn = document.getElementById('join-team-member-btn');
+            const originalHtml = joinBtn.innerHTML;
+            joinBtn.disabled = true;
+            joinBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin ml-2"></i> جاري الانضمام...`;
+            
+            try {
+                const response = await fetch('/api/team-signup/join', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        invitationCode: teamData.invitation_code,
+                        userId: loggedInUserId,
+                        userName: loggedInUserName
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.error || 'فشل في الانضمام للفريق');
+                }
+                
+                showMessageBox('تم الانضمام بنجاح!', 'أهلاً بك في الفريق!', 'success');
+                await fetchTeamDetailsByCode(teamData.invitation_code);
+                
+            } catch (error) {
+                console.error('Error joining team:', error);
+                showMessageBox('خطأ في الانضمام', error.message);
+            } finally {
+                joinBtn.disabled = false;
+                joinBtn.innerHTML = originalHtml;
+            }
+        }
+
+        async function removePlayer(targetUserId) {
+            if (!confirm('هل أنت متأكد من إزالة هذا اللاعب؟')) return;
+            
+            try {
+                // If current user removes themselves, use the leave endpoint logic if the user is a member
+                // If captain removes a member, use the remove-player endpoint
+                
+                const isLeaving = parseInt(targetUserId) === parseInt(loggedInUserId);
+                
+                const response = await fetch('/api/team-signup/remove-player', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        invitationCode: teamData.invitation_code,
+                        userId: isCaptain ? loggedInUserId : targetUserId, // If captain, use captain's ID for auth. If member leaving, use their ID.
+                        targetUserId: targetUserId
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.error || 'فشل في إزالة/مغادرة اللاعب');
+                }
+                
+                showMessageBox('تم الإجراء', 'تم إزالة/مغادرة اللاعب بنجاح.', 'success');
+                
+                if (isLeaving) {
+                    // If the user leaves, clear local state and force reload to check for creation
+                    teamData = null;
+                    isCaptain = false;
+                    isMember = false;
+                    loadTournamentHub();
+                } else {
+                    await fetchTeamDetailsByCode(teamData.invitation_code); // Refresh
+                }
+                
+            } catch (error) {
+                console.error('Error removing player:', error);
+                showMessageBox('خطأ في الإزالة', error.message);
+            }
+        }
+
+        async function confirmTournamentRegistration() {
+            if (teamPlayers.length < MIN_PLAYERS) {
+                showMessageBox('الفريق غير مكتمل', `يجب أن يضم الفريق ${MIN_PLAYERS} لاعبين على الأقل للتسجيل. لديك ${teamPlayers.length}.`);
+                return;
+            }
+            if (!confirm('هل أنت متأكد من تأكيد التسجيل النهائي لفريقك في البطولة؟')) return;
+            
+            const confirmBtn = document.getElementById('register-team-btn');
+            const originalHtml = confirmBtn.innerHTML;
+            confirmBtn.disabled = true;
+            confirmBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin ml-2"></i> جاري التسجيل...`;
+            
+            try {
+                 const response = await fetch('/api/team-signup/confirm', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        invitationCode: teamData.invitation_code,
+                        tournamentId: tournamentData.id,
+                        captainId: loggedInUserId
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.error || 'فشل في تأكيد التسجيل.');
+                }
+
+                showMessageBox('تم التسجيل!', `تم تسجيل فريق ${teamData.name} بنجاح في البطولة!`, 'success');
+                
+                // Stop polling and refresh page to show registered status
+                if (pollingInterval) clearInterval(pollingInterval);
+                await fetchTeamDetailsByCode(teamData.invitation_code);
+                
+            } catch (error) {
+                console.error('Error confirming tournament registration:', error);
+                showMessageBox('خطأ في التأكيد', error.message);
+            } finally {
+                confirmBtn.disabled = false;
+                confirmBtn.innerHTML = originalHtml;
+            }
+        }
+
+        // --- UI Rendering Functions ---
+
+        function renderTournamentInfo() {
+            if (!tournamentData) return;
+            const infoBox = document.getElementById('tournament-info');
+            infoBox.innerHTML = `
+                <h3 class="text-xl font-extrabold text-purple-800 mb-3 flex items-center gap-2">
+                    <i class="fa-solid fa-trophy text-purple-600"></i> ${tournamentData.name}
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-gray-700 text-sm">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-calendar-alt text-blue-500"></i>
+                        <span>التاريخ: ${tournamentData.tournament_date}</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-map-pin text-orange-500"></i>
+                        <span>الملعب: ${tournamentData.field_name}</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-sack-dollar text-yellow-500"></i>
+                        <span>الجائزة: ${tournamentData.prize}</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-users text-green-500"></i>
+                        <span>حجم الفريق: ${MIN_PLAYERS}-${MAX_PLAYERS} لاعبين</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderTeamHub() {
+            document.getElementById('team-creation-form').classList.add('hidden');
+            document.getElementById('team-hub').classList.remove('hidden');
+            document.getElementById('current-team-name').textContent = teamData.team_name || teamData.name; // Use appropriate property
+            
+            const isTeamRegistered = teamData.status === 'registered';
+
+            // CAPTAIN VIEW: Show invitation/registration sections if captain and team is forming
+            document.getElementById('invitation-section').classList.toggle('hidden', !isCaptain || isTeamRegistered);
+            document.getElementById('registration-button-section').classList.toggle('hidden', !isCaptain); // Always show captain's button, disabled if status is registered
+            document.getElementById('join-team-section').classList.toggle('hidden', isCaptain || isMember || isTeamRegistered);
+            
+            // Set up invitation link if captain
+            if (isCaptain) setupInvitationLink();
+
+            // Update player count and progress bar
+            updatePlayerCountDisplay();
+            
+            // Render player list
+            renderPlayerList();
+
+            // Update final registration button state
+            updateRegistrationButtonState();
+        }
+
+        function updatePlayerCountDisplay() {
+            const current = teamPlayers.length;
+            
+            // Status Badge
+            const statusDiv = document.getElementById('status-display');
+            let statusBadgeHtml;
+
+            if (teamData.status === 'registered') {
+                statusBadgeHtml = `<span class="status-badge status-ready bg-green-500 text-white">
+                                        <i class="fa-solid fa-check-double"></i> تم التسجيل النهائي
+                                    </span>`;
+            } else if (current >= MIN_PLAYERS) {
+                statusBadgeHtml = `<span class="status-badge status-ready bg-green-100 text-green-800">
+                                        <i class="fa-solid fa-user-check"></i> جاهز للتسجيل!
+                                    </span>`;
+            } else {
+                 statusBadgeHtml = `<span class="status-badge status-forming bg-yellow-100 text-yellow-800">
+                                        <i class="fa-solid fa-hourglass-start"></i> قيد التكوين...
+                                    </span>`;
+            }
+            statusDiv.innerHTML = statusBadgeHtml;
+
+
+            // Player Count and Progress
+            document.getElementById('current-player-count').textContent = current;
+            const progressFill = document.getElementById('team-progress');
+            const percentage = Math.min(100, (current / MIN_PLAYERS) * 100);
+            
+            progressFill.style.width = `${percentage}%`;
+            
+            let barColor = current >= MIN_PLAYERS ? 'bg-green-600' : 'bg-yellow-500';
+            progressFill.className = progressFill.className.replace(/bg-(red|yellow|green|blue)-\d{3}/g, '').trim() + ` ${barColor}`;
+            
+            // Ready Message
+            const readyMessage = document.getElementById('team-ready-message');
+            if (current >= MIN_PLAYERS && current <= MAX_PLAYERS) {
+                readyMessage.className = 'text-center text-green-600 text-md font-semibold mb-4';
+                readyMessage.textContent = `الفريق مستوفٍ للشروط (${current} لاعب) - يمكن للقائد تأكيد التسجيل.`;
+            } else if (current > MAX_PLAYERS) {
+                 readyMessage.className = 'text-center text-red-600 text-md font-semibold mb-4';
+                 readyMessage.textContent = `تنبيه: تجاوزت الحد الأقصى! (${current} لاعب). يرجى إزالة اللاعبين الزائدين.`;
+            } else {
+                 readyMessage.className = 'text-center text-gray-500 text-md font-medium mb-4';
+                 readyMessage.textContent = `تحتاج لـ ${MIN_PLAYERS - current} لاعبين إضافيين على الأقل.`;
+            }
+        }
+
+        function renderPlayerList() {
+            const container = document.getElementById('player-list-container');
+            if (teamPlayers.length === 0) {
+                 container.innerHTML = `<p class="text-center text-gray-500 py-8">لا يوجد لاعبون في الفريق بعد.</p>`;
+                 return;
+            }
+            
+            container.innerHTML = teamPlayers.map(player => {
+                const isCurrentCaptain = player.is_captain === 1;
+                const isCurrentUser = player.user_id === parseInt(loggedInUserId);
+                
+                let actionButton = '';
+                if (teamData.status === 'forming') {
+                    if (isCaptain && !isCurrentCaptain) {
+                        // Captain can remove members (but not themselves)
+                        actionButton = `<button onclick="removePlayer('${player.user_id}')" class="text-red-500 hover:text-red-700 text-lg">
+                                            <i class="fa-solid fa-times"></i> إزالة
+                                        </button>`;
+                    } else if (isCurrentUser && !isCurrentCaptain) {
+                        // Member can leave (using removePlayer logic for simplicity)
+                         actionButton = `<button onclick="removePlayer('${player.user_id}')" class="text-red-500 hover:text-red-700 text-lg">
+                                            <i class="fa-solid fa-sign-out-alt"></i> مغادرة
+                                        </button>`;
+                    }
+                }
+                
+                return `
+                    <div class="player-card ${isCurrentCaptain ? 'captain' : ''} shadow-sm">
+                        <div class="flex items-center gap-3">
+                            <i class="fa-solid fa-user-circle text-2xl ${isCurrentCaptain ? 'text-secondary-color' : 'text-gray-600'}"></i>
+                            <div>
+                                <h4 class="font-semibold text-lg">${player.user_name}</h4>
+                                ${isCurrentCaptain ? '<span class="bg-yellow-300 text-yellow-900 text-xs px-2 py-1 rounded-full font-bold">قائد الفريق</span>' : ''}
+                            </div>
+                        </div>
+                        ${actionButton}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function updateRegistrationButtonState() {
+            const registerBtn = document.getElementById('register-team-btn');
+            const registrationMessage = document.getElementById('registration-message');
+            
+            if (teamData.status === 'registered') {
+                 registerBtn.classList.remove('btn-primary', 'bg-red-600');
+                 registerBtn.classList.add('bg-gray-400');
+                 registerBtn.innerHTML = `<i class="fa-solid fa-check-double ml-2"></i> تم تسجيل الفريق بالفعل`;
+                 registerBtn.disabled = true;
+                 registrationMessage.textContent = '';
+                 return;
+            }
+
+            const current = teamPlayers.length;
+
+            if (isCaptain) {
+                if (current >= MIN_PLAYERS && current <= MAX_PLAYERS) {
+                    registerBtn.disabled = false;
+                    registerBtn.classList.remove('bg-red-600');
+                    registerBtn.classList.add('btn-primary');
+                    registerBtn.innerHTML = `<i class="fa-solid fa-shield-halved ml-2"></i> تأكيد التسجيل النهائي في البطولة`;
+                    registrationMessage.textContent = 'الفريق مستوفٍ للشروط، يمكنك التسجيل الآن.';
+                    registrationMessage.classList.remove('text-red-500');
+                    registrationMessage.classList.add('text-green-600');
+                } else if (current > MAX_PLAYERS) {
+                    registerBtn.disabled = true;
+                    registerBtn.classList.remove('btn-primary');
+                    registerBtn.classList.add('bg-red-600');
+                    registerBtn.innerHTML = `<i class="fa-solid fa-circle-exclamation ml-2"></i> تجاوز الحد الأقصى - يجب الإزالة`;
+                    registrationMessage.textContent = `تجاوزت الحد الأقصى (${MAX_PLAYERS}). يرجى إزالة ${current - MAX_PLAYERS} لاعب.`;
+                    registrationMessage.classList.add('text-red-500');
+                } else {
+                    registerBtn.disabled = true;
+                    registerBtn.classList.remove('bg-red-600');
+                    registerBtn.classList.add('btn-primary');
+                    registerBtn.innerHTML = `<i class="fa-solid fa-lock ml-2"></i> تحتاج لـ ${MIN_PLAYERS - current} لاعبين إضافيين`;
+                    registrationMessage.textContent = `الحد الأدنى ${MIN_PLAYERS} لاعب. يجب استكمال الفريق أولاً.`;
+                    registrationMessage.classList.add('text-red-500');
+                }
+            }
+        }
+
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', loadTournamentHub);
+
+        // Cleanup polling on page unload
+        window.addEventListener('beforeunload', () => {
+            if (pollingInterval) {
+                clearInterval(pollingInterval);
+            }
+        });
+    </script>
+</body>
+</html>

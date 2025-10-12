@@ -1000,7 +1000,7 @@ app.get('/api/tournaments/:tournamentId', async (req, res) => {
     }
 });
 
-// Public endpoint to get tournament teams
+// Public endpoint to get tournament teams (Modified to fetch all forming/registered teams and details)
 app.get('/api/tournaments/:tournamentId/teams', async (req, res) => {
     const { tournamentId } = req.params;
     
@@ -1014,15 +1014,17 @@ app.get('/api/tournaments/:tournamentId/teams', async (req, res) => {
             return res.status(404).json({ success: false, message: 'البطولة غير موجودة' });
         }
         
-        // 2. Get registered teams for this tournament
+        // 2. Get registered and forming teams for this tournament
         const teamsSql = `
             SELECT 
                 tt.team_name,
                 u.name as captain_name,
-                tt.registration_date
+                tt.registration_date,
+                tt.status,           -- Added status
+                tt.invitation_code   -- Added invitation code for joining/viewing link
             FROM tournament_teams tt
             JOIN users u ON tt.captain_id = u.id
-            WHERE tt.tournament_id = $1 AND tt.status = 'registered'
+            WHERE tt.tournament_id = $1 
             ORDER BY tt.registration_date ASC
         `;
         
@@ -1053,7 +1055,20 @@ app.post('/api/team-signup/create', async (req, res) => {
     try {
         await client.query("BEGIN");
 
-        // 1. Create tournament team
+        // 1. Check if user has already created a team for this tournament
+        const checkExistingSql = `SELECT id, invitation_code, team_name FROM tournament_teams WHERE tournament_id = $1 AND captain_id = $2`;
+        const checkExistingRes = await client.query(checkExistingSql, [tournamentId, creatorId]);
+        if (checkExistingRes.rows.length > 0) {
+             await client.query("ROLLBACK");
+             const existingTeam = checkExistingRes.rows[0];
+             return res.status(400).json({ 
+                 error: `لقد قمت بإنشاء فريق بالفعل (${existingTeam.team_name}) لهذه البطولة.`,
+                 invitationCode: existingTeam.invitation_code
+             });
+        }
+
+
+        // 2. Create tournament team
         const createTeamSql = `
             INSERT INTO tournament_teams (tournament_id, team_name, captain_id, invitation_code, status, registration_date)
             VALUES ($1, $2, $3, $4, 'forming', NOW())
@@ -1063,13 +1078,13 @@ app.post('/api/team-signup/create', async (req, res) => {
         const createResult = await client.query(createTeamSql, [tournamentId, teamName, creatorId, invitationCode]);
         const teamId = createResult.rows[0].id;
         
-        // 2. Add creator as first team member (captain)
+        // 3. Add creator as first team member (captain)
         const addCreatorSql = `
             INSERT INTO tournament_team_members (team_id, user_id, user_name, is_captain, joined_at)
             VALUES ($1, $2, $3, 1, NOW())
         `;
         
-        await client.query(addCreatorSql, [teamId, creatorId, creatorName]);
+        await client.query(addCreatorSql, [teamId, creatorName, creatorName]); // Note: user_id is the key, user_name is the display name
             
         await client.query("COMMIT");
         
@@ -1095,18 +1110,18 @@ app.post('/api/team-signup/create', async (req, res) => {
     }
 });
 
-// Get team details by invitation code (for team-join page)
+// Get team details by invitation code (for tournament-team-hub.html)
 app.get('/api/team-signup/:invitationCode', async (req, res) => {
     const { invitationCode } = req.params;
     
     try {
-        // 1. Get team details
+        // 1. Get team details (FIXED SQL JOIN for field details)
         const teamSql = `
             SELECT tt.*, t.name as tournament_name, t.tournament_date, t.prize, t.description,
                    f.name as field_name, f.location as field_location
             FROM tournament_teams tt
             JOIN tournaments t ON tt.tournament_id = t.id
-            JOIN fields f ON t.field_id = f.field_id 
+            JOIN fields f ON t.field_id = f.id 
             WHERE tt.invitation_code = $1
         `;
         
@@ -1119,7 +1134,7 @@ app.get('/api/team-signup/:invitationCode', async (req, res) => {
         
         // 2. Get team members
         const membersSql = `
-            SELECT user_id, user_name as name, is_captain, joined_at
+            SELECT user_id, user_name, is_captain, joined_at
             FROM tournament_team_members
             WHERE team_id = $1
             ORDER BY is_captain DESC, joined_at ASC
@@ -1130,7 +1145,7 @@ app.get('/api/team-signup/:invitationCode', async (req, res) => {
         res.json({
             team: {
                 id: team.id,
-                name: team.team_name,
+                team_name: team.team_name,
                 captain_id: team.captain_id,
                 invitation_code: team.invitation_code,
                 status: team.status,
@@ -1221,10 +1236,6 @@ app.post('/api/team-signup/remove-player', async (req, res) => {
         return res.status(400).json({ error: 'Missing required fields' });
     }
     
-    if (parseInt(userId) === parseInt(targetUserId)) {
-        return res.status(400).json({ error: 'Captains cannot remove themselves via this endpoint.' });
-    }
-    
     const client = await pool.connect();
     try {
         await client.query("BEGIN");
@@ -1271,10 +1282,10 @@ app.post('/api/team-signup/remove-player', async (req, res) => {
 
 // Confirm team registration for tournament (Captain only, when team is full)
 app.post('/api/team-signup/confirm', async (req, res) => {
-    const { invitationCode, tournamentId } = req.body;
+    const { invitationCode, tournamentId, captainId } = req.body;
     
-    if (!invitationCode || !tournamentId) {
-        return res.status(400).json({ error: 'Missing required fields' });
+    if (!invitationCode || !tournamentId || !captainId) {
+        return res.status(400).json({ error: 'Missing required fields (invitationCode, tournamentId, captainId)' });
     }
     
     const client = await pool.connect();
@@ -1286,16 +1297,16 @@ app.post('/api/team-signup/confirm', async (req, res) => {
             SELECT tt.id, tt.team_name, tt.captain_id, 
                    (SELECT COUNT(*) FROM tournament_team_members ttm WHERE ttm.team_id = tt.id) as member_count
             FROM tournament_teams tt
-            WHERE tt.invitation_code = $1 AND tt.tournament_id = $2
+            WHERE tt.invitation_code = $1 AND tt.tournament_id = $2 AND tt.captain_id = $3
             FOR UPDATE
         `;
         
-        const { rows: teamRows } = await client.query(teamSql, [invitationCode, tournamentId]);
+        const { rows: teamRows } = await client.query(teamSql, [invitationCode, tournamentId, captainId]);
         const team = teamRows[0];
 
         if (!team) {
             await client.query("ROLLBACK");
-            return res.status(404).json({ error: 'Team not found' });
+            return res.status(404).json({ error: 'Team not found or you are not the captain.' });
         }
         
         if (parseInt(team.member_count) < 6) { // MIN_TEAM_SIZE
@@ -2050,4 +2061,3 @@ app.post('/api/admin/matchmaking-requests/:requestId/approve', checkAdmin, async
 app.listen(port, () => {
     console.log(`Server is running at http://localhost:${port}`);
 });
-8
