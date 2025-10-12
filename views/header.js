@@ -3,9 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (globalHeaderDiv) {
         const loggedInUserId = localStorage.getItem('userId');
-        const loggedInUserEmail = localStorage.getItem('userEmail');
-        const adminEmail = '5v5.palestine@gmail.com';
-        const isAdmin = loggedInUserEmail === adminEmail;
+        const isAdmin = (localStorage.getItem('isAdmin') === 'true' || localStorage.getItem('isAdmin') === '1');
 
         const headerHTML = `
             <header class="bg-white shadow-lg py-4 border-b border-gray-100 sticky top-0 z-50">
@@ -92,5 +90,7 @@ document.addEventListener('DOMContentLoaded', () => {
 function handleLogout() {
     localStorage.removeItem('userId');
     localStorage.removeItem('userEmail');
+    localStorage.removeItem('userName');
+    localStorage.removeItem('isAdmin');
     window.location.href = 'index.html';
 }

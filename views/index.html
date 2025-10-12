@@ -678,6 +678,17 @@
             const timeSlotsContainer = document.getElementById('time-slots-container');
             const priceDisplay = document.getElementById('price-display');
             const confirmBtn = document.getElementById('confirm-availability-btn');
+
+            // Hide time selection for day-only matchmaking flows
+            if (selectedReservationType !== 'two_teams_ready') {
+                const timeLabel = document.querySelector('label[for="time-slots-container"]');
+                if (timeLabel) timeLabel.classList.add('hidden');
+                timeSlotsContainer.classList.add('hidden');
+                // For day-only flows, button should guide properly
+                confirmBtn.innerHTML = selectedReservationType === 'players_looking_for_team'
+                    ? `<i class="fa-solid fa-search ml-2"></i> إرسال طلب انضمام`
+                    : `<i class="fa-solid fa-arrow-left ml-2"></i> متابعة`;
+            }
             
             async function fetchAvailability(date) {
                 timeSlotsContainer.innerHTML = `
@@ -702,41 +713,41 @@
                             slotBtn.type = 'button';
                             slotBtn.className = 'bg-gray-200 text-gray-800 py-3 px-2 rounded-xl text-center font-semibold hover:bg-gray-300 transition-colors duration-200';
                             slotBtn.innerHTML = `${slot.start_time} - ${slot.end_time}`;
-                            slotBtn.onclick = () => {
-                                selectedSlotId = slot.id;
-                                selectedSlotData = slot;
-                                document.querySelectorAll('#time-slots-container button').forEach(btn => {
-                                    btn.classList.remove('bg-green-600', 'text-white');
-                                    btn.classList.add('bg-gray-200', 'text-gray-800');
-                                });
-                                slotBtn.classList.add('bg-green-600', 'text-white');
-                                slotBtn.classList.remove('bg-gray-200', 'text-gray-800');
+                            // Attach time selection only for 'two_teams_ready'
+                            if (selectedReservationType === 'two_teams_ready') {
+                                slotBtn.onclick = () => {
+                                    selectedSlotId = slot.id;
+                                    selectedSlotData = slot;
+                                    document.querySelectorAll('#time-slots-container button').forEach(btn => {
+                                        btn.classList.remove('bg-green-600', 'text-white');
+                                        btn.classList.add('bg-gray-200', 'text-gray-800');
+                                    });
+                                    slotBtn.classList.add('bg-green-600', 'text-white');
+                                    slotBtn.classList.remove('bg-gray-200', 'text-gray-800');
 
-                                const startHour = parseInt(slot.start_time.split(':')[0]);
-                                const endHour = parseInt(slot.end_time.split(':')[0]);
-                                const duration = endHour - startHour;
-                                const totalPrice = duration * selectedFieldData.price_per_hour;
-                                
-                                // Update price display based on reservation type
-                                let priceText;
-                                if (selectedReservationType === 'two_teams_ready') {
-                                    priceText = `السعر: ${totalPrice} شيكل`;
-                                } else {
-                                    priceText = `الوقت المحدد: ${duration} ساعة.`;
-                                }
-                                
-                                priceDisplay.innerText = priceText;
-                                confirmBtn.disabled = false;
-                                
-                                // Update button text for single player direct submit
-                                if (selectedReservationType === 'players_looking_for_team') {
-                                    confirmBtn.innerHTML = `<i class="fa-solid fa-search ml-2"></i> إرسال طلب انضمام`;
-                                } else {
-                                    confirmBtn.innerHTML = `<i class="fa-solid fa-arrow-left ml-2"></i> متابعة`;
-                                }
-                            };
+                                    const startHour = parseInt(slot.start_time.split(':')[0]);
+                                    const endHour = parseInt(slot.end_time.split(':')[0]);
+                                    const duration = endHour - startHour;
+                                    const totalPrice = duration * selectedFieldData.price_per_hour;
+                                    
+                                    // Update price display based on reservation type
+                                    let priceText = `السعر: ${totalPrice} شيكل`;
+                                    priceDisplay.innerText = priceText;
+                                    confirmBtn.disabled = false;
+                                    confirmBtn.innerHTML = `<i class=\"fa-solid fa-arrow-left ml-2\"></i> متابعة`;
+                                };
+                            }
                             timeSlotsContainer.appendChild(slotBtn);
                         });
+                        // For day-only flows, enable confirm if the day has any availability
+                        if (selectedReservationType !== 'two_teams_ready') {
+                            confirmBtn.disabled = false;
+                            confirmBtn.innerHTML = selectedReservationType === 'players_looking_for_team'
+                                ? `<i class="fa-solid fa-search ml-2"></i> إرسال طلب انضمام`
+                                : `<i class="fa-solid fa-arrow-left ml-2"></i> متابعة`;
+                            // Price display for day-only flows
+                            priceDisplay.innerText = 'السعر: -- شيكل';
+                        }
                     } else {
                         timeSlotsContainer.innerHTML = `
                             <div class="col-span-full text-center py-8">
@@ -745,6 +756,8 @@
                                 <p class="text-gray-500 text-sm">يرجى اختيار تاريخ آخر</p>
                             </div>
                         `;
+                        // No availability on this day: disable confirm for all flows
+                        confirmBtn.disabled = true;
                     }
                 } catch (error) {
                     console.error('Failed to fetch availability:', error);
@@ -778,8 +791,9 @@
         
         // Final Step: Handle reservation or matchmaking request
         async function handleBookingFlow() {
-            if (!selectedSlotId) {
-                showMessageBox('خطأ', 'يرجى اختيار موعد أولاً.');
+            // Require time selection only for direct booking flow 'two_teams_ready'
+            if (selectedReservationType === 'two_teams_ready' && !selectedSlotId) {
+                showMessageBox('خطأ', 'يرجى اختيار الوقت أولاً.');
                 return;
             }
 
@@ -790,8 +804,9 @@
                 const params = new URLSearchParams({
                     fieldId: selectedFieldData.id,
                     slotDate: selectedDate,
-                    startTime: selectedSlotData.start_time,
-                    endTime: selectedSlotData.end_time,
+                    // For two_teams_ready pass selected time; for day-only flows leave empty
+                    startTime: selectedReservationType === 'two_teams_ready' ? selectedSlotData.start_time : '',
+                    endTime: selectedReservationType === 'two_teams_ready' ? selectedSlotData.end_time : '',
                     bookingType: selectedReservationType,
                     // Pass the initial player count provided by the user (only relevant for team_looking_for_players)
                     initialPlayerCount: selectedPlayerCount,
@@ -820,7 +835,8 @@
                     body: JSON.stringify({
                         userId: loggedInUserId,
                         fieldId: selectedFieldData.id,
-                        slotId: selectedSlotId,
+                        // For day-only matchmaking, send only the date (no time)
+                        slotDate: selectedDate,
                         requestType: selectedReservationType, // 'players_looking_for_team'
                         playersNeeded: 1 // Always 1 player initiating this request
                     })

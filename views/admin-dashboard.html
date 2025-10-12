@@ -930,9 +930,8 @@
                         <tr class="bg-gray-100">
                             <th class="border border-gray-300 px-4 py-3 text-right font-bold whitespace-nowrap">المستخدم</th>
                             <th class="border border-gray-300 px-4 py-3 text-right font-bold whitespace-nowrap">الملعب</th>
-                            <th class="border border-gray-300 px-4 py-3 text-right font-bold whitespace-nowrap">الوقت</th>
+                            <th class="border border-gray-300 px-4 py-3 text-right font-bold whitespace-nowrap">التاريخ</th>
                             <th class="border border-gray-300 px-4 py-3 text-right font-bold whitespace-nowrap">المطلوب</th>
-                            <th class="border border-gray-300 px-4 py-3 text-right font-bold whitespace-nowrap">الإجراءات</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -940,15 +939,11 @@
                             <tr class="hover:bg-gray-50 text-sm">
                                 <td class="border border-gray-300 px-4 py-3 font-semibold">${request.user_name}</td>
                                 <td class="border border-gray-300 px-4 py-3">${request.field_name}</td>
-                                <td class="border border-gray-300 px-4 py-3">${request.start_time} - ${request.end_time}</td>
+                                <td class="border border-gray-300 px-4 py-3">${request.slot_date}</td>
                                 <td class="border border-gray-300 px-4 py-3 text-blue-600 font-bold">
                                     ${request.request_type === 'team_looking_for_players' ? `لـ ${request.players_needed} لاعب` : 
                                       request.request_type === 'team_vs_team' ? `لـ فريق منافس` : 
                                       'لـ فريق'}
-                                </td>
-                                <td class="border border-gray-300 px-4 py-3 whitespace-nowrap">
-                                    <button onclick="approveMatchmakingRequest(${request.id})" class="bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded text-xs transition-colors duration-300">قبول</button>
-                                    <button onclick="rejectMatchmakingRequest(${request.id})" class="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-xs transition-colors duration-300">رفض</button>
                                 </td>
                             </tr>
                         `).join('')}
@@ -976,7 +971,6 @@
                 card.className = 'suggestion-card border-l-4 border-green-400';
                 card.innerHTML = `
                     <p class="text-sm font-bold text-gray-800 mb-2">
-                        <i class="fa-solid fa-clock ml-1 text-blue-500"></i> ${team.start_time} | 
                         <i class="fa-solid fa-calendar ml-1 text-orange-500"></i> ${team.slot_date}
                     </p>
                     <p class="text-md font-semibold text-gray-900 mb-2">
@@ -1049,6 +1043,28 @@
                 `;
                 container.appendChild(card);
             });
+        }
+
+        // Helper: map reservation type to Arabic label
+        function getReservationType(type) {
+            switch (type) {
+                case 'full_field':
+                    return 'حجز ملعب كامل';
+                case 'two_teams_ready':
+                    return 'مباراة بين فريقين جاهزين';
+                case 'team_looking_for_players':
+                    return 'فريق يبحث عن لاعبين';
+                case 'team_vs_team':
+                    return 'فريق ضد فريق';
+                case 'players_looking_for_team':
+                    return 'لاعب يبحث عن فريق';
+                case null:
+                case undefined:
+                case '':
+                    return 'غير محدد';
+                default:
+                    return 'غير معروف';
+            }
         }
 
         function renderReservations(reservations) {
@@ -2028,7 +2044,7 @@
                     month: 'long'
                 });
                 
-                const sexText = user.sex === 'male' ? 'ذكر' : user.sex === 'female' ? 'أنثى' : '';
+const sexText = user.gender === 'male' ? 'ذكر' : user.gender === 'female' ? 'أنثى' : '';
                 
                 return `
                     <div class="bg-gradient-to-br from-pink-50 to-purple-50 border border-pink-200 rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300">
