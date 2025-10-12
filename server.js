@@ -15,12 +15,15 @@ const saltRounds = 10;
 // CRITICAL FIX: CORS and OPTIONS handling for deployment (Reverted and fixed)
 // =========================================================
 app.use((req, res, next) => {
-    // Allow all origins
-    res.header('Access-Control-Allow-Origin', '*');
-    // Allow necessary methods
-    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    // Allow necessary headers
-    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, X-User-Id');
+    // Allow origin dynamically (echo back)
+    res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+    res.header('Vary', 'Origin');
+    // Allow necessary methods (reflect if requested)
+    const reqMethod = req.headers['access-control-request-method'];
+    res.header('Access-Control-Allow-Methods', reqMethod ? reqMethod : 'GET, POST, PUT, DELETE, OPTIONS');
+    // Allow necessary headers (reflect if requested)
+    const reqHeaders = req.headers['access-control-request-headers'];
+    res.header('Access-Control-Allow-Headers', reqHeaders ? reqHeaders : 'Origin, X-Requested-With, Content-Type, Accept, X-User-Id, Authorization');
     
     // Handle preflight OPTIONS requests immediately
     if (req.method === 'OPTIONS') {

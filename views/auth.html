@@ -259,8 +259,10 @@
             try {
                 const response = await fetch(((window.API_BASE_URL || '')) + '/api/login', {
                     method: 'POST',
+                    mode: 'cors',
                     headers: {
                         'Content-Type': 'application/json',
+                        'Accept': 'application/json'
                     },
                     body: JSON.stringify({ email, password }),
                 });
@@ -338,10 +340,12 @@
             try {
                 const response = await fetch(((window.API_BASE_URL || '')) + '/api/signup', {
                     method: 'POST',
+                    mode: 'cors',
                     headers: {
                         'Content-Type': 'application/json',
+                        'Accept': 'application/json'
                     },
-            body: JSON.stringify({ name, email, phone: phoneNumber, birthdate, gender, password, is_admin: isAdmin }),
+                    body: JSON.stringify({ name, email, phone: phoneNumber, birthdate, gender, password, is_admin: isAdmin }),
                 });
 
                 // Safely parse JSON; fall back to text for non-JSON responses
