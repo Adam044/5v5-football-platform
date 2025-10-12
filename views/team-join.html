@@ -451,9 +451,9 @@
         <div class="bg-white rounded-2xl shadow-3xl p-8 w-full max-w-sm relative text-center border-t-4 border-red-500">
             <h4 id="message-box-title" class="text-2xl font-bold mb-4 text-gray-900 flex items-center justify-center gap-2"></h4>
             <p id="message-box-content" class="text-gray-700 mb-6 text-lg"></p>
-            <button onclick="closeMessageBox()" class="bg-red-600 text-white px-7 py-3 rounded-xl hover:bg-red-700 transition-all duration-300 shadow-md text-lg">
-                حسناً
-            </button>
+            <div id="message-box-actions" class="flex items-center justify-center gap-3">
+                <button onclick="closeMessageBox()" class="bg-red-600 text-white px-7 py-3 rounded-xl hover:bg-red-700 transition-all duration-300 shadow-md text-lg">حسناً</button>
+            </div>
         </div>
     </div>
 
@@ -495,45 +495,56 @@
             const msgBox = document.getElementById('message-box');
             const msgTitle = document.getElementById('message-box-title');
             const msgContent = document.getElementById('message-box-content');
-            const msgButton = msgBox.querySelector('button');
+            const actionsContainer = document.getElementById('message-box-actions');
 
             msgTitle.innerHTML = '';
-            msgBox.querySelector('.bg-white').classList.remove('border-t-4', 'border-red-500', 'border-green-600', 'border-yellow-500', 'border-blue-500');
+            const box = msgBox.querySelector('.bg-white');
+            box.classList.remove('border-t-4', 'border-red-500', 'border-green-600', 'border-yellow-500', 'border-blue-500');
 
-            let icon, color, buttonClass, buttonText;
+            let icon = '', color = 'red', buttonText = 'حسناً';
             switch(type) {
-                case 'error':
-                    icon = `<i class="fa-solid fa-octagon-xmark text-red-500 ml-2"></i>`;
-                    color = 'red';
-                    buttonClass = 'bg-red-600 text-white';
-                    buttonText = 'حسناً';
-                    break;
                 case 'success':
                     icon = `<i class="fa-solid fa-circle-check text-green-600 ml-2"></i>`;
                     color = 'green';
-                    buttonClass = 'bg-green-600 text-white';
                     buttonText = 'رائع!';
                     break;
                 case 'warning':
                     icon = `<i class="fa-solid fa-triangle-exclamation text-yellow-500 ml-2"></i>`;
                     color = 'yellow';
-                    buttonClass = 'bg-yellow-600 text-white';
                     buttonText = 'حسناً';
                     break;
                 case 'info':
                     icon = `<i class="fa-solid fa-circle-info text-blue-500 ml-2"></i>`;
                     color = 'blue';
-                    buttonClass = 'bg-blue-600 text-white';
                     buttonText = 'حسناً';
                     break;
+                default:
+                    icon = `<i class="fa-solid fa-octagon-xmark text-red-500 ml-2"></i>`;
+                    color = 'red';
+                    buttonText = 'حسناً';
             }
 
             msgTitle.innerHTML = `${icon}${title}`;
-            msgBox.querySelector('.bg-white').classList.add(`border-t-4`, `border-${color}-500`);
-            msgButton.className = `${buttonClass} px-7 py-3 rounded-xl hover:bg-${color}-700 transition-all duration-300 shadow-md text-lg`;
-            msgButton.textContent = buttonText;
+            box.classList.add('border-t-4', `border-${color}-500`);
             msgContent.innerText = content;
-            
+
+            // Default single OK button
+            actionsContainer.innerHTML = `
+                <button onclick="closeMessageBox()" class="bg-${color}-600 text-white px-7 py-3 rounded-xl hover:bg-${color}-700 transition-all duration-300 shadow-md text-lg">${buttonText}</button>
+            `;
+
+            // If warning and not logged in, show Login/Signup actions
+            if (type === 'warning' && !loggedInUserId) {
+                actionsContainer.innerHTML = `
+                    <a href="auth.html?view=sign-in" class="bg-green-600 text-white px-6 py-3 rounded-xl hover:bg-green-700 transition-all duration-300 shadow-md text-lg inline-flex items-center gap-2">
+                        <i class="fa-solid fa-right-to-bracket"></i> تسجيل الدخول
+                    </a>
+                    <a href="auth.html?view=sign-up" class="bg-blue-600 text-white px-6 py-3 rounded-xl hover:bg-blue-700 transition-all duration-300 shadow-md text-lg inline-flex items-center gap-2">
+                        <i class="fa-solid fa-user-plus"></i> إنشاء حساب
+                    </a>
+                `;
+            }
+
             msgBox.classList.remove('hidden');
         }
 

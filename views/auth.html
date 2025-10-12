@@ -175,6 +175,21 @@
     
     <script src="header.js"></script>
     <script>
+        // Preselect form based on query parameter, e.g., auth.html?view=sign-in or sign-up
+        (function initAuthViewFromQuery() {
+            try {
+                const params = new URLSearchParams(window.location.search);
+                const view = params.get('view');
+                if (view === 'sign-up' || view === 'signup') {
+                    toggleForm('sign-up');
+                } else if (view === 'sign-in' || view === 'login') {
+                    toggleForm('sign-in');
+                }
+            } catch (e) {
+                // Ignore errors and keep default view
+            }
+        })();
+
         function showMessageBox(title, content, type = 'error', callback = null) {
             const msgBox = document.getElementById('message-box');
             const msgTitle = document.getElementById('message-box-title');
@@ -248,7 +263,21 @@
                     body: JSON.stringify({ email, password }),
                 });
 
-                const result = await response.json();
+                // Safely parse JSON; fall back to text for non-JSON responses
+                const contentType = response.headers.get('content-type') || '';
+                let result;
+                if (contentType.includes('application/json')) {
+                    try {
+                        result = await response.json();
+                    } catch (e) {
+                        console.error('Invalid JSON response for login:', e);
+                        result = { error: 'استجابة غير صالحة من الخادم.' };
+                    }
+                } else {
+                    const text = await response.text();
+                    console.error('Non-JSON login response:', { status: response.status, text });
+                    result = { error: `فشل الطلب (${response.status}). يرجى المحاولة لاحقاً.` };
+                }
 
                 if (response.ok) {
                     localStorage.setItem('userId', result.userId);
@@ -313,7 +342,21 @@
                     body: JSON.stringify({ name, email, phone: phoneNumber, birthdate, sex, password, is_admin: isAdmin }),
                 });
 
-                const result = await response.json();
+                // Safely parse JSON; fall back to text for non-JSON responses
+                const contentType = response.headers.get('content-type') || '';
+                let result;
+                if (contentType.includes('application/json')) {
+                    try {
+                        result = await response.json();
+                    } catch (e) {
+                        console.error('Invalid JSON response for signup:', e);
+                        result = { error: 'استجابة غير صالحة من الخادم.' };
+                    }
+                } else {
+                    const text = await response.text();
+                    console.error('Non-JSON signup response:', { status: response.status, text });
+                    result = { error: `فشل الطلب (${response.status}). يرجى المحاولة لاحقاً.` };
+                }
 
                 if (response.ok) {
                     const accountType = isAdmin ? 'مدير' : 'مستخدم';

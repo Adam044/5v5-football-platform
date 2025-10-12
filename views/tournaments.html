@@ -230,26 +230,47 @@
             const msgBox = document.getElementById('message-box');
             const msgTitle = document.getElementById('message-box-title');
             const msgContent = document.getElementById('message-box-content');
-            const msgButton = msgBox.querySelector('button');
+            const loggedInUserId = localStorage.getItem('userId');
+            const actionsContainer = msgBox.querySelector('.bg-white').querySelector('div:last-child') || msgBox.querySelector('button').parentElement;
 
             msgTitle.innerHTML = '';
             msgBox.className = 'hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50 animate-fade-in';
             msgBox.querySelector('.bg-white').className = 'bg-white rounded-2xl shadow-3xl p-8 w-full max-w-sm relative animate-scale-in-up text-center';
 
+            // Default single OK button
+            actionsContainer.innerHTML = `
+                <button onclick="closeMessageBox()" class="bg-red-600 text-white px-7 py-3 rounded-xl hover:bg-red-700 transition-all duration-300 shadow-md text-lg">حسناً</button>
+            `;
+
             if (type === 'error') {
                 msgTitle.innerHTML = `<i class="fa-solid fa-octagon-xmark text-red-500 ml-2"></i>${title}`;
                 msgBox.querySelector('.bg-white').classList.add('border-t-4', 'border-red-500');
-                msgButton.className = 'bg-red-600 text-white px-7 py-3 rounded-xl hover:bg-red-700 transition-all duration-300 shadow-md text-lg';
+                const btn = actionsContainer.querySelector('button');
+                if (btn) btn.className = 'bg-red-600 text-white px-7 py-3 rounded-xl hover:bg-red-700 transition-all duration-300 shadow-md text-lg';
             } else if (type === 'success') {
                 msgTitle.innerHTML = `<i class="fa-solid fa-circle-check text-green-600 ml-2"></i>${title}`;
                 msgBox.querySelector('.bg-white').classList.add('border-t-4', 'border-green-600');
-                msgButton.className = 'bg-green-600 text-white px-7 py-3 rounded-xl hover:bg-green-700 transition-all duration-300 shadow-md text-lg';
+                const btn = actionsContainer.querySelector('button');
+                if (btn) btn.className = 'bg-green-600 text-white px-7 py-3 rounded-xl hover:bg-green-700 transition-all duration-300 shadow-md text-lg';
             } else { // info
                 msgTitle.innerHTML = `<i class="fa-solid fa-circle-info text-blue-500 ml-2"></i>${title}`;
                 msgBox.querySelector('.bg-white').classList.add('border-t-4', 'border-blue-500');
-                msgButton.className = 'bg-blue-600 text-white px-7 py-3 rounded-xl hover:bg-blue-700 transition-all duration-300 shadow-md text-lg';
+                const btn = actionsContainer.querySelector('button');
+                if (btn) btn.className = 'bg-blue-600 text-white px-7 py-3 rounded-xl hover:bg-blue-700 transition-all duration-300 shadow-md text-lg';
             }
             msgContent.innerText = content;
+
+            // If warning and not logged in, show Login/Signup actions
+            if (type === 'warning' && !loggedInUserId) {
+                actionsContainer.innerHTML = `
+                    <a href="auth.html?view=sign-in" class="bg-green-600 text-white px-6 py-3 rounded-xl hover:bg-green-700 transition-all duration-300 shadow-md text-lg inline-flex items-center gap-2">
+                        <i class="fa-solid fa-right-to-bracket"></i> تسجيل الدخول
+                    </a>
+                    <a href="auth.html?view=sign-up" class="bg-blue-600 text-white px-6 py-3 rounded-xl hover:bg-blue-700 transition-all duration-300 shadow-md text-lg inline-flex items-center gap-2">
+                        <i class="fa-solid fa-user-plus"></i> إنشاء حساب
+                    </a>
+                `;
+            }
             msgBox.classList.remove('hidden');
         }
 
