@@ -8,8 +8,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Font Awesome CDN -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <!-- API base config -->
-    <script src="/config.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap');
@@ -681,7 +679,7 @@
 
         async function createNewTeam(fieldId, slotDate, startTime, endTime, bookingType, initialPlayerCount) {
             try {
-                const response = await fetch(((window.API_BASE_URL || '')) + '/api/team-building/initiate', {
+ const response = await fetch('/api/team-building/initiate', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -716,7 +714,7 @@
             if (!invitationCode) return;
             try {
                 // Poll the server for updated team details
-                const response = await fetch(((window.API_BASE_URL || '')) + `/api/team-building/${invitationCode}?userId=${loggedInUserId}`);
+ const response = await fetch(`/api/team-building/${invitationCode}?userId=${loggedInUserId}`);
                 const data = await response.json();
 
                 if (!response.ok) {
@@ -1164,7 +1162,7 @@
 
         async function joinTeam(teamDesignation) {
             try {
-                const response = await fetch(((window.API_BASE_URL || '')) + '/api/team-building/join', {
+ const response = await fetch('/api/team-building/join', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -1194,7 +1192,7 @@
             if (!confirm('هل أنت متأكد من إزالة هذا اللاعب؟')) return;
             
             try {
-                const response = await fetch(((window.API_BASE_URL || '')) + '/api/team-building/remove-player', {
+ const response = await fetch('/api/team-building/remove-player', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -1329,7 +1327,7 @@
             finalConfirmBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin ml-2"></i> جاري التأكيد...';
 
             try {
-                const response = await fetch(((window.API_BASE_URL || '')) + '/api/team-building/confirm-booking', {
+ const response = await fetch('/api/team-building/confirm-booking', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -1376,7 +1374,7 @@
                 // The current player count is derived from the session members
                 const currentPlayers = singleTeamPlayers.length;
                 
-                const response = await fetch(((window.API_BASE_URL || '')) + '/api/team-building/submit-matchmaking', {
+ const response = await fetch('/api/team-building/submit-matchmaking', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({

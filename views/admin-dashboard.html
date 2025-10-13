@@ -8,8 +8,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Font Awesome CDN -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <!-- API base config -->
-    <script src="/config.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap');
         
@@ -730,7 +728,7 @@
                 return;
             }
             try {
-                const response = await fetch(((window.API_BASE_URL || '')) + `/api/admin/fields`, {
+                const response = await fetch(`/api/admin/fields`, {
                     headers: {
                         'X-User-Id': userId
                     }
@@ -873,7 +871,7 @@
             };
             try {
                 // Fetch fields and populate dropdowns
-                const fieldsResponse = await fetch(((window.API_BASE_URL || '')) + '/api/admin/fields', { headers });
+                const fieldsResponse = await fetch('/api/admin/fields', { headers });
                 if (!fieldsResponse.ok) throw new Error('Failed to fetch fields');
                 const fieldsData = await fieldsResponse.json();
                 renderFields(fieldsData.fields);
@@ -881,9 +879,9 @@
                 
                 // Fetch all data for the tabs
                 const [reservationsData, categorizedMatchmakingData, tournamentsData] = await Promise.all([
-                    fetch(((window.API_BASE_URL || '')) + '/api/admin/reservations', { headers }).then(res => res.json()),
-                    fetch(((window.API_BASE_URL || '')) + '/api/admin/matchmaking/categorized', { headers }).then(res => res.json()), // NEW ENDPOINT
-                    fetch(((window.API_BASE_URL || '')) + '/api/admin/tournaments', { headers }).then(res => res.json()),
+                    fetch('/api/admin/reservations', { headers }).then(res => res.json()),
+                    fetch('/api/admin/matchmaking/categorized', { headers }).then(res => res.json()), // NEW ENDPOINT
+                    fetch('/api/admin/tournaments', { headers }).then(res => res.json()),
                 ]);
 
                 renderReservations(reservationsData.reservations);
@@ -1147,7 +1145,7 @@
             try {
                 const imageData = await fileToBase64(imageFile);
                 
-                const response = await fetch(((window.API_BASE_URL || '')) + '/api/admin/fields', {
+                const response = await fetch('/api/admin/fields', {
                     method: 'POST',
                     headers: { 
                         'Content-Type': 'application/json',
@@ -1173,7 +1171,7 @@
         async function openEditFieldModal(fieldId) {
             const userId = localStorage.getItem('userId');
             try {
-                const response = await fetch(((window.API_BASE_URL || '')) + `/api/fields/${fieldId}?userId=${userId}`);
+                const response = await fetch(`/api/fields/${fieldId}?userId=${userId}`);
                 if (!response.ok) throw new Error('Failed to fetch field data');
                 const field = await response.json();
                 
@@ -1209,13 +1207,13 @@
             if (imageFile) {
                 imageData = await fileToBase64(imageFile);
             } else {
-                const response = await fetch(((window.API_BASE_URL || '')) + `/api/fields/${fieldId}?userId=${localStorage.getItem('userId')}`);
+                const response = await fetch(`/api/fields/${fieldId}?userId=${localStorage.getItem('userId')}`);
                 const field = await response.json();
                 imageData = field.field.image;
             }
 
             try {
-                const response = await fetch(((window.API_BASE_URL || '')) + `/api/admin/fields/${fieldId}`, {
+                const response = await fetch(`/api/admin/fields/${fieldId}`, {
                     method: 'PUT',
                     headers: { 
                         'Content-Type': 'application/json',
@@ -1245,7 +1243,7 @@
                 'warning',
                 async () => {
                      try {
-                         const response = await fetch(((window.API_BASE_URL || '')) + `/api/admin/fields/${fieldId}`, {
+                         const response = await fetch(`/api/admin/fields/${fieldId}`, {
                              method: 'DELETE',
                              headers: { 
                                  'Content-Type': 'application/json',
@@ -1402,7 +1400,7 @@
             }));
 
             try {
-                const response = await fetch(((window.API_BASE_URL || '')) + '/api/admin/availability', {
+                const response = await fetch('/api/admin/availability', {
                     method: 'POST',
                     headers: { 
                         'Content-Type': 'application/json',
@@ -1429,7 +1427,7 @@
         async function openAddTournamentModal() {
             document.getElementById('add-tournament-modal').classList.remove('hidden');
             try {
-                const response = await fetch(((window.API_BASE_URL || '')) + '/api/admin/fields', {
+                const response = await fetch('/api/admin/fields', {
                     headers: {
                         'X-User-Id': localStorage.getItem('userId')
                     }
@@ -1453,7 +1451,7 @@
             
             if (fieldId) {
                  try {
-                    const response = await fetch(((window.API_BASE_URL || '')) + `/api/fields/${fieldId}?userId=${localStorage.getItem('userId')}`);
+                    const response = await fetch(`/api/fields/${fieldId}?userId=${localStorage.getItem('userId')}`);
                     if (!response.ok) throw new Error('Failed to fetch field data');
                     const field = await response.json();
                     if (field.field.image) {
@@ -1502,7 +1500,7 @@
             }
 
             try {
-                const response = await fetch(((window.API_BASE_URL || '')) + '/api/admin/tournaments', {
+                const response = await fetch('/api/admin/tournaments', {
                     method: 'POST',
                     headers: { 
                         'Content-Type': 'application/json',
@@ -1539,7 +1537,7 @@
                 'warning',
                 async () => {
                      try {
-                         const response = await fetch(((window.API_BASE_URL || '')) + `/api/admin/tournaments/${tournamentId}`, {
+                         const response = await fetch(`/api/admin/tournaments/${tournamentId}`, {
                              method: 'DELETE',
                              headers: { 
                                  'Content-Type': 'application/json',
@@ -1567,7 +1565,7 @@
         // --- Analytics Functions ---
         async function loadAnalytics() {
             try {
-                const response = await fetch(((window.API_BASE_URL || '')) + `/api/admin/analytics`, {
+                const response = await fetch(`/api/admin/analytics`, {
                     headers: {
                         'X-User-Id': localStorage.getItem('userId')
                     }
@@ -1602,7 +1600,7 @@
         // --- Requests & Reservations Management Functions ---
         async function approveMatchmakingRequest(requestId) {
             try {
-                const response = await fetch(((window.API_BASE_URL || '')) + `/api/admin/matchmaking-requests/${requestId}/approve`, {
+                const response = await fetch(`/api/admin/matchmaking-requests/${requestId}/approve`, {
                     method: 'POST',
                     headers: { 
                         'Content-Type': 'application/json',
@@ -1631,7 +1629,7 @@
                 'warning',
                 async () => {
                     try {
-                        const response = await fetch(((window.API_BASE_URL || '')) + `/api/admin/matchmaking-requests/${requestId}/reject`, {
+                        const response = await fetch(`/api/admin/matchmaking-requests/${requestId}/reject`, {
                             method: 'POST',
                             headers: { 
                                 'Content-Type': 'application/json',
@@ -1663,7 +1661,7 @@
                 'warning',
                 async () => {
                     try {
-                        const response = await fetch(((window.API_BASE_URL || '')) + `/api/admin/reservations/${reservationId}/cancel`, {
+                        const response = await fetch(`/api/admin/reservations/${reservationId}/cancel`, {
                             method: 'PUT',
                             headers: { 
                                 'Content-Type': 'application/json',
@@ -1695,7 +1693,7 @@
             const container = document.getElementById('availability-slots-container');
             container.innerHTML = `<p class="text-center text-gray-500 col-span-full">جاري تحميل المواعيد...</p>`;
 
-            let url = ((window.API_BASE_URL || '')) + `/api/admin/availability?`;
+            let url = `/api/admin/availability?`;
             const params = new URLSearchParams();
             if (fieldId) params.append('fieldId', fieldId);
             if (date) params.append('date', date);
@@ -1764,7 +1762,7 @@
                 'warning',
                 async () => {
                     try {
-                        const response = await fetch(((window.API_BASE_URL || '')) + `/api/admin/availability/${slotId}`, {
+                        const response = await fetch(`/api/admin/availability/${slotId}`, {
                             method: 'DELETE',
                             headers: { 
                                 'Content-Type': 'application/json',
@@ -1811,7 +1809,7 @@
             const fieldId = document.getElementById('edit-slot-field-id').value;
             
             try {
-                const response = await fetch(((window.API_BASE_URL || '')) + `/api/admin/availability/${slotId}`, {
+                const response = await fetch(`/api/admin/availability/${slotId}`, {
                     method: 'PUT',
                     headers: { 
                         'Content-Type': 'application/json',
@@ -1842,7 +1840,7 @@
         // --- Tournament Management Functions ---
         async function fetchTournaments() {
             try {
-                const response = await fetch(((window.API_BASE_URL || '')) + '/api/admin/tournaments', {
+                const response = await fetch('/api/admin/tournaments', {
                     headers: {
                         'X-User-Id': localStorage.getItem('userId')
                     }
@@ -1906,7 +1904,7 @@
                 document.getElementById('selected-tournament-name').textContent = `فرق ${tournamentName}`;
                 
                 // Fetch tournament teams
-                const response = await fetch(((window.API_BASE_URL || '')) + `/api/admin/tournaments/${tournamentId}/teams`, {
+                const response = await fetch(`/api/admin/tournaments/${tournamentId}/teams`, {
                     headers: {
                         'X-User-Id': localStorage.getItem('userId')
                     }
@@ -2001,7 +1999,7 @@
         // --- Birthday Users Functions ---
         async function fetchBirthdayUsers() {
             try {
-                const response = await fetch(((window.API_BASE_URL || '')) + '/api/users/upcoming-birthdays');
+                const response = await fetch('/api/users/upcoming-birthdays');
                 if (!response.ok) throw new Error('Failed to fetch birthday users');
                 
                 const data = await response.json();

@@ -2,6 +2,7 @@ const express = require('express');
 const path = require('path');
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
+const cors = require('cors');
 require('dotenv').config();
 // Import the PostgreSQL Pool from the new database file
 const pool = require('./database');
@@ -12,40 +13,30 @@ const port = process.env.PORT || 3002;
 const saltRounds = 10;
 
 // =========================================================
-// CRITICAL FIX: CORS and OPTIONS handling for deployment (Reverted and fixed)
+// CORS: Simplified using standard middleware
 // =========================================================
-app.use((req, res, next) => {
-    // Define allowed origins
-    const allowedOrigins = new Set([
-        'https://www.5v5games.com',
-        'https://5v5games.com',
-        'http://localhost:3002',
-        'http://127.0.0.1:3002',
-        'http://localhost',
-        'http://127.0.0.1'
-    ]);
+const allowedOrigins = [
+    'https://www.5v5games.com',
+    'https://5v5games.com',
+    'http://localhost:3002',
+    'http://127.0.0.1:3002',
+    'http://localhost',
+    'http://127.0.0.1'
+];
 
-    const origin = req.headers.origin;
-    if (origin && allowedOrigins.has(origin)) {
-        res.header('Access-Control-Allow-Origin', origin);
-    }
-    // Vary on Origin for caches
-    res.header('Vary', 'Origin');
-    // Allow credentials for session/cookies if needed
-    res.header('Access-Control-Allow-Credentials', 'true');
-    // Methods
-    const reqMethod = req.headers['access-control-request-method'];
-    res.header('Access-Control-Allow-Methods', reqMethod ? reqMethod : 'GET, POST, PUT, DELETE, OPTIONS');
-    // Headers
-    const reqHeaders = req.headers['access-control-request-headers'];
-    res.header('Access-Control-Allow-Headers', reqHeaders ? reqHeaders : 'Origin, X-Requested-With, Content-Type, Accept, X-User-Id, Authorization');
+const corsOptions = {
+    origin: (origin, callback) => {
+        // Allow same-origin requests or tools without Origin header
+        if (!origin) return callback(null, true);
+        if (allowedOrigins.includes(origin)) return callback(null, true);
+        return callback(new Error('Not allowed by CORS'));
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'X-User-Id', 'Authorization']
+};
 
-    // Short-circuit preflight
-    if (req.method === 'OPTIONS') {
-        return res.sendStatus(204);
-    }
-    next();
-});
+app.use(cors(corsOptions));
 // =========================================================
 
 // Increase the JSON body size limit to handle image uploads

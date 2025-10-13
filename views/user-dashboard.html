@@ -8,8 +8,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Font Awesome CDN -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <!-- API Base Config -->
-    <script src="../components/config.js"></script>
+    
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap');
@@ -337,7 +336,7 @@
         // --- Fetch and Render Data ---
         async function fetchUserData() {
             try {
-                const response = await fetch(((window.API_BASE_URL || '')) + `/api/user/${userId}`);
+ const response = await fetch(`/api/user/${userId}`);
                 const data = await response.json();
                 if (response.ok) {
                     const user = data.user;
@@ -358,7 +357,7 @@ document.getElementById('gender').value = user.gender === 'male' ? 'ذكر' : us
 
         async function fetchUserReservations() {
             try {
-                const response = await fetch(((window.API_BASE_URL || '')) + `/api/user/reservations/${userId}`);
+ const response = await fetch(`/api/user/reservations/${userId}`);
                 const data = await response.json();
                 if (response.ok) {
                     renderReservationsTable(data.reservations);
