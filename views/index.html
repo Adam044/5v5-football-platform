@@ -240,8 +240,12 @@
             <h3 class="text-5xl font-extrabold text-center mb-16 text-gray-900 leading-tight">
                 ملاعبنا <span class="text-green-600">المختارة</span> بعناية
             </h3>
-            <div id="fields-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-10">
-                <!-- Fields will be injected here by JavaScript -->
+            <div id="fields-loading" class="flex items-center justify-center py-12 hidden">
+                <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
+                <span class="mr-3 text-gray-600 text-lg">جاري تحميل الملاعب...</span>
+            </div>
+            <div id="fields-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-10 justify-items-center">
+            <!-- Fields will be injected here by JavaScript -->
             </div>
         </section>
     </main>
@@ -273,6 +277,9 @@
     <!-- Message Box (replaces alert) -->
     <div id="message-box" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50">
         <div class="bg-white rounded-2xl shadow-3xl p-8 w-full max-w-sm relative text-center border-t-4 border-red-500">
+            <button onclick="closeMessageBox()" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 transition-colors duration-300 rounded-full bg-gray-100 p-2 hover:bg-gray-200">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
             <h4 id="message-box-title" class="text-2xl font-bold mb-4 text-gray-900 flex items-center justify-center gap-2"></h4>
             <p id="message-box-content" class="text-gray-700 mb-6 text-lg"></p>
             <div id="message-box-actions" class="flex items-center justify-center gap-3">
@@ -872,7 +879,9 @@
         // --- Render Fields (Updated) ---
         async function renderFields() {
             const container = document.getElementById('fields-container');
+            const loadingEl = document.getElementById('fields-loading');
             container.innerHTML = ''; // Clear existing fields
+            loadingEl.classList.remove('hidden');
             try {
                 const response = await fetch('/api/fields');
                 const data = await response.json();
@@ -881,26 +890,26 @@
                 if (fields && fields.length > 0) {
                     fields.forEach(field => {
                         const fieldCard = document.createElement('div');
-                        fieldCard.className = 'bg-white rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden transform hover:-translate-y-2 border border-gray-100';
+                        fieldCard.className = 'bg-white rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden transform hover:-translate-y-2 border border-gray-100 w-full max-w-sm mx-auto';
                         const imageUrl = field.image ? `data:image/jpeg;base64,${field.image}` : `https://placehold.co/600x400/22c55e/ffffff?text=${field.name.replace(/\s/g, '+')}`;
                         
                         // New details display section
                         const detailsHtml = `
-                            <div class="space-y-3 mt-4 text-right text-gray-700">
+                            <div class="space-y-3 mt-4 text-center text-gray-700">
                                 <!-- Address / Location -->
-                                <div class="flex items-start">
+                                <div class="flex items-start justify-center">
                                     <i class="fa-solid fa-location-dot text-red-500 mt-1 ml-3 flex-shrink-0"></i>
                                     <span class="text-sm font-medium">${field.location || 'العنوان غير متوفر'}</span>
                                 </div>
                                 
                                 <!-- Price Per Hour -->
-                                <div class="flex items-center">
+                                <div class="flex items-center justify-center">
                                     <i class="fa-solid fa-money-bill-wave text-green-600 ml-3 flex-shrink-0"></i>
                                     <span class="text-md font-bold text-green-700">${field.price_per_hour} شيكل / ساعة</span>
                                 </div>
 
                                 <!-- Description (Shortened for card view) -->
-                                <div class="flex items-start pt-2 border-t border-gray-100">
+                                <div class="flex items-start justify-center pt-2 border-t border-gray-100">
                                     <i class="fa-solid fa-circle-info text-blue-500 mt-1 ml-3 flex-shrink-0"></i>
                                     <p class="text-xs text-gray-600 leading-relaxed line-clamp-3">${field.description || 'لا يوجد وصف متاح لهذا الملعب.'}</p>
                                 </div>
@@ -912,9 +921,10 @@
                                 src="${imageUrl}"
                                 alt="${field.name}"
                                 class="w-full h-56 object-cover"
+                                loading="lazy" decoding="async"
                                 onerror="this.onerror=null;this.src='https://placehold.co/600x400/22c55e/ffffff?text=${field.name.replace(/\s/g, '+')}'"
                             />
-                            <div class="p-6">
+                            <div class="p-6 text-center">
                                 <h4 class="text-2xl font-bold mb-2 text-gray-900 flex items-center justify-center gap-2 text-center">
                                     <i class="fa-solid fa-futbol text-green-600"></i>
                                     ${field.name}
@@ -924,20 +934,28 @@
                                 
                                 <button
                                     onclick="openModal('field-details', ${field.id})"
-                                    class="bg-gradient-to-r from-blue-600 to-blue-500 text-white px-8 py-3 rounded-xl hover:from-blue-700 hover:to-blue-600 transition-all duration-300 shadow-lg w-full text-lg transform hover:-translate-y-1 flex items-center justify-center gap-2 btn-hover-effect mt-6"
+                                    class="bg-gradient-to-r from-blue-600 to-blue-500 text-white px-8 py-3 rounded-xl hover:from-blue-700 hover:to-blue-600 transition-all duration-300 shadow-lg w-full text-lg transform hover:-translate-y-1 inline-flex items-center justify-center gap-2 btn-hover-effect mt-6"
                                 >
                                     <i class="fa-solid fa-calendar-plus"></i> احجز الآن
                                 </button>
                             </div>
                         `;
-                        container.appendChild(fieldCard);
+                        // Batch append via DocumentFragment to reduce reflows
+                        (window.__fieldsFragment ||= document.createDocumentFragment()).appendChild(fieldCard);
                     });
+                    if (window.__fieldsFragment) {
+                        container.appendChild(window.__fieldsFragment);
+                        window.__fieldsFragment = null;
+                    }
                 } else {
-                    container.innerHTML = `<p class="text-center text-gray-500 text-xl w-full">لا توجد ملاعب متاحة حالياً.</p>`;
+                    container.innerHTML = `<p class="col-span-full text-center text-gray-500 text-xl">لا توجد ملاعب متاحة حالياً.</p>`;
                 }
             } catch (error) {
                 console.error('Failed to fetch fields:', error);
-                container.innerHTML = `<p class="text-center text-red-500 text-xl w-full">حدث خطأ في تحميل الملاعب. يرجى التأكد من تشغيل الخادم.</p>`;
+                container.innerHTML = `<p class="col-span-full text-center text-red-500 text-xl">حدث خطأ في تحميل الملاعب. يرجى التأكد من تشغيل الخادم.</p>`;
+            }
+            finally {
+                loadingEl.classList.add('hidden');
             }
         }
         

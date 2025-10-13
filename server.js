@@ -49,6 +49,15 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'views')));
 app.use(express.static(path.join(__dirname, 'components')));
 
+// Friendly routes to serve specific HTML views
+// Join page alias: allows links like /join/<code> to render team-join
+app.get('/join', (req, res) => {
+    res.sendFile(path.join(__dirname, 'views', 'team-join.html'));
+});
+app.get('/join/:code', (req, res) => {
+    res.sendFile(path.join(__dirname, 'views', 'team-join.html'));
+});
+
 
 // --- Database Schema Initialization ---
 (async () => {
