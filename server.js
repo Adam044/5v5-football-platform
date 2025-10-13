@@ -37,10 +37,15 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
+// Explicit OPTIONS for critical auth routes (helps certain proxies)
+app.options('/api/signup', cors(corsOptions));
+app.options('/api/login', cors(corsOptions));
 // =========================================================
 
 // Increase the JSON body size limit to handle image uploads
 app.use(express.json({ limit: '50mb' }));
+// Support form-encoded bodies for environments that block JSON POSTs
+app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'views')));
 app.use(express.static(path.join(__dirname, 'components')));
 
@@ -298,7 +303,7 @@ app.post('/api/signup', async (req, res) => {
     const { name, email, phone, birthdate, gender, password, is_admin } = req.body;
 
     if (!name || !email || !phone || !birthdate || !gender || !password) {
-        return res.status(400).json({ error: 'Please provide all required fields.' });
+        return res.status(400).json({ error: 'يرجى توفير جميع الحقول المطلوبة.' });
     }
 
     try {
@@ -314,14 +319,14 @@ app.post('/api/signup', async (req, res) => {
         const { rows } = await pool.query(sql, params);
         const userId = rows[0].id;
 
-        res.status(201).json({ message: 'User created successfully.', userId });
+        res.status(201).json({ message: 'تم إنشاء الحساب بنجاح.', userId });
     } catch (err) {
         console.error('Error inserting user:', err);
         // PostgreSQL duplicate key error code is '23505'
         if (err.code === '23505') {
-            return res.status(409).json({ error: 'This email is already registered.' });
+            return res.status(409).json({ error: 'هذا البريد الإلكتروني مسجل بالفعل.' });
         }
-        return res.status(500).json({ error: 'Could not create account.' });
+        return res.status(500).json({ error: 'تعذر إنشاء الحساب.' });
     }
 });
 
@@ -330,7 +335,7 @@ app.post('/api/login', async (req, res) => {
     const { email, password } = req.body;
 
     if (!email || !password) {
-        return res.status(400).json({ error: 'Email and password are required.' });
+        return res.status(400).json({ error: 'البريد الإلكتروني وكلمة المرور مطلوبة.' });
     }
 
     const sql = `SELECT id, name, email, password, is_admin FROM users WHERE email = $1`;
@@ -339,25 +344,25 @@ app.post('/api/login', async (req, res) => {
         const user = rows[0];
 
         if (!user) {
-            return res.status(401).json({ error: 'Invalid email or password.' });
+            return res.status(401).json({ error: 'البريد الإلكتروني أو كلمة المرور غير صحيحة.' });
         }
 
         const match = await bcrypt.compare(password, user.password);
 
         if (match) {
             res.json({ 
-                message: 'Login successful.', 
+                message: 'تم تسجيل الدخول بنجاح.', 
                 userId: user.id, 
                 userName: user.name, 
                 email: user.email,
                 isAdmin: user.is_admin === 1
             });
         } else {
-            res.status(401).json({ error: 'Invalid email or password.' });
+            res.status(401).json({ error: 'البريد الإلكتروني أو كلمة المرور غير صحيحة.' });
         }
     } catch (err) {
         console.error('Error fetching user:', err);
-        return res.status(500).json({ error: 'Server error. Please try again later.' });
+        return res.status(500).json({ error: 'خطأ في الخادم. يرجى المحاولة لاحقاً.' });
     }
 });
 
