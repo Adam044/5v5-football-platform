@@ -12,15 +12,13 @@ const port = process.env.PORT || 3002;
 const saltRounds = 10;
 
 // =========================================================
-// FIX: Implement robust CORS handler similar to Saloony, ensuring both
-// custom domain and Render subdomain are always allowed.
+// CRITICAL FIX: CORS and OPTIONS handling for deployment (Reverted and fixed)
 // =========================================================
 app.use((req, res, next) => {
-    // List all allowed origins dynamically, including the live domain and the Render subdomain.
+    // Define allowed origins
     const allowedOrigins = new Set([
         'https://www.5v5games.com',
         'https://5v5games.com',
-        'https://fivev5-football-platform.onrender.com', // RENDER SUBDOMAIN
         'http://localhost:3002',
         'http://127.0.0.1:3002',
         'http://localhost',
@@ -28,26 +26,23 @@ app.use((req, res, next) => {
     ]);
 
     const origin = req.headers.origin;
-    
-    // 1. Check if the origin is in the allowed set
     if (origin && allowedOrigins.has(origin)) {
         res.header('Access-Control-Allow-Origin', origin);
-    } else if (process.env.NODE_ENV !== 'production' || !origin) {
-        // 2. Fallback for non-production environments or requests without origin (internal/testing)
-        res.header('Access-Control-Allow-Origin', '*'); 
     }
-
+    // Vary on Origin for caches
     res.header('Vary', 'Origin');
+    // Allow credentials for session/cookies if needed
     res.header('Access-Control-Allow-Credentials', 'true');
-    
-    // Methods and Headers needed for preflight (OPTIONS) requests
-    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, X-User-Id, Authorization');
+    // Methods
+    const reqMethod = req.headers['access-control-request-method'];
+    res.header('Access-Control-Allow-Methods', reqMethod ? reqMethod : 'GET, POST, PUT, DELETE, OPTIONS');
+    // Headers
+    const reqHeaders = req.headers['access-control-request-headers'];
+    res.header('Access-Control-Allow-Headers', reqHeaders ? reqHeaders : 'Origin, X-Requested-With, Content-Type, Accept, X-User-Id, Authorization');
 
-    // CRITICAL: Short-circuit preflight OPTIONS request with 204 status.
+    // Short-circuit preflight
     if (req.method === 'OPTIONS') {
-        // This ensures the browser receives the necessary CORS headers before the actual request.
-        return res.sendStatus(204); 
+        return res.sendStatus(204);
     }
     next();
 });
@@ -104,7 +99,6 @@ app.use(express.static(path.join(__dirname, 'components')));
                 reservation_type TEXT,
                 user_id INTEGER REFERENCES users(id) ON DELETE SET NULL
             );
-            
             -- MATCHMAKING_REQUESTS Table
             CREATE TABLE IF NOT EXISTS matchmaking_requests (
                 id SERIAL PRIMARY KEY,
@@ -118,10 +112,9 @@ app.use(express.static(path.join(__dirname, 'components')));
                 players_needed INTEGER,
                 created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
             );
-            
             -- Ensure matchmaking_requests allows NULL times for day-only matching
-            ALTER TABLE matchmaking_REQUESTS ALTER COLUMN start_time DROP NOT NULL;
-            ALTER TABLE matchmaking_REQUESTS ALTER COLUMN end_time DROP NOT NULL;
+            ALTER TABLE matchmaking_requests ALTER COLUMN start_time DROP NOT NULL;
+            ALTER TABLE matchmaking_requests ALTER COLUMN end_time DROP NOT NULL;
             
             -- TOURNAMENTS Table
             CREATE TABLE IF NOT EXISTS tournaments (
@@ -207,9 +200,6 @@ app.use(express.static(path.join(__dirname, 'components')));
             -- Cleanup of redundant legacy tables (if they exist)
             DROP TABLE IF EXISTS tournament_participations;
             DROP TABLE IF EXISTS team_session_members; -- Replacing with tournament_team_members
-            
-            -- Add new foreign key to matchmaking_requests
-            ALTER TABLE matchmaking_requests ADD COLUMN IF NOT EXISTS team_session_id INTEGER REFERENCES team_sessions(id) ON DELETE SET NULL;
         `);
         
         console.log('Database schema successfully initialized/checked.');
@@ -1056,8 +1046,7 @@ app.get('/api/tournaments/:tournamentId/teams', async (req, res) => {
                 u.name as captain_name,
                 tt.registration_date,
                 tt.status,           -- Added status
-                tt.invitation_code,   -- Added invitation code for joining/viewing link
-                tt.captain_id
+                tt.invitation_code   -- Added invitation code for joining/viewing link
             FROM tournament_teams tt
             JOIN users u ON tt.captain_id = u.id
             WHERE tt.tournament_id = $1 
@@ -1415,7 +1404,6 @@ app.post('/api/team-building/initiate', async (req, res) => {
                 WHERE field_id = $1 AND slot_date = $2 AND start_time = $3 AND is_reserved = 1 
                 FOR UPDATE NOWAIT
             `;
-            // Using a standard query here, not FOR UPDATE NOWAIT, as we don't want to block, just check.
             const resCheck = await client.query(checkSlotSql, [fieldId, slotDate, startTime]);
             slotRows = resCheck.rows;
         }
@@ -1542,38 +1530,19 @@ app.post('/api/team-building/join', async (req, res) => {
             return res.status(400).json({ error: 'User already in this team session.' });
         }
         
-        // 3. Check for team capacity limit
-        const countSql = `SELECT COUNT(*) as count FROM team_members WHERE session_id = $1 AND team_designation = $2`;
-        const countResult = await client.query(countSql, [session.id, teamDesignation]);
-        const currentTeamCount = parseInt(countResult.rows[0].count);
-        
-        let maxTeamSize = 0;
-
-        if (session.booking_type === 'two_teams_ready') {
-            maxTeamSize = 6; // 6 players per side (Team A or Team B)
-        } else if (session.booking_type === 'team_vs_team') {
-            maxTeamSize = 6; // Total team size is 6 (Team 'single' is forming)
-            if (teamDesignation !== 'single') {
-                 await client.query("ROLLBACK");
-                 return res.status(400).json({ error: 'Invalid team designation for this booking type.' });
+        // 3. Check for team capacity limit (Option 3 only: team_looking_for_players max 5)
+        if (session.booking_type === 'team_looking_for_players') {
+            const countSql = `SELECT COUNT(*) as current_count FROM team_members WHERE session_id = $1 AND team_designation = 'single'`;
+            const countResult = await client.query(countSql, [session.id]);
+            const currentCount = parseInt(countResult.rows[0].current_count);
+            
+            if (currentCount >= 5) {
+                await client.query("ROLLBACK");
+                return res.status(400).json({ error: 'Team is full (max 5 players).' });
             }
-        } else if (session.booking_type === 'team_looking_for_players') {
-            maxTeamSize = 5; // Total team size is 5 (Team 'single' is forming)
-            if (teamDesignation !== 'single') {
-                 await client.query("ROLLBACK");
-                 return res.status(400).json({ error: 'Invalid team designation for this booking type.' });
-            }
-        } else {
-             await client.query("ROLLBACK");
-             return res.status(400).json({ error: 'Unknown booking type.' });
-        }
+        } 
 
-        if (currentTeamCount >= maxTeamSize) {
-            await client.query("ROLLBACK");
-            return res.status(400).json({ error: `Team ${teamDesignation} is full. Max size is ${maxTeamSize}.` });
-        }
-        
-        // 4. Add user to team
+        // 4. Add member
         const addMemberSql = `
             INSERT INTO team_members (session_id, user_id, team_designation)
             VALUES ($1, $2, $3)
@@ -1581,300 +1550,539 @@ app.post('/api/team-building/join', async (req, res) => {
         
         await client.query(addMemberSql, [session.id, userId, teamDesignation]);
 
-        // 5. If it's a 'two_teams_ready' session, check if both teams are full (6+6) and auto-reserve the slot
-        let isReserved = false;
-        if (session.booking_type === 'two_teams_ready') {
-             // Check Team A count
-             const teamACountQuery = `SELECT COUNT(*) FROM team_members WHERE session_id = $1 AND team_designation = 'A'`;
-             const teamACountRes = await client.query(teamACountQuery, [session.id]);
-             const teamACount = parseInt(teamACountRes.rows[0].count);
-             
-             // Check Team B count
-             const teamBCountQuery = `SELECT COUNT(*) FROM team_members WHERE session_id = $1 AND team_designation = 'B'`;
-             const teamBCountRes = await client.query(teamBCountQuery, [session.id]);
-             const teamBCount = parseInt(teamBCountRes.rows[0].count);
-             
-             if (teamACount === 6 && teamBCount === 6) {
-                 // Teams are full, reserve the slot
-                 const updateSlotSql = `
-                     UPDATE availability_slots 
-                     SET is_reserved = 1, reservation_type = 'two_teams_ready', user_id = $1
-                     WHERE field_id = $2 AND slot_date = $3 AND start_time = $4 AND is_reserved = 0
-                     RETURNING id
-                 `;
-                 const updateResult = await client.query(updateSlotSql, [
-                     session.creator_id, session.field_id, session.slot_date, session.start_time
-                 ]);
-                 
-                 if (updateResult.rowCount > 0) {
-                     // Insert reservation record
-                     const insertReservationSql = `
-                         INSERT INTO reservations (user_id, field_id, slot_date, start_time, end_time, booking_type, session_id)
-                         VALUES ($1, $2, $3, $4, $5, 'two_teams_ready', $6)
-                     `;
-                     await client.query(insertReservationSql, [
-                         session.creator_id, session.field_id, session.slot_date, session.start_time, session.end_time, session.id
-                     ]);
-                     
-                     // Update session status
-                     await client.query(`UPDATE team_sessions SET status = 'completed' WHERE id = $1`, [session.id]);
-                     isReserved = true;
-                 } else {
-                     // Slot was taken by another transaction simultaneously
-                     await client.query("ROLLBACK");
-                     client.release();
-                     return res.status(409).json({ error: 'Successfully joined team, but failed to reserve the slot (slot was taken).' });
-                 }
-             }
-        }
-
         await client.query("COMMIT");
-        res.json({ message: isReserved ? 'Successfully joined team. The full field has been reserved!' : 'Successfully joined team', isReserved });
-        
+        res.json({ message: 'Successfully joined team.' });
+
     } catch (err) {
         await client.query("ROLLBACK");
-        // Check for unique constraint violation (user already in team, though checked above for robustness)
-        if (err.code === '23505') { 
-            return res.status(400).json({ error: 'User already in this team session.' });
-        }
-        console.error('Error joining team session:', err);
-        return res.status(500).json({ error: 'Failed to join team session' });
+        console.error('Transaction error joining team:', err);
+        return res.status(500).json({ error: 'Failed to join team.' });
     } finally {
         client.release();
     }
 });
 
-// Leave Team Building Session
-app.post('/api/team-building/leave', async (req, res) => {
-    const { invitationCode, userId } = req.body;
-
-    if (!invitationCode || !userId) {
+// Remove Player from Team Building Session
+app.post('/api/team-building/remove-player', async (req, res) => {
+    const { invitationCode, userId, targetUserId } = req.body;
+    
+    if (!invitationCode || !userId || !targetUserId) {
         return res.status(400).json({ error: 'Missing required fields.' });
     }
-
-    const client = await pool.connect();
-    try {
-        await client.query("BEGIN");
-
-        // 1. Get the session details (FOR UPDATE lock)
-        const sessionSql = `SELECT id, creator_id, status FROM team_sessions WHERE invitation_code = $1 FOR UPDATE`;
-        const { rows: sessionRows } = await client.query(sessionSql, [invitationCode]);
-        const session = sessionRows[0];
-
-        if (!session || session.status !== 'active') {
-            await client.query("ROLLBACK");
-            return res.status(404).json({ error: 'Team session not found or inactive.' });
-        }
-
-        // 2. Remove the user from the team
-        const removeSql = `DELETE FROM team_members WHERE session_id = $1 AND user_id = $2 RETURNING user_id`;
-        const result = await client.query(removeSql, [session.id, userId]);
-
-        if (result.rowCount === 0) {
-            await client.query("ROLLBACK");
-            return res.status(400).json({ error: 'User not found in this team session.' });
-        }
-        
-        let sessionCancelled = false;
-
-        // 3. Check if the creator left, if so, cancel the session
-        if (parseInt(session.creator_id) === parseInt(userId)) {
-             // Update session status to cancelled
-            await client.query(`UPDATE team_sessions SET status = 'cancelled' WHERE id = $1`, [session.id]);
-            
-            // Delete the reservation record if it exists (for two_teams_ready sessions)
-            await client.query('DELETE FROM reservations WHERE session_id = $1', [session.id]);
-            
-            // If the session had a reserved slot, free it up
-            const freeSlotSql = `
-                UPDATE availability_slots
-                SET is_reserved = 0, user_id = NULL, reservation_type = NULL
-                WHERE user_id = $1 
-                AND EXISTS (
-                    SELECT 1 FROM team_sessions ts 
-                    WHERE ts.id = $2 AND ts.field_id = availability_slots.field_id
-                    AND ts.slot_date = availability_slots.slot_date
-                    AND ts.start_time = availability_slots.start_time
-                )
-            `;
-            // Note: This relies on the creator_id being set as user_id in the availability slot during reservation
-            await client.query(freeSlotSql, [userId, session.id]); 
-            sessionCancelled = true;
-        
-        } else {
-            // 4. Check if team is now empty (excluding the creator check above)
-            const countSql = `SELECT COUNT(*) FROM team_members WHERE session_id = $1`;
-            const countResult = await client.query(countSql, [session.id]);
-            
-            if (parseInt(countResult.rows[0].count) === 0) {
-                // Should not happen if the creator hasn't left and isn't checked here, 
-                // but if all *other* members leave, the session can still exist for the creator.
-                // We only cancel if the *creator* leaves.
-            }
-        }
-        
-        await client.query("COMMIT");
-        res.json({ 
-            message: sessionCancelled ? 'Session creator left, session cancelled successfully.' : 'Successfully left team session.',
-            sessionCancelled 
-        });
-
-    } catch (err) {
-        await client.query("ROLLBACK");
-        console.error('Error leaving team session:', err);
-        return res.status(500).json({ error: 'Failed to leave team session' });
-    } finally {
-        client.release();
-    }
-});
-
-
-// Finalize Booking (team_vs_team or team_looking_for_players)
-// This endpoint is used by the creator/captain when they decide to book the field
-// regardless of whether they reached the full target size.
-app.post('/api/team-building/finalize-booking', async (req, res) => {
-    const { invitationCode, userId, slotId } = req.body;
     
-    if (!invitationCode || !userId || !slotId) {
-        return res.status(400).json({ error: 'Missing required fields (invitationCode, userId, slotId).' });
-    }
-
     const client = await pool.connect();
     try {
         await client.query("BEGIN");
-
-        // 1. Get session and check if user is the creator (FOR UPDATE lock)
-        const sessionSql = `
-            SELECT ts.*, f.price_per_hour
-            FROM team_sessions ts
-            JOIN fields f ON ts.field_id = f.id
-            WHERE ts.invitation_code = $1 AND ts.status = 'active' FOR UPDATE
-        `;
-        const { rows: sessionRows } = await client.query(sessionSql, [invitationCode]);
+        
+        // 1. Get session and verify user is creator (FOR UPDATE lock)
+        const sessionSql = `SELECT * FROM team_sessions WHERE invitationCode = $1 AND creator_id = $2 AND status = 'active' FOR UPDATE`;
+        const { rows: sessionRows } = await client.query(sessionSql, [invitationCode, userId]);
         const session = sessionRows[0];
 
         if (!session) {
             await client.query("ROLLBACK");
-            return res.status(404).json({ error: 'Team session not found or inactive.' });
+            return res.status(403).json({ error: 'Unauthorized or session not found.' });
         }
         
-        if (parseInt(session.creator_id) !== parseInt(userId)) {
-            await client.query("ROLLBACK");
-            return res.status(403).json({ error: 'Unauthorized. Only the session creator can finalize the booking.' });
+        // Prevent creator from removing themselves
+        if (parseInt(targetUserId) === parseInt(userId)) {
+             await client.query("ROLLBACK");
+             return res.status(400).json({ error: 'Cannot remove the team creator.' });
         }
         
-        // This endpoint only works for sessions that require manual booking after team formation
-        if (session.booking_type === 'two_teams_ready') {
+        // 2. Remove the target user
+        const removeSql = `DELETE FROM team_members WHERE session_id = $1 AND user_id = $2`;
+        
+        const removeResult = await client.query(removeSql, [session.id, targetUserId]);
+        
+        if (removeResult.rowCount === 0) {
             await client.query("ROLLBACK");
-            return res.status(400).json({ error: 'This session type is auto-booked when teams are full.' });
+            return res.status(404).json({ error: 'Player not found in this session.' });
         }
         
-        // 2. Check and reserve the slot
-        // Use FOR UPDATE NOWAIT to immediately fail if the slot is locked by another transaction
-        const checkSlotSql = `SELECT * FROM availability_slots WHERE id = $1 AND is_reserved = 0 FOR UPDATE NOWAIT`;
-        const checkResult = await client.query(checkSlotSql, [slotId]);
-        const slot = checkResult.rows[0];
+        await client.query("COMMIT");
+        res.json({ message: 'Player removed successfully.' });
         
-        if (!slot) {
+    } catch (err) {
+        await client.query("ROLLBACK");
+        console.error('Transaction error removing player:', err);
+        return res.status(500).json({ error: 'Failed to remove player.' });
+    } finally {
+        client.release();
+    }
+});
+
+// Option 1: Confirm Booking (Two Teams Ready)
+app.post('/api/team-building/confirm-booking', async (req, res) => {
+    const { invitationCode, userId } = req.body;
+    
+    if (!invitationCode || !userId) {
+        return res.status(400).json({ error: 'Missing required fields.' });
+    }
+    
+    const client = await pool.connect();
+    try {
+        await client.query("BEGIN");
+        
+        // 1. Get session, verify user is creator, and check booking type (FOR UPDATE lock)
+        const sessionSql = `
+            SELECT * FROM team_sessions 
+            WHERE invitation_code = $1 AND creator_id = $2 AND status = 'active' AND booking_type = 'two_teams_ready'
+            FOR UPDATE
+        `;
+        
+        const { rows: sessionRows } = await client.query(sessionSql, [invitationCode, userId]);
+        const session = sessionRows[0];
+
+        if (!session) {
             await client.query("ROLLBACK");
-            // If row not found (404) or locked (55P03 caught in catch block)
-            return res.status(409).json({ error: 'The selected time slot is already reserved or not available.' });
+            return res.status(403).json({ error: 'Unauthorized, session not found, or booking type mismatch.' });
+        }
+        
+        // 2. Check player counts
+        const countSql = `SELECT team_designation, COUNT(*) as count FROM team_members WHERE session_id = $1 GROUP BY team_designation`;
+        const { rows: countResults } = await client.query(countSql, [session.id]);
+        
+        const teamA = countResults.find(r => r.team_designation === 'A')?.count || 0;
+        const teamB = countResults.find(r => r.team_designation === 'B')?.count || 0;
+        
+        if (teamA < 6 || teamB < 6) {
+            await client.query("ROLLBACK");
+            return res.status(400).json({ error: 'Reservation failed: Both teams must have at least 6 players (6v6 minimum).' });
         }
 
-        // Ensure the slot matches the session's field and date (if date-only match)
-        if (parseInt(slot.field_id) !== parseInt(session.field_id) || slot.slot_date !== session.slot_date) {
-            await client.query("ROLLBACK");
-            return res.status(400).json({ error: 'The selected slot does not match the session details.' });
-        }
-
-        // Update the slot
-        const updateSlotSql = `
+        // 3. Create availability slot reservation
+        const reserveSql = `
             UPDATE availability_slots 
             SET is_reserved = 1, reservation_type = $1, user_id = $2 
-            WHERE id = $3
+            WHERE field_id = $3 AND slot_date = $4 AND start_time = $5 AND is_reserved = 0
         `;
-        await client.query(updateSlotSql, [session.booking_type, userId, slotId]);
-
-        // 3. Insert reservation record
+        
+        const reserveResult = await client.query(reserveSql, [
+            'two_teams_ready', 
+            userId, 
+            session.field_id, 
+            session.slot_date, 
+            session.start_time
+        ]);
+        
+        if (reserveResult.rowCount === 0) {
+            await client.query("ROLLBACK");
+            return res.status(409).json({ error: 'Failed to reserve the slot. It may already be taken.' });
+        }
+        
+        // 4. Insert into reservations table (confirmed booking)
         const insertReservationSql = `
             INSERT INTO reservations (user_id, field_id, slot_date, start_time, end_time, booking_type, session_id)
             VALUES ($1, $2, $3, $4, $5, $6, $7)
             RETURNING id
         `;
-        const reservationResult = await client.query(insertReservationSql, [
-            userId, slot.field_id, slot.slot_date, slot.start_time, slot.end_time, session.booking_type, session.id
+        const insertReservationRes = await client.query(insertReservationSql, [
+            userId,
+            session.field_id,
+            session.slot_date,
+            session.start_time,
+            session.end_time,
+            'two_teams_ready',
+            session.id
         ]);
-        const reservationId = reservationResult.rows[0].id;
+
+        // 5. Update session status
+        const updateSessionSql = `UPDATE team_sessions SET status = 'completed' WHERE id = $1`;
+        await client.query(updateSessionSql, [session.id]);
         
-        // 4. Update team session with the confirmed time/reservation info and set status to completed
-        const updateSessionSql = `
-            UPDATE team_sessions 
-            SET status = 'completed', start_time = $1, end_time = $2
-            WHERE id = $3
-        `;
-        await client.query(updateSessionSql, [slot.start_time, slot.end_time, session.id]);
-
-
-        // 5. Create a matchmaking request to find the opponents if needed
-        if (session.booking_type === 'team_vs_team' || session.booking_type === 'team_looking_for_players') {
-            
-            // Count current players in the session
-            const countSql = `SELECT COUNT(*) as count FROM team_members WHERE session_id = $1`;
-            const countResult = await client.query(countSql, [session.id]);
-            const currentPlayers = parseInt(countResult.rows[0].count);
-            
-            let needed = 0;
-            let matchmakingType = '';
-
-            if (session.booking_type === 'team_vs_team') {
-                // Team of N players booked. Now look for an opponent team (6 players).
-                needed = 6; 
-                matchmakingType = 'team_looking_for_opponent'; // New type for clarity
-            } else if (session.booking_type === 'team_looking_for_players') {
-                // Team of N players booked. Look for (5 - N) individual players.
-                needed = 5 - currentPlayers; 
-                matchmakingType = 'players_looking_for_team';
-            }
-            
-            if (needed > 0) {
-                 const insertMatchmakingSql = `
-                     INSERT INTO matchmaking_requests (
-                         user_id, field_id, slot_date, start_time, end_time, request_type, players_needed, team_session_id
-                     ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-                     RETURNING id
-                 `;
-                 await client.query(insertMatchmakingSql, [
-                     userId, slot.field_id, slot.slot_date, slot.start_time, slot.end_time, matchmakingType, needed, session.id
-                 ]);
-            }
-        }
-
-
         await client.query("COMMIT");
-        res.json({ message: 'Booking confirmed and session finalized!', reservationId });
-
+        res.json({ message: 'Booking confirmed successfully!', reservationId: insertReservationRes.rows[0].id });
+        
     } catch (err) {
         await client.query("ROLLBACK");
-        if (err.code === '55P03') { // PostgreSQL lock error for NOWAIT (slot was locked by another transaction)
-             return res.status(409).json({ error: 'The selected slot was just taken by another user. Please choose another time.' });
+        console.error('Transaction error confirming booking:', err);
+        return res.status(500).json({ error: 'Failed to complete booking: ' + err.message });
+    } finally {
+        client.release();
+    }
+});
+
+// Option 2 & 3: Submit Matchmaking Request
+app.post('/api/team-building/submit-matchmaking', async (req, res) => {
+    const { invitationCode, userId, currentPlayers } = req.body;
+    
+    if (!invitationCode || !userId || typeof currentPlayers !== 'number') {
+        return res.status(400).json({ error: 'Missing required fields or invalid player count.' });
+    }
+    
+    const client = await pool.connect();
+    try {
+        await client.query("BEGIN");
+
+        // 1. Get session and verify user is creator (FOR UPDATE lock)
+        const sessionSql = `
+            SELECT * FROM team_sessions 
+            WHERE invitation_code = $1 AND creator_id = $2 AND status = 'active' 
+            AND booking_type IN ('team_vs_team', 'team_looking_for_players')
+            FOR UPDATE
+        `;
+        
+        const { rows: sessionRows } = await client.query(sessionSql, [invitationCode, userId]);
+        const session = sessionRows[0];
+
+        if (!session) {
+            await client.query("ROLLBACK");
+            return res.status(403).json({ error: 'Unauthorized, session not found, or booking type mismatch.' });
         }
-        console.error('Transaction error finalizing booking:', err);
-        return res.status(500).json({ error: 'Failed to finalize booking due to a server error.' });
+        
+        const bookingType = session.booking_type;
+        const requiredMin = bookingType === 'team_vs_team' ? 6 : 3;
+
+        if (currentPlayers < requiredMin) {
+            await client.query("ROLLBACK");
+            return res.status(400).json({ error: `Matchmaking failed: Team must have at least ${requiredMin} players.` });
+        }
+
+        // 2. Calculate players needed for the *matchmaking pool*
+        const playersNeededForPool = getPlayersNeededForMatchmaking(bookingType, currentPlayers);
+
+        // 3. Create matchmaking request
+        const matchmakingSql = `
+            INSERT INTO matchmaking_requests (user_id, field_id, slot_date, start_time, end_time, request_type, players_needed)
+            VALUES ($1, $2, $3, NULL, NULL, $4, $5)
+            RETURNING id
+        `;
+        
+        await client.query(matchmakingSql, [
+            userId, 
+            session.field_id, 
+            session.slot_date, 
+            bookingType, 
+            playersNeededForPool
+        ]);
+        
+        // 4. Update session status
+        const updateSessionSql = `UPDATE team_sessions SET status = 'completed' WHERE id = $1`;
+        await client.query(updateSessionSql, [session.id]);
+        
+        await client.query("COMMIT");
+        res.json({ message: 'Matchmaking request submitted successfully!' });
+        
+    } catch (err) {
+        await client.query("ROLLBACK");
+        console.error('Transaction error submitting matchmaking request:', err);
+        return res.status(500).json({ error: 'Failed to create matchmaking request: ' + err.message });
     } finally {
         client.release();
     }
 });
 
 
-// Final catch-all for unknown API routes
-app.use((req, res) => {
-    res.status(404).json({ error: 'Route not found' });
+// --- Other API Endpoints (Admin Matchmaking) ---
+console.log('Registering admin matchmaking and tournament routes...');
+
+app.get('/api/admin/matchmaking/suggestions', checkAdmin, async (req, res) => {
+    const sql = `
+        SELECT
+            p.user_id AS player_id,
+            player_user.name AS player_name,
+            t.user_id AS team_id,
+            team_user.name AS team_name,
+            p.slot_date,
+            -- time removed for day-only matching
+            field.name AS field_name
+        FROM matchmaking_requests p
+        INNER JOIN matchmaking_requests t
+            ON p.slot_date = t.slot_date
+            AND p.field_id = t.field_id
+        INNER JOIN users AS player_user
+            ON p.user_id = player_user.id
+        INNER JOIN users AS team_user
+            ON t.user_id = team_user.id
+        INNER JOIN fields AS field
+            ON p.field_id = f.id
+        WHERE p.request_type = 'players_looking_for_team'
+            AND t.request_type = 'team_looking_for_players'
+            AND p.status = 'pending'
+            AND t.status = 'pending'
+    `;
+    try {
+        const { rows } = await pool.query(sql);
+        res.json({ suggestions: rows });
+    } catch (err) {
+        console.error('Error fetching matchmaking suggestions:', err);
+        return res.status(500).json({ error: err.message });
+    }
+});
+
+// Admin: Get categorized matchmaking requests and potential matches
+app.get('/api/admin/matchmaking/categorized', checkAdmin, async (req, res) => {
+    console.log('Hit /api/admin/matchmaking/categorized');
+    try {
+        // Fetch pending requests for each category
+        const teamLookingSql = `
+            SELECT mr.id, mr.user_id, u.name AS user_name, mr.field_id, f.name AS field_name,
+                   mr.slot_date, mr.request_type, mr.status, mr.players_needed
+            FROM matchmaking_requests mr
+            JOIN users u ON mr.user_id = u.id
+            JOIN fields f ON mr.field_id = f.id
+            WHERE mr.request_type = 'team_looking_for_players'
+        `;
+
+        const teamVsTeamSql = `
+            SELECT mr.id, mr.user_id, u.name AS user_name, mr.field_id, f.name AS field_name,
+                   mr.slot_date, mr.request_type, mr.status, mr.players_needed
+            FROM matchmaking_requests mr
+            JOIN users u ON mr.user_id = u.id
+            JOIN fields f ON mr.field_id = f.id
+            WHERE mr.request_type = 'team_vs_team'
+        `;
+
+        const playersLookingSql = `
+            SELECT mr.id, mr.user_id, u.name AS user_name, mr.field_id, f.name AS field_name,
+                   mr.slot_date, mr.request_type, mr.status, mr.players_needed
+            FROM matchmaking_requests mr
+            JOIN users u ON mr.user_id = u.id
+            JOIN fields f ON mr.field_id = f.id
+            WHERE mr.request_type = 'players_looking_for_team'
+        `;
+
+        const [teamLookingRows, teamVsTeamRows, playersLookingRows] = await Promise.all([
+            pool.query(teamLookingSql).then(r => r.rows),
+            pool.query(teamVsTeamSql).then(r => r.rows),
+            pool.query(playersLookingSql).then(r => r.rows),
+        ]);
+
+        // Build potential matches similar to suggestions but enriched for UI
+        const suggestionsSql = `
+            SELECT
+                t.id AS team_request_id,
+                t.user_id AS team_user_id,
+                team_user.name AS team_user_name,
+                team_user.phone_number AS team_phone_number,
+                t.slot_date,
+                f.name AS field_name,
+                t.players_needed AS team_players_needed,
+
+                p.id AS player_request_id,
+                p.user_id AS player_user_id,
+                player_user.name AS player_user_name
+            FROM matchmaking_requests p
+            INNER JOIN matchmaking_requests t
+                ON p.slot_date = t.slot_date
+                AND p.field_id = t.field_id
+            INNER JOIN users AS player_user
+                ON p.user_id = player_user.id
+            INNER JOIN users AS team_user
+                ON t.user_id = team_user.id
+            INNER JOIN fields AS f
+                ON p.field_id = f.id
+            WHERE p.request_type = 'players_looking_for_team'
+                AND t.request_type = 'team_looking_for_players'
+                AND p.status = 'pending'
+                AND t.status = 'pending'
+        `;
+
+        const suggestionsRows = await pool.query(suggestionsSql).then(r => r.rows);
+
+        const potentialMatches = suggestionsRows.map(row => ({
+            teamRequest: {
+                id: row.team_request_id,
+                user_id: row.team_user_id,
+                user_name: row.team_user_name,
+                phone_number: row.team_phone_number,
+                slot_date: row.slot_date,
+                field_name: row.field_name,
+                players_needed: row.team_players_needed,
+            },
+            playerRequest: {
+                id: row.player_request_id,
+                user_id: row.player_user_id,
+                user_name: row.player_user_name,
+            }
+        }));
+
+        res.json({
+            team_looking_for_players: teamLookingRows,
+            team_vs_team: teamVsTeamRows,
+            players_looking_for_team: playersLookingRows,
+            potential_matches: potentialMatches,
+        });
+    } catch (err) {
+        console.error('Error fetching categorized matchmaking:', err);
+        return res.status(500).json({ error: 'Failed to fetch categorized matchmaking.' });
+    }
+});
+
+// Admin: List all tournaments with field info
+app.get('/api/admin/tournaments', checkAdmin, async (req, res) => {
+    console.log('Hit /api/admin/tournaments');
+    try {
+        const sql = `
+            SELECT t.id, t.name, t.tournament_date, t.prize, f.name AS field_name
+            FROM tournaments t
+            LEFT JOIN fields f ON t.field_id = f.id
+            ORDER BY t.tournament_date DESC, t.id DESC
+        `;
+        const { rows } = await pool.query(sql);
+        res.json({ tournaments: rows });
+    } catch (err) {
+        console.error('Error fetching admin tournaments:', err);
+        return res.status(500).json({ error: 'Failed to fetch tournaments' });
+    }
+});
+
+// Admin: Analytics overview
+app.get('/api/admin/analytics', checkAdmin, async (req, res) => {
+    try {
+        console.log('Admin analytics requested');
+
+        const [usersCountRes, reservationsCountRes, earningsRes, pendingRequestsRes, recentRes] = await Promise.all([
+            pool.query("SELECT COUNT(*) AS count FROM users"),
+            pool.query("SELECT COUNT(*) AS count FROM reservations"),
+            pool.query(`
+                SELECT COALESCE(SUM(f.price_per_hour), 0) AS total
+                FROM reservations r
+                JOIN fields f ON r.field_id = f.id
+            `),
+            pool.query("SELECT COUNT(*) AS count FROM matchmaking_requests WHERE status = 'pending'"),
+            pool.query(`
+                SELECT r.id, u.name AS user_name, f.name AS field_name, r.slot_date, r.start_time, f.price_per_hour
+                FROM reservations r
+                JOIN fields f ON r.field_id = f.id
+                JOIN users u ON r.user_id = u.id
+                ORDER BY r.slot_date DESC, r.start_time DESC
+                LIMIT 5
+            `)
+        ]);
+
+        const totalUsers = parseInt(usersCountRes.rows[0]?.count ?? '0', 10);
+        const totalReservations = parseInt(reservationsCountRes.rows[0]?.count ?? '0', 10);
+        const totalEarnings = Number(earningsRes.rows[0]?.total ?? 0);
+        const pendingRequests = parseInt(pendingRequestsRes.rows[0]?.count ?? '0', 10);
+        const recentReservations = recentRes.rows || [];
+
+        res.json({
+            totalUsers,
+            totalReservations,
+            totalEarnings,
+            pendingRequests,
+            recentReservations
+        });
+    } catch (err) {
+        console.error('Error fetching admin analytics:', err);
+        return res.status(500).json({ error: 'Failed to load analytics' });
+    }
+});
+
+// Admin: Get tournament teams including status
+app.get('/api/admin/tournaments/:tournamentId/teams', checkAdmin, async (req, res) => {
+    console.log('Hit /api/admin/tournaments/:tournamentId/teams', req.params.tournamentId);
+    const { tournamentId } = req.params;
+    try {
+        const tournamentSql = 'SELECT name FROM tournaments WHERE id = $1';
+        const { rows: tournamentRows } = await pool.query(tournamentSql, [tournamentId]);
+        const tournament = tournamentRows[0];
+        if (!tournament) {
+            return res.status(404).json({ success: false, message: 'البطولة غير موجودة' });
+        }
+        const teamsSql = `
+            SELECT 
+                tt.team_name,
+                u.name AS captain_name,
+                tt.registration_date,
+                tt.status
+            FROM tournament_teams tt
+            JOIN users u ON tt.captain_id = u.id
+            WHERE tt.tournament_id = $1
+            ORDER BY tt.registration_date ASC
+        `;
+        const { rows: teams } = await pool.query(teamsSql, [tournamentId]);
+        res.json({ success: true, tournament, teams: teams || [] });
+    } catch (err) {
+        console.error('Error fetching admin tournament teams:', err);
+        return res.status(500).json({ success: false, message: 'خطأ في تحميل الفرق' });
+    }
+});
+
+// Admin: Reject a matchmaking request
+app.post('/api/admin/matchmaking-requests/:requestId/reject', checkAdmin, async (req, res) => {
+    const { requestId } = req.params;
+    try {
+        const sql = `UPDATE matchmaking_requests SET status = 'rejected' WHERE id = $1`;
+        const result = await pool.query(sql, [requestId]);
+        if (result.rowCount === 0) {
+            return res.status(404).json({ error: 'Request not found.' });
+        }
+        res.json({ message: 'Matchmaking request rejected successfully.' });
+    } catch (err) {
+        console.error('Error rejecting matchmaking request:', err);
+        return res.status(500).json({ error: 'Failed to reject request.' });
+    }
+});
+
+app.post('/api/admin/matchmaking-requests/:requestId/approve', checkAdmin, async (req, res) => {
+    const { requestId } = req.params;
+    
+    const client = await pool.connect();
+    try {
+        await client.query("BEGIN");
+
+        // 1. Get the matchmaking request details (FOR UPDATE lock)
+        const getRequestSql = `SELECT * FROM matchmaking_requests WHERE id = $1 FOR UPDATE`;
+        const { rows: reqRows } = await client.query(getRequestSql, [requestId]);
+        const request = reqRows[0];
+
+        if (!request) {
+            await client.query("ROLLBACK");
+            return res.status(404).json({ error: 'Matchmaking request not found.' });
+        }
+        
+        // 2. Find an available slot on the same day (day-only requests have NULL time)
+        let checkSlotSql;
+        let slotRows;
+        if (request.start_time) {
+            checkSlotSql = `
+                SELECT id 
+                FROM availability_slots 
+                WHERE field_id = $1 AND slot_date = $2 AND start_time = $3 AND is_reserved = 0
+                FOR UPDATE NOWAIT
+            `;
+            ({ rows: slotRows } = await client.query(checkSlotSql, [request.field_id, request.slot_date, request.start_time]));
+        } else {
+            checkSlotSql = `
+                SELECT id, start_time, end_time 
+                FROM availability_slots 
+                WHERE field_id = $1 AND slot_date = $2 AND is_reserved = 0
+                ORDER BY start_time ASC
+                FOR UPDATE NOWAIT
+            `;
+            ({ rows: slotRows } = await client.query(checkSlotSql, [request.field_id, request.slot_date]));
+        }
+        const slot = slotRows[0];
+        
+        if (!slot) {
+            await client.query("ROLLBACK");
+            return res.status(400).json({ error: 'The corresponding slot is no longer available or already reserved.' });
+        }
+
+        // 3. Update the matchmaking request status to approved
+        const updateRequestSql = `UPDATE matchmaking_requests SET status = 'approved' WHERE id = $1`;
+        await client.query(updateRequestSql, [requestId]);
+        
+        // 4. Update the availability slot
+        const updateSlotSql = `UPDATE availability_slots SET is_reserved = 1, reservation_type = $1, user_id = $2 WHERE id = $3`;
+        await client.query(updateSlotSql, [request.request_type, request.user_id, slot.id]);
+        
+        await client.query("COMMIT");
+        res.json({ message: 'Matchmaking request approved and slot reserved successfully!' });
+
+    } catch (err) {
+        await client.query("ROLLBACK");
+        console.error('Transaction error approving matchmaking request:', err);
+        return res.status(500).json({ error: 'Failed to approve request.' });
+    } finally {
+        client.release();
+    }
 });
 
 // Start the server
 app.listen(port, () => {
-    console.log(`Server running on port ${port}`);
+    console.log(`Server is running at http://localhost:${port}`);
 });
-
-// Export the app for testing purposes
-module.exports = app;
