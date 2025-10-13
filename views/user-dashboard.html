@@ -670,6 +670,17 @@ document.getElementById('gender').value = user.gender === 'male' ? 'ذكر' : us
             const createdList = document.getElementById('created-list');
             const joinedList = document.getElementById('joined-list');
 
+            // Sort by slot_date descending (most recent first)
+            const compareByDateDesc = (a, b) => {
+                const da = new Date(a && a.slot_date);
+                const db = new Date(b && b.slot_date);
+                const ta = isNaN(da) ? 0 : da.getTime();
+                const tb = isNaN(db) ? 0 : db.getTime();
+                return tb - ta;
+            };
+            const createdSorted = Array.isArray(created) ? [...created].sort(compareByDateDesc) : [];
+            const joinedSorted = Array.isArray(joined) ? [...joined].sort(compareByDateDesc) : [];
+
             const makeItem = (item) => {
                 const typeIconMap = {
                     team_looking_for_players: 'fa-users',
@@ -718,8 +729,8 @@ document.getElementById('gender').value = user.gender === 'male' ? 'ذكر' : us
                 </div>`;
             };
 
-            createdList.innerHTML = created.length ? created.map(makeItem).join('') : `<div class="p-4 text-gray-500">لا توجد طلبات أنشأتها.</div>`;
-            joinedList.innerHTML = joined.length ? joined.map(makeItem).join('') : `<div class="p-4 text-gray-500">لا توجد طلبات انضممت إليها.</div>`;
+            createdList.innerHTML = createdSorted.length ? createdSorted.map(makeItem).join('') : `<div class="p-4 text-gray-500">لا توجد طلبات أنشأتها.</div>`;
+            joinedList.innerHTML = joinedSorted.length ? joinedSorted.map(makeItem).join('') : `<div class="p-4 text-gray-500">لا توجد طلبات انضممت إليها.</div>`;
         }
 
         function initMatchmakingTabs() {

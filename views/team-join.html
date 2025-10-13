@@ -453,6 +453,20 @@
                     تأكيد الحجز النهائي
                 </button>
             </div>
+    </div>
+    </div>
+
+    <!-- Global Confirmation Modal (Shown to all participants on completion) -->
+    <div id="global-confirmation-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-2xl shadow-3xl w-full max-w-md relative p-8 confirmation-modal-content border-b-4 border-blue-600">
+            <button onclick="closeGlobalConfirmationModal()" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 transition-colors duration-300 rounded-full bg-gray-100 p-2 hover:bg-gray-200">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <h3 id="global-modal-title" class="text-3xl font-bold mb-6 text-center text-gray-900"></h3>
+            <p id="global-modal-message" class="text-gray-700 mb-6 text-center"></p>
+            <button onclick="window.location.href='user-dashboard.html'" class="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-colors">
+                <i class="fa-solid fa-gauge ml-2"></i> الذهاب إلى لوحة التحكم
+            </button>
         </div>
     </div>
 
@@ -730,6 +744,18 @@
                 
                 bookingData = data;
                 currentBookingType = bookingData.session.booking_type;
+                // Derive min/max constraints from the session booking type for invitation flows
+                if (currentBookingType === 'team_looking_for_players') {
+                    MIN_TEAM_SIZE = 3;
+                    MAX_TEAM_SIZE = 5;
+                } else if (currentBookingType === 'team_vs_team') {
+                    MIN_TEAM_SIZE = 6;
+                    MAX_TEAM_SIZE = 20; // visual cap handled separately
+                } else {
+                    // two_teams_ready uses per-team min 6; single-team min/max not used
+                    MIN_TEAM_SIZE = 6;
+                    MAX_TEAM_SIZE = 20;
+                }
                 isCreator = bookingData.session.creator_id === parseInt(loggedInUserId);
                 
                 // Sort players into their respective teams
@@ -760,7 +786,21 @@
                     if (pollingInterval) clearInterval(pollingInterval);
                     // If session is completed/cancelled, show success/error message
                     if(bookingData.session.status === 'completed') {
-                         showMessageBox('تم الإكمال', 'تم إكمال هذه الجلسة بنجاح، يرجى مراجعة حجوزاتك.', 'info');
+                        // Show global confirmation modal to all participants based on booking type
+                        const bType = bookingData.session.booking_type;
+                        let title = 'تم الإكمال';
+                        let message = 'تم إكمال هذه الجلسة بنجاح.';
+                        if (bType === 'two_teams_ready') {
+                            title = 'تم تأكيد الحجز';
+                            message = 'تم تأكيد الحجز بنجاح. يمكنك مراجعة حجوزاتك في لوحة التحكم.';
+                        } else if (bType === 'team_vs_team') {
+                            title = 'تم إرسال طلب مباراة';
+                            message = 'تم إرسال طلب مباراة فريق ضد فريق. سنتواصل عند إيجاد خصم مناسب.';
+                        } else if (bType === 'team_looking_for_players') {
+                            title = 'تم إرسال طلب البحث عن لاعبين';
+                            message = 'تم إرسال طلب البحث عن لاعبين بنجاح. سنتواصل عند إيجاد لاعبين مناسبين.';
+                        }
+                        showGlobalConfirmationModal(title, message);
                     }
                 }
 
@@ -1237,23 +1277,23 @@
             let canConfirm = false;
             
             if (currentBookingType === 'two_teams_ready') {
-                // Option 1: Two Teams Ready (Min 6 per team)
-                canConfirm = teamAPlayers.length >= 6 && teamBPlayers.length >= 6;
+                // Option 1: Two Teams Ready (Min per team from session)
+                canConfirm = teamAPlayers.length >= MIN_TEAM_SIZE && teamBPlayers.length >= MIN_TEAM_SIZE;
                 if (canConfirm) {
                     confirmBookingBtn.classList.remove('hidden');
                     confirmBookingBtn.onclick = showBookingConfirmationModal;
                 }
             } else if (currentBookingType === 'team_vs_team') {
-                // Option 2: Team Looking for Team (Min 6)
-                canConfirm = singleTeamPlayers.length >= 6;
+                // Option 2: Team Looking for Team (Min from session)
+                canConfirm = singleTeamPlayers.length >= MIN_TEAM_SIZE;
                 if (canConfirm) {
                     confirmMatchmakingBtn.classList.remove('hidden');
                     confirmMatchmakingBtn.onclick = submitMatchmakingRequest;
                     confirmMatchmakingBtn.innerHTML = '<i class="fa-solid fa-search-plus ml-2"></i> إرسال طلب مباراة فريق ضد فريق';
                 }
             } else if (currentBookingType === 'team_looking_for_players') {
-                // Option 3: Team Looking for Players (Min 3)
-                canConfirm = singleTeamPlayers.length >= 3;
+                // Option 3: Team Looking for Players (Min/Max from session)
+                canConfirm = singleTeamPlayers.length >= MIN_TEAM_SIZE && singleTeamPlayers.length <= MAX_TEAM_SIZE;
                 if (canConfirm) {
                     confirmMatchmakingBtn.classList.remove('hidden');
                     confirmMatchmakingBtn.onclick = submitMatchmakingRequest;
@@ -1411,6 +1451,21 @@
                 confirmBtn.disabled = false;
                 confirmBtn.innerHTML = originalHtml;
             }
+        }
+
+        // --- Global Completion Modal Helpers ---
+        function showGlobalConfirmationModal(title, message) {
+            const modal = document.getElementById('global-confirmation-modal');
+            const titleEl = document.getElementById('global-modal-title');
+            const msgEl = document.getElementById('global-modal-message');
+            titleEl.textContent = title || 'تم الإكمال';
+            msgEl.textContent = message || 'تم إكمال هذه الجلسة بنجاح.';
+            modal.classList.remove('hidden');
+        }
+
+        function closeGlobalConfirmationModal() {
+            const modal = document.getElementById('global-confirmation-modal');
+            modal.classList.add('hidden');
         }
         
         // --- REMOVED ALL TOURNAMENT-SPECIFIC FUNCTIONS ---
