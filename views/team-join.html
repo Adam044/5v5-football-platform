@@ -255,7 +255,7 @@
 
         <!-- Navigation Actions -->
         <div class="flex items-center justify-center mb-6">
-            <a href="index.html" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition flex items-center">
+            <a href="/index.html" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition flex items-center">
                 <i class="fa-solid fa-house ml-2"></i> العودة للصفحة الرئيسية
             </a>
         </div>
@@ -468,7 +468,7 @@
         </div>
     </div>
 
-    <script src="header.js"></script>
+        <script src="/header.js"></script>
     <script>
         const urlParams = new URLSearchParams(window.location.search);
         let invitationCode = null;
@@ -541,10 +541,10 @@
             // If warning and not logged in, show Login/Signup actions
             if (type === 'warning' && !loggedInUserId) {
                 actionsContainer.innerHTML = `
-                    <a href="auth.html?view=sign-in" class="bg-green-600 text-white px-6 py-3 rounded-xl hover:bg-green-700 transition-all duration-300 shadow-md text-lg inline-flex items-center gap-2">
+                    <a href="/auth.html?view=sign-in" class="bg-green-600 text-white px-6 py-3 rounded-xl hover:bg-green-700 transition-all duration-300 shadow-md text-lg inline-flex items-center gap-2">
                         <i class="fa-solid fa-right-to-bracket"></i> تسجيل الدخول
                     </a>
-                    <a href="auth.html?view=sign-up" class="bg-blue-600 text-white px-6 py-3 rounded-xl hover:bg-blue-700 transition-all duration-300 shadow-md text-lg inline-flex items-center gap-2">
+                    <a href="/auth.html?view=sign-up" class="bg-blue-600 text-white px-6 py-3 rounded-xl hover:bg-blue-700 transition-all duration-300 shadow-md text-lg inline-flex items-center gap-2">
                         <i class="fa-solid fa-user-plus"></i> إنشاء حساب
                     </a>
                 `;
@@ -1354,7 +1354,7 @@
                 
                 // Redirect to dashboard after 3 seconds
                 setTimeout(() => {
-                    window.location.href = 'user-dashboard.html';
+                    window.location.href = '/user-dashboard.html';
                 }, 3000);
                 
             } catch (error) {
