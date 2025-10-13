@@ -339,7 +339,7 @@
 
             try {
                 // First attempt: JSON POST
-                const payload = { name, email, phone: phoneNumber, birthdate, gender, password, is_admin: isAdmin };
+                const payload = { name, email, phone: phoneNumber, birthdate, gender, password };
                 let response = await fetch('/api/signup', {
                     method: 'POST',
                     mode: 'cors',
@@ -374,7 +374,7 @@
                     formData.append('birthdate', birthdate);
                     formData.append('gender', gender);
                     formData.append('password', password);
-                    formData.append('is_admin', String(isAdmin));
+                    // is_admin is decided by server; do not send from client
 
                     response = await fetch('/api/signup', {
                         method: 'POST',
@@ -402,8 +402,7 @@
                 }
 
                 if (response.ok) {
-                    const accountType = isAdmin ? 'مدير' : 'مستخدم';
-                    showMessageBox('إنشاء حساب', `تم إنشاء حساب ${accountType} بنجاح يا ${name}. يمكنك الآن تسجيل الدخول.`, 'success', () => {
+                    showMessageBox('إنشاء حساب', `تم إنشاء حسابك بنجاح يا ${name}. يمكنك الآن تسجيل الدخول.`, 'success', () => {
                         toggleForm('sign-in');
                     });
                 } else {

@@ -300,7 +300,7 @@ app.get('/api/availability/:fieldId', async (req, res) => {
 
 // API endpoint for user sign-up
 app.post('/api/signup', async (req, res) => {
-    const { name, email, phone, birthdate, gender, password, is_admin } = req.body;
+    const { name, email, phone, birthdate, gender, password } = req.body;
 
     if (!name || !email || !phone || !birthdate || !gender || !password) {
         return res.status(400).json({ error: 'يرجى توفير جميع الحقول المطلوبة.' });
@@ -309,12 +309,15 @@ app.post('/api/signup', async (req, res) => {
     try {
         const hashedPassword = await bcrypt.hash(password, saltRounds);
 
+        // Enforce: no admin creation via signup; always regular user
+        const isAdminValue = 0;
+
         const sql = `
             INSERT INTO users (name, email, phone_number, birthdate, gender, password, is_admin) 
             VALUES ($1, $2, $3, $4, $5, $6, $7)
             RETURNING id -- Use RETURNING to get the new ID
         `;
-        const params = [name, email, phone, birthdate, gender, hashedPassword, is_admin ? 1 : 0];
+        const params = [name, email, phone, birthdate, gender, hashedPassword, isAdminValue];
         
         const { rows } = await pool.query(sql, params);
         const userId = rows[0].id;
