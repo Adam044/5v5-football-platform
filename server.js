@@ -15,23 +15,36 @@ const saltRounds = 10;
 // CRITICAL FIX: CORS and OPTIONS handling for deployment (Reverted and fixed)
 // =========================================================
 app.use((req, res, next) => {
-    // Allow origin dynamically (echo back)
-    res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+    // Define allowed origins
+    const allowedOrigins = new Set([
+        'https://www.5v5games.com',
+        'https://5v5games.com',
+        'http://localhost:3002',
+        'http://127.0.0.1:3002',
+        'http://localhost',
+        'http://127.0.0.1'
+    ]);
+
+    const origin = req.headers.origin;
+    if (origin && allowedOrigins.has(origin)) {
+        res.header('Access-Control-Allow-Origin', origin);
+    }
+    // Vary on Origin for caches
     res.header('Vary', 'Origin');
-    // Allow necessary methods (reflect if requested)
+    // Allow credentials for session/cookies if needed
+    res.header('Access-Control-Allow-Credentials', 'true');
+    // Methods
     const reqMethod = req.headers['access-control-request-method'];
     res.header('Access-Control-Allow-Methods', reqMethod ? reqMethod : 'GET, POST, PUT, DELETE, OPTIONS');
-    // Allow necessary headers (reflect if requested)
+    // Headers
     const reqHeaders = req.headers['access-control-request-headers'];
     res.header('Access-Control-Allow-Headers', reqHeaders ? reqHeaders : 'Origin, X-Requested-With, Content-Type, Accept, X-User-Id, Authorization');
-    
-    // Handle preflight OPTIONS requests immediately
+
+    // Short-circuit preflight
     if (req.method === 'OPTIONS') {
-        // Send a successful response and terminate the request chain
-        res.sendStatus(200); 
-    } else {
-        next();
+        return res.sendStatus(204);
     }
+    next();
 });
 // =========================================================
 
