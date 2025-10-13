@@ -175,9 +175,174 @@
             border: 1px solid #e5e7eb;
             margin-bottom: 1rem;
         }
+
+        /* Football-themed loading overlay aligned with app theme */
+        .loading-overlay {
+            position: fixed;
+            inset: 0;
+            background: #ffffff;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            color: #e6f0ff;
+            backdrop-filter: blur(2px);
+            opacity: 0;
+            transition: opacity 300ms ease;
+        }
+        .loading-overlay.show { display: flex; opacity: 1; }
+
+        .pitch {
+            position: relative;
+            width: min(780px, 86vw);
+            height: min(420px, 52vh);
+            border: 6px solid rgba(59,130,246,0.65);
+            border-radius: 18px;
+            box-shadow: 0 20px 60px rgba(59,130,246,.35), 0 0 40px rgba(59,130,246,.45) inset;
+            background: linear-gradient(180deg, #0b4d1e 0%, #0e6a2b 100%);
+            overflow: hidden;
+            will-change: transform, opacity;
+            transform: scale(0.98);
+            opacity: 0.98;
+            transition: transform 280ms cubic-bezier(0.2, 0.8, 0.2, 1), opacity 280ms ease;
+        }
+        .pitch::before, .pitch::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 0;
+            transform: translateX(-50%);
+            width: 2px;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.85);
+            box-shadow: 0 0 18px rgba(59,130,246,0.85), 0 0 6px rgba(59,130,246,0.6);
+        }
+
+        /* Printed field logo */
+        .pitch .field-logo {
+            position: absolute;
+            left: 50%; top: 50%; transform: translate(-50%, -50%) rotate(-6deg);
+            width: min(340px, 50%);
+            height: min(340px, 50%);
+            background: url('/images/logo.jpg') center/contain no-repeat;
+            opacity: 0.12;
+            filter: drop-shadow(0 12px 18px rgba(59,130,246,.25)) saturate(1.05);
+            pointer-events: none;
+        }
+        .center-circle {
+            position: absolute;
+            left: 50%; top: 50%; transform: translate(-50%, -50%);
+            width: 140px; height: 140px;
+            border: 2px solid rgba(255,255,255, 0.6);
+            box-shadow: 0 0 12px rgba(59,130,246,0.55), 0 0 22px rgba(59,130,246,0.35) inset;
+            border-radius: 50%;
+        }
+        .goal {
+            position: absolute;
+            width: 96%; height: 92%;
+            left: 2%; top: 4%;
+            border: 2px dashed rgba(255,255,255, 0.45);
+            box-shadow: 0 0 8px rgba(59,130,246,0.35);
+            border-radius: 14px;
+        }
+
+        /* Animated ball (5v5 logo as ball) */
+        .ball {
+            position: absolute;
+            width: 52px; height: 52px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, #ffffff 0%, #f7f7f7 35%, #e8e8e8 60%, #dcdcdc 100%);
+            box-shadow: 0 6px 18px rgba(0,0,0,.35);
+            animation: kick-cycle 2.8s ease-in-out infinite, spin 1.8s linear infinite;
+            overflow: hidden;
+        }
+        .ball::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: url('/components/images/logo.jpg') center/cover no-repeat;
+            border-radius: 50%;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,.25));
+        }
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        @keyframes kick-cycle {
+            0%   { left: 8%;  top: 14%; }
+            20%  { left: 78%; top: 18%; }
+            40%  { left: 12%; top: 50%; }
+            60%  { left: 70%; top: 70%; }
+            80%  { left: 22%; top: 82%; }
+            100% { left: 8%;  top: 14%; }
+        }
+
+        /* Wave crowd at bottom */
+        .crowd {
+            position: absolute;
+            left: 0; right: 0; bottom: -8px; height: 100px;
+            background: linear-gradient(to top, rgba(0,0,0,.45), rgba(0,0,0,.1));
+            overflow: hidden;
+            border-bottom-left-radius: 18px;
+            border-bottom-right-radius: 18px;
+        }
+        .crowd span {
+            position: absolute; bottom: 0; width: 18px; height: 18px; border-radius: 50%;
+            background: #0e4233; opacity: .85; filter: drop-shadow(0 2px 3px rgba(0,0,0,.35));
+            animation: crowd-wave 1.8s ease-in-out infinite;
+        }
+        @keyframes crowd-wave {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        /* Loading text */
+        .loading-text {
+            position: absolute; top: 10px; right: 14px;
+            font-weight: 800; letter-spacing: .5px; font-size: 1rem;
+            color: #e6f0ff; text-shadow: 0 2px 8px rgba(59,130,246,.35);
+            display: flex; gap: 8px; align-items: center;
+        }
+        .loading-text .dot { width: 6px; height: 6px; background: #60a5fa; border-radius: 50%; animation: blink 1.2s infinite; }
+        .loading-text .dot:nth-child(2) { animation-delay: .2s; }
+        .loading-text .dot:nth-child(3) { animation-delay: .4s; }
+        @keyframes blink { 0%,100%{ opacity: 0.3 } 50%{ opacity: 1 } }
+
+        /* Manager impress badge removed per request */
+
+        /* Closing animation state */
+        .loading-overlay.closing {
+            opacity: 0;
+            transition: opacity 260ms ease;
+        }
+        .loading-overlay.closing .pitch {
+            transform: translateY(-8px) scale(0.98);
+            opacity: 0.0;
+        }
     </style>
 </head>
 <body class="min-h-screen flex flex-col">
+
+    <!-- Football Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay show">
+        <div class="pitch animate-scale-in-up">
+            <div class="loading-text">جارِ التحميل <span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+            <div class="center-circle"></div>
+            <div class="goal"></div>
+            <div class="field-logo" aria-hidden="true"></div>
+            <div class="ball" aria-hidden="true"></div>
+            <div class="crowd">
+                <span style="left:4%"></span><span style="left:8%"></span><span style="left:12%"></span>
+                <span style="left:16%"></span><span style="left:20%"></span><span style="left:24%"></span>
+                <span style="left:28%"></span><span style="left:32%"></span><span style="left:36%"></span>
+                <span style="left:40%"></span><span style="left:44%"></span><span style="left:48%"></span>
+                <span style="left:52%"></span><span style="left:56%"></span><span style="left:60%"></span>
+                <span style="left:64%"></span><span style="left:68%"></span><span style="left:72%"></span>
+                <span style="left:76%"></span><span style="left:80%"></span><span style="left:84%"></span>
+                <span style="left:88%"></span><span style="left:92%"></span><span style="left:96%"></span>
+            </div>
+        </div>
+    </div>
 
     <!-- Global Header Placeholder -->
     <div id="global-header"></div>
@@ -296,6 +461,17 @@
                             </div>
                         </div>
 
+                        <!-- 1b. Team vs Team requests in their own section -->
+                        <div class="matchmaking-card-section border-indigo-500">
+                            <h5 class="text-xl font-bold text-indigo-800 mb-4 flex items-center gap-2">
+                                <i class="fa-solid fa-people-arrows text-indigo-500"></i> طلبات فريق ضد فريق
+                            </h5>
+                            <p class="text-gray-600 mb-4 text-sm">فرق ترغب بمواجهة فريق آخر مباشرة (Option 2).</p>
+                            <div id="team-vs-team-requests" class="overflow-x-auto max-h-96">
+                                <!-- Requests will be loaded here -->
+                            </div>
+                        </div>
+
                         <!-- 2. Players Looking for Team (Single Player) -->
                         <div class="matchmaking-card-section border-yellow-500">
                             <h5 class="text-xl font-bold text-yellow-800 mb-4 flex items-center gap-2">
@@ -315,6 +491,26 @@
                             <p class="text-gray-600 mb-4 text-sm">مقترحات مطابقة بين الفرق واللاعبين الفرديين في نفس الموعد.</p>
                             <div id="potential-matches-suggestions" class="space-y-4 max-h-96 overflow-y-auto">
                                 <!-- Suggestions will be loaded here -->
+                            </div>
+                        </div>
+
+                        <!-- 4. Done Requests -->
+                        <div class="matchmaking-card-section border-gray-500">
+                            <div class="flex items-center justify-between mb-4">
+                                <h5 class="text-xl font-bold text-gray-800 flex items-center gap-2">
+                                    <i class="fa-solid fa-check-double text-gray-600"></i> الطلبات المنجزة
+                                </h5>
+                                <label class="inline-flex items-center cursor-pointer">
+                                    <span class="mr-2 text-sm text-gray-700">إظهار</span>
+                                    <input id="toggle-done-requests" type="checkbox" class="sr-only peer">
+                                    <div class="w-14 h-7 bg-gray-200 rounded-full peer peer-checked:bg-green-500 transition relative">
+                                        <div class="absolute top-1 left-1 w-5 h-5 bg-white rounded-full transition peer-checked:translate-x-7"></div>
+                                    </div>
+                                </label>
+                            </div>
+                            <p class="text-gray-600 mb-4 text-sm">الطلبات التي تم إنهاؤها يدوياً أو عبر المعالجة.</p>
+                            <div id="done-requests" class="overflow-x-auto max-h-96 hidden">
+                                <!-- Done requests will be loaded here -->
                             </div>
                         </div>
 
@@ -350,6 +546,31 @@
                     </div>
                 </div>
             </section>
+
+            <!-- Details Modal for Matchmaking Request -->
+            <div id="details-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50 animate-fade-in">
+                <div class="bg-white rounded-2xl shadow-3xl w-full max-w-md relative p-8 border-b-4 border-blue-600 max-h-[85vh] overflow-y-auto">
+                    <button onclick="closeDetailsModal()" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 transition-colors duration-300 rounded-full bg-gray-100 p-2 hover:bg-gray-200" aria-label="إغلاق">
+                        <i class="fa-solid fa-times"></i>
+                    </button>
+                    <h5 class="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                        <i class="fa-solid fa-address-card text-blue-600"></i> تفاصيل الطلب
+                    </h5>
+                    <div class="space-y-3 text-gray-800">
+                        <p><strong>الاسم:</strong> <span id="details-user-name"></span></p>
+                        <p><strong>رقم الهاتف:</strong> <span id="details-phone-number"></span></p>
+                        <p><strong>الملعب:</strong> <span id="details-field-name"></span></p>
+                        <p><strong>التاريخ:</strong> <span id="details-slot-date"></span></p>
+                        <p><strong>نوع الطلب:</strong> <span id="details-request-type"></span></p>
+                        <p><strong>عدد اللاعبين المطلوب:</strong> <span id="details-players-needed"></span></p>
+                    </div>
+                    <div class="mt-6 flex gap-3">
+                        <button onclick="closeDetailsModal()" class="bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-700 transition-colors w-full">
+                            إغلاق
+                        </button>
+                    </div>
+                </div>
+            </div>
 
             <!-- Tab 3: Manage Fields -->
             <section id="fields-tab" class="tab-pane hidden">
@@ -863,19 +1084,23 @@
         });
 
         // --- Fetch and Render Data ---
-        async function fetchData() {
-            const userId = localStorage.getItem('userId');
-            const headers = {
-                'Content-Type': 'application/json',
-                'X-User-Id': userId
-            };
-            try {
-                // Fetch fields and populate dropdowns
-                const fieldsResponse = await fetch('/api/admin/fields', { headers });
-                if (!fieldsResponse.ok) throw new Error('Failed to fetch fields');
-                const fieldsData = await fieldsResponse.json();
-                renderFields(fieldsData.fields);
-                populateFieldDropdowns(fieldsData.fields);
+async function fetchData() {
+    const userId = localStorage.getItem('userId');
+    const headers = {
+        'Content-Type': 'application/json',
+        'X-User-Id': userId
+    };
+    try {
+        // Show loading overlay
+        const overlay = document.getElementById('loading-overlay');
+        if (overlay) overlay.classList.add('show');
+
+        // Fetch fields and populate dropdowns
+        const fieldsResponse = await fetch('/api/admin/fields', { headers });
+        if (!fieldsResponse.ok) throw new Error('Failed to fetch fields');
+        const fieldsData = await fieldsResponse.json();
+        renderFields(fieldsData.fields);
+        populateFieldDropdowns(fieldsData.fields);
                 
                 // Fetch all data for the tabs
                 const [reservationsData, categorizedMatchmakingData, tournamentsData] = await Promise.all([
@@ -893,15 +1118,32 @@
             } catch (error) {
                 console.error('Failed to fetch data:', error);
                 showMessageBox('خطأ في الاتصال', `فشل تحميل البيانات. يرجى التأكد من تشغيل الخادم. تفاصيل الخطأ: ${error.message}`, 'error');
+            } finally {
+                // Smooth closing animation before hiding overlay
+                const overlay = document.getElementById('loading-overlay');
+                if (overlay) {
+                    overlay.classList.add('closing');
+                    setTimeout(() => {
+                        overlay.classList.remove('show');
+                        overlay.classList.remove('closing');
+                    }, 280);
+                }
             }
-        }
+}
         
         // --- NEW MATCHMAKING RENDER FUNCTION ---
         function renderMatchmakingCategorized(data) {
-            // Render Teams Looking for Players (Team vs Team or Team needs players)
+            // Render Teams Looking for Players (needs players)
             renderMatchmakingTable(
                 document.getElementById('teams-looking-requests'), 
-                [...data.team_looking_for_players, ...data.team_vs_team].filter(r => r.status === 'pending'),
+                data.team_looking_for_players.filter(r => r.status === 'pending'),
+                'team'
+            );
+
+            // Render Team vs Team requests separately
+            renderMatchmakingTable(
+                document.getElementById('team-vs-team-requests'), 
+                data.team_vs_team.filter(r => r.status === 'pending'),
                 'team'
             );
             
@@ -914,6 +1156,70 @@
             
             // Render Potential Matches
             renderPotentialMatches(data.potential_matches);
+
+            // Render Done Requests (all categories)
+            renderDoneRequestsSection(document.getElementById('done-requests'), data);
+            const toggle = document.getElementById('toggle-done-requests');
+            if (toggle) {
+                toggle.onchange = () => {
+                    const section = document.getElementById('done-requests');
+                    if (!section) return;
+                    if (toggle.checked) {
+                        section.classList.remove('hidden');
+                    } else {
+                        section.classList.add('hidden');
+                    }
+                };
+            }
+        }
+
+        function renderDoneRequestsSection(container, data) {
+            const allDone = [
+                ...data.team_looking_for_players,
+                ...data.team_vs_team,
+                ...data.players_looking_for_team
+            ].filter(r => r.status === 'done');
+
+            container.innerHTML = '';
+            if (allDone.length === 0) {
+                container.innerHTML = `<p class="py-4 text-center text-gray-500">لا توجد طلبات منجزة حالياً.</p>`;
+                return;
+            }
+
+            const tableHtml = `
+                <table class="w-full table-auto border-collapse">
+                    <thead>
+                        <tr class="bg-gray-100">
+                            <th class="border border-gray-300 px-4 py-3 text-right font-bold whitespace-nowrap"><i class="fa-solid fa-user ml-1 text-gray-600"></i> المستخدم</th>
+                            <th class="border border-gray-300 px-4 py-3 text-right font-bold whitespace-nowrap"><i class="fa-solid fa-handshake-simple ml-1 text-gray-600"></i> نوع الطلب</th>
+                            <th class="border border-gray-300 px-4 py-3 text-right font-bold whitespace-nowrap"><i class="fa-solid fa-futbol ml-1 text-gray-600"></i> الملعب</th>
+                            <th class="border border-gray-300 px-4 py-3 text-right font-bold whitespace-nowrap"><i class="fa-solid fa-calendar-day ml-1 text-gray-600"></i> التاريخ</th>
+                            <th class="border border-gray-300 px-4 py-3 text-right font-bold whitespace-nowrap"><i class="fa-solid fa-phone ml-1 text-gray-600"></i> الهاتف</th>
+                            <th class="border border-gray-300 px-4 py-3 text-right font-bold whitespace-nowrap"><i class="fa-solid fa-ellipsis ml-1 text-gray-600"></i> إجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${allDone.map(request => `
+                            <tr class="hover:bg-gray-50 text-sm">
+                                <td class="border border-gray-300 px-4 py-3 font-semibold">${request.user_name}</td>
+                                <td class="border border-gray-300 px-4 py-3">${getReservationType(request.request_type)}</td>
+                                <td class="border border-gray-300 px-4 py-3">${request.field_name}</td>
+                                <td class="border border-gray-300 px-4 py-3">${request.slot_date}</td>
+                                <td class="border border-gray-300 px-4 py-3">
+                                    ${request.phone_number ? `<a href="https://wa.me/${request.phone_number.replace(/\D/g,'')}" target="_blank" class="text-green-600 font-bold hover:underline flex items-center gap-1"><i class="fa-brands fa-whatsapp"></i>${request.phone_number}</a>` : '<span class="text-gray-500">لا يوجد</span>'}
+                                </td>
+                                <td class="border border-gray-300 px-4 py-3">
+                                    <button class="bg-blue-600 text-white text-xs px-3 py-1 rounded hover:bg-blue-700" onclick="openDetailsModal(${request.id}, '${request.user_name}', '${request.phone_number || ''}', '${request.field_name}', '${request.slot_date}', '${request.request_type}', ${request.players_needed || 0})">
+                                        تفاصيل
+                                    </button>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+
+            container.innerHTML = `<div class="overflow-x-auto">${tableHtml}</div>`;
         }
         
         function renderMatchmakingTable(container, requests, category) {
@@ -928,10 +1234,12 @@
                 <table class="w-full table-auto border-collapse">
                     <thead>
                         <tr class="bg-gray-100">
-                            <th class="border border-gray-300 px-4 py-3 text-right font-bold whitespace-nowrap">المستخدم</th>
-                            <th class="border border-gray-300 px-4 py-3 text-right font-bold whitespace-nowrap">الملعب</th>
-                            <th class="border border-gray-300 px-4 py-3 text-right font-bold whitespace-nowrap">التاريخ</th>
-                            <th class="border border-gray-300 px-4 py-3 text-right font-bold whitespace-nowrap">المطلوب</th>
+                            <th class="border border-gray-300 px-4 py-3 text-right font-bold whitespace-nowrap"><i class="fa-solid fa-user ml-1 text-gray-600"></i> المستخدم</th>
+                            <th class="border border-gray-300 px-4 py-3 text-right font-bold whitespace-nowrap"><i class="fa-solid fa-futbol ml-1 text-gray-600"></i> الملعب</th>
+                            <th class="border border-gray-300 px-4 py-3 text-right font-bold whitespace-nowrap"><i class="fa-solid fa-calendar-day ml-1 text-gray-600"></i> التاريخ</th>
+                            ${category === 'player' ? `<th class=\"border border-gray-300 px-4 py-3 text-right font-bold whitespace-nowrap\"><i class=\"fa-solid fa-phone ml-1 text-gray-600\"></i> الهاتف</th>` : ''}
+                            ${category === 'team' ? `<th class=\"border border-gray-300 px-4 py-3 text-right font-bold whitespace-nowrap\"><i class=\"fa-solid fa-user-tie ml-1 text-gray-600\"></i> هاتف القائد</th>` : ''}
+                            <th class="border border-gray-300 px-4 py-3 text-right font-bold whitespace-nowrap"><i class="fa-solid fa-ellipsis ml-1 text-gray-600"></i> إجراءات</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -940,10 +1248,28 @@
                                 <td class="border border-gray-300 px-4 py-3 font-semibold">${request.user_name}</td>
                                 <td class="border border-gray-300 px-4 py-3">${request.field_name}</td>
                                 <td class="border border-gray-300 px-4 py-3">${request.slot_date}</td>
-                                <td class="border border-gray-300 px-4 py-3 text-blue-600 font-bold">
-                                    ${request.request_type === 'team_looking_for_players' ? `لـ ${request.players_needed} لاعب` : 
-                                      request.request_type === 'team_vs_team' ? `لـ فريق منافس` : 
-                                      'لـ فريق'}
+                                ${category === 'player' ? `
+                                    <td class="border border-gray-300 px-4 py-3">
+                                        ${request.phone_number ? `<a href="https://wa.me/${request.phone_number.replace(/\D/g,'')}" target="_blank" class="text-green-600 font-bold hover:underline flex items-center gap-1"><i class="fa-brands fa-whatsapp"></i>${request.phone_number}</a>` : '<span class="text-gray-500">لا يوجد</span>'}
+                                    </td>
+                                ` : ''}
+                                ${category === 'team' ? `
+                                    <td class="border border-gray-300 px-4 py-3">
+                                        ${request.phone_number ? `<a href="https://wa.me/${request.phone_number.replace(/\D/g,'')}" target="_blank" class="text-green-600 font-bold hover:underline flex items-center gap-1"><i class="fa-brands fa-whatsapp"></i>${request.phone_number}</a>` : '<span class="text-gray-500">لا يوجد</span>'}
+                                    </td>
+                                ` : ''}
+                                <td class="border border-gray-300 px-4 py-3">
+                                    <div class="flex items-center gap-2">
+                                        <button class="bg-blue-600 text-white text-xs px-3 py-1 rounded hover:bg-blue-700" onclick="openDetailsModal(${request.id}, '${request.user_name}', '${request.phone_number || ''}', '${request.field_name}', '${request.slot_date}', '${request.request_type}', ${request.players_needed || 0})">
+                                            تفاصيل
+                                        </button>
+                                        <button class="bg-green-600 text-white text-xs px-3 py-1 rounded hover:bg-green-700" onclick="markRequestDone(${request.id})">
+                                            تم
+                                        </button>
+                                        <button class="bg-red-600 text-white text-xs px-3 py-1 rounded hover:bg-red-700" onclick="rejectMatchmakingRequest(${request.id})">
+                                            رفض
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
                         `).join('')}
@@ -952,6 +1278,118 @@
             `;
             
             container.innerHTML = `<div class="overflow-x-auto">${tableHtml}</div>`;
+        }
+
+        // Details Modal: fetch leader and joined members
+        async function openDetailsModal(requestId, userName, phoneNumber, fieldName, slotDate, requestType, playersNeeded) {
+            const modal = document.getElementById('details-modal');
+            const bodyContainer = modal.querySelector('.space-y-3');
+
+            // Basic info section
+            const basicInfoHtml = `
+                <p><strong>الاسم:</strong> <span>${userName || 'غير متوفر'}</span></p>
+                <p><strong>رقم الهاتف:</strong> ${phoneNumber ? `<a href="https://wa.me/${(phoneNumber||'').replace(/\D/g,'')}" target="_blank" class="text-green-600 font-bold hover:underline flex items-center gap-1"><i class="fa-brands fa-whatsapp"></i>${phoneNumber}</a>` : '<span>غير متوفر</span>'}</p>
+                <p><strong>الملعب:</strong> <span>${fieldName || '-'}</span></p>
+                <p><strong>التاريخ:</strong> <span>${slotDate || '-'}</span></p>
+                <p><strong>نوع الطلب:</strong> <span>${getReservationType(requestType)}</span></p>
+                ${requestType === 'players_looking_for_team' ? '' : `<p><strong>عدد اللاعبين المطلوب:</strong> <span>${playersNeeded || 0}</span></p>`}
+            `;
+
+            bodyContainer.innerHTML = basicInfoHtml + '<div id="details-members-section" class="mt-4"></div>';
+
+            // Fetch extended details
+            try {
+                const resp = await fetch(`/api/admin/matchmaking-requests/${requestId}/details`, {
+                    headers: { 'X-User-Id': localStorage.getItem('userId') }
+                });
+                if (!resp.ok) throw new Error('Failed to load details');
+                const data = await resp.json();
+
+                const leader = data.leader || {};
+                let members = Array.isArray(data.members) ? data.members : [];
+
+                // Deduplicate leader from members if present
+                members = members.filter(m => String(m.user_id) !== String(leader.user_id));
+
+                const membersSection = document.getElementById('details-members-section');
+                const leaderPhone = leader.phone_number || null;
+                const leaderRow = `
+                    <div class="bg-gray-50 rounded-lg p-3 border mb-2">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <p class="font-medium text-gray-800"><i class="fa-solid fa-user-tie ml-1 text-blue-600"></i> القائد: ${leader.name || userName || 'غير متوفر'}</p>
+                                ${leaderPhone ? `<p class="text-sm text-gray-600 flex items-center gap-1"><i class="fa-solid fa-phone ml-1 text-blue-500"></i><a href="https://wa.me/${leaderPhone.replace(/\D/g,'')}" target="_blank" class="text-green-600 font-bold hover:underline"><i class="fa-brands fa-whatsapp"></i> ${leaderPhone}</a></p>` : ''}
+                            </div>
+                            <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">القائد</span>
+                        </div>
+                    </div>
+                `;
+
+                // For single player request, show a simplified panel and skip leader/members headings
+                if (requestType === 'players_looking_for_team') {
+                    membersSection.innerHTML = `
+                        <div class="bg-blue-50 rounded-lg p-4 border">
+                            <p class="font-medium text-gray-800 flex items-center gap-2"><i class="fa-solid fa-user text-blue-600"></i> لاعب يبحث عن فريق</p>
+                            <p class="text-gray-700">${userName || leader.name || 'غير متوفر'}</p>
+                            ${phoneNumber || leader.phone_number ? `<p class="text-sm text-gray-600 flex items-center gap-1"><i class="fa-solid fa-phone ml-1 text-blue-500"></i><a href="https://wa.me/${(phoneNumber || leader.phone_number || '').replace(/\D/g,'')}" target="_blank" class="text-green-600 font-bold hover:underline"><i class="fa-brands fa-whatsapp"></i> ${phoneNumber || leader.phone_number}</a></p>` : ''}
+                        </div>
+                    `;
+                } else {
+                    const membersHtml = members.length > 0 ? members.map(m => `
+                    <div class="bg-gray-50 rounded-lg p-3 border">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <p class="font-medium text-gray-800">${m.name || 'لا اسم'}</p>
+                                ${m.phone_number ? `<p class="text-sm text-gray-600 flex items-center gap-1"><i class="fa-solid fa-phone ml-1 text-blue-500"></i><a href="https://wa.me/${m.phone_number.replace(/\D/g,'')}" target="_blank" class="text-green-600 font-bold hover:underline"><i class="fa-brands fa-whatsapp"></i> ${m.phone_number}</a></p>` : ''}
+                            </div>
+                            ${m.team_designation ? `<span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">${m.team_designation === 'single' ? '' : `فريق ${m.team_designation}`}</span>` : ''}
+                        </div>
+                    </div>
+                `).join('') : '<p class="text-gray-500">لا يوجد أعضاء منضمين بعد.</p>';
+
+                    membersSection.innerHTML = `
+                        <h4 class="font-bold text-gray-700 mb-2 flex items-center gap-2"><i class="fa-solid fa-users text-blue-600"></i> القائد والأعضاء</h4>
+                        ${leaderRow}
+                        <div class="grid grid-cols-1 gap-2">${membersHtml}</div>
+                    `;
+                }
+            } catch (err) {
+                console.error('Failed to fetch details:', err);
+                // Leave basic info; show error for members
+                const membersSection = document.getElementById('details-members-section');
+                if (membersSection) {
+                    membersSection.innerHTML = '<p class="text-red-600">تعذر تحميل تفاصيل الأعضاء.</p>';
+                }
+            }
+
+            modal.classList.remove('hidden');
+        }
+
+        function closeDetailsModal() {
+            document.getElementById('details-modal').classList.add('hidden');
+        }
+
+        async function markRequestDone(requestId) {
+            try {
+                const response = await fetch(`/api/admin/matchmaking-requests/${requestId}/done`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-User-Id': localStorage.getItem('userId')
+                    },
+                    body: JSON.stringify({})
+                });
+                if (response.ok) {
+                    showMessageBox('تمت المعالجة', 'تم وضع الطلب كمنجز وإخفاؤه من المعلّق.', 'success');
+                    fetchData();
+                } else {
+                    const errorData = await response.json();
+                    showMessageBox('خطأ', errorData.error);
+                }
+            } catch (error) {
+                console.error('Failed to mark request done:', error);
+                showMessageBox('خطأ في الشبكة', 'فشل الاتصال بالخادم.');
+            }
         }
 
         function renderPotentialMatches(suggestions) {
@@ -1946,9 +2384,7 @@
                                 ${member.phone_number ? `<p class="text-sm text-gray-600">${member.phone_number}</p>` : ''}
                             </div>
                             <div class="text-right">
-                                <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
-                                    فريق ${member.team_designation}
-                                </span>
+                                ${member.team_designation === 'single' ? '' : `<span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">فريق ${member.team_designation}</span>`}
                             </div>
                         </div>
                     </div>

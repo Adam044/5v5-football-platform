@@ -426,6 +426,65 @@ app.get('/api/user/:userId', async (req, res) => {
     }
 });
 
+// API endpoint to get a user's matchmaking requests (created and joined)
+app.get('/api/user/:userId/matchmaking-requests', async (req, res) => {
+    const { userId } = req.params;
+    if (!userId) {
+        return res.status(400).json({ error: 'User ID is required.' });
+    }
+
+    const createdSql = `
+        SELECT 
+            mr.id,
+            mr.slot_date,
+            mr.start_time,
+            mr.end_time,
+            mr.request_type,
+            mr.status,
+            mr.players_needed,
+            f.name AS field_name
+        FROM matchmaking_requests mr
+        JOIN fields f ON mr.field_id = f.id
+        WHERE mr.user_id = $1
+        ORDER BY mr.created_at DESC
+    `;
+
+    // Joined requests: user is a member of a team session that led to/relates to this matchmaking request
+    const joinedSql = `
+        SELECT DISTINCT 
+            mr.id,
+            mr.slot_date,
+            mr.start_time,
+            mr.end_time,
+            mr.request_type,
+            mr.status,
+            mr.players_needed,
+            mr.created_at,
+            f.name AS field_name,
+            ts.invitation_code
+        FROM matchmaking_requests mr
+        JOIN fields f ON mr.field_id = f.id
+        JOIN team_sessions ts 
+            ON ts.field_id = mr.field_id 
+            AND ts.slot_date = mr.slot_date 
+            AND ts.booking_type = mr.request_type
+        JOIN team_members tm ON tm.session_id = ts.id
+        WHERE tm.user_id = $1
+        ORDER BY mr.created_at DESC
+    `;
+
+    try {
+        const [createdRows, joinedRows] = await Promise.all([
+            pool.query(createdSql, [userId]).then(r => r.rows),
+            pool.query(joinedSql, [userId]).then(r => r.rows)
+        ]);
+        res.json({ created: createdRows, joined: joinedRows });
+    } catch (err) {
+        console.error('Error fetching user matchmaking requests:', err);
+        return res.status(500).json({ error: err.message });
+    }
+});
+
 // API endpoint to get users with birthdays in the upcoming week
 app.get('/api/users/upcoming-birthdays', async (req, res) => {
     const today = new Date();
@@ -1825,7 +1884,7 @@ app.get('/api/admin/matchmaking/categorized', checkAdmin, async (req, res) => {
     try {
         // Fetch pending requests for each category
         const teamLookingSql = `
-            SELECT mr.id, mr.user_id, u.name AS user_name, mr.field_id, f.name AS field_name,
+            SELECT mr.id, mr.user_id, u.name AS user_name, u.phone_number AS phone_number, mr.field_id, f.name AS field_name,
                    mr.slot_date, mr.request_type, mr.status, mr.players_needed
             FROM matchmaking_requests mr
             JOIN users u ON mr.user_id = u.id
@@ -1834,7 +1893,7 @@ app.get('/api/admin/matchmaking/categorized', checkAdmin, async (req, res) => {
         `;
 
         const teamVsTeamSql = `
-            SELECT mr.id, mr.user_id, u.name AS user_name, mr.field_id, f.name AS field_name,
+            SELECT mr.id, mr.user_id, u.name AS user_name, u.phone_number AS phone_number, mr.field_id, f.name AS field_name,
                    mr.slot_date, mr.request_type, mr.status, mr.players_needed
             FROM matchmaking_requests mr
             JOIN users u ON mr.user_id = u.id
@@ -1843,7 +1902,7 @@ app.get('/api/admin/matchmaking/categorized', checkAdmin, async (req, res) => {
         `;
 
         const playersLookingSql = `
-            SELECT mr.id, mr.user_id, u.name AS user_name, mr.field_id, f.name AS field_name,
+            SELECT mr.id, mr.user_id, u.name AS user_name, u.phone_number AS phone_number, mr.field_id, f.name AS field_name,
                    mr.slot_date, mr.request_type, mr.status, mr.players_needed
             FROM matchmaking_requests mr
             JOIN users u ON mr.user_id = u.id
@@ -1915,6 +1974,77 @@ app.get('/api/admin/matchmaking/categorized', checkAdmin, async (req, res) => {
     } catch (err) {
         console.error('Error fetching categorized matchmaking:', err);
         return res.status(500).json({ error: 'Failed to fetch categorized matchmaking.' });
+    }
+});
+
+// Admin: Get detailed info for a specific matchmaking request
+app.get('/api/admin/matchmaking-requests/:requestId/details', checkAdmin, async (req, res) => {
+    const { requestId } = req.params;
+    try {
+        // 1) Get the matchmaking request and requester (leader)
+        const reqSql = `
+            SELECT mr.*, u.name AS leader_name, u.phone_number AS leader_phone, f.name AS field_name
+            FROM matchmaking_requests mr
+            JOIN users u ON mr.user_id = u.id
+            JOIN fields f ON mr.field_id = f.id
+            WHERE mr.id = $1
+        `;
+        const { rows: reqRows } = await pool.query(reqSql, [requestId]);
+        const request = reqRows[0];
+
+        if (!request) {
+            return res.status(404).json({ error: 'Matchmaking request not found.' });
+        }
+
+        // 2) Attempt to locate the associated team session created by the same user on same field/date and booking type
+        const sessionSql = `
+            SELECT ts.id, ts.creator_id
+            FROM team_sessions ts
+            WHERE ts.creator_id = $1
+              AND ts.field_id = $2
+              AND ts.slot_date = $3
+              AND ts.booking_type = $4
+              AND ts.status IN ('active', 'completed')
+            ORDER BY ts.created_at DESC
+            LIMIT 1
+        `;
+        const { rows: sessionRows } = await pool.query(sessionSql, [request.user_id, request.field_id, request.slot_date, request.request_type]);
+        const session = sessionRows[0] || null;
+
+        // 3) Get members of the session if found
+        let members = [];
+        if (session) {
+            const membersSql = `
+                SELECT u.id as user_id, u.name AS name, u.phone_number AS phone_number, tm.team_designation
+                FROM team_members tm
+                JOIN users u ON tm.user_id = u.id
+                WHERE tm.session_id = $1
+                ORDER BY tm.joined_at ASC
+            `;
+            const { rows: memberRows } = await pool.query(membersSql, [session.id]);
+            members = memberRows || [];
+        }
+
+        // 4) Compose response
+        res.json({
+            request: {
+                id: request.id,
+                request_type: request.request_type,
+                slot_date: request.slot_date,
+                field_name: request.field_name,
+                players_needed: request.players_needed || 0,
+                status: request.status
+            },
+            leader: {
+                user_id: request.user_id,
+                name: request.leader_name,
+                phone_number: request.leader_phone || null
+            },
+            members: members
+        });
+    } catch (err) {
+        console.error('Error fetching matchmaking request details:', err);
+        return res.status(500).json({ error: 'Failed to fetch matchmaking request details.' });
     }
 });
 
@@ -1990,19 +2120,57 @@ app.get('/api/admin/tournaments/:tournamentId/teams', checkAdmin, async (req, re
         if (!tournament) {
             return res.status(404).json({ success: false, message: 'البطولة غير موجودة' });
         }
+
+        // Fetch teams with captain contact info and invitation code
         const teamsSql = `
             SELECT 
+                tt.id,
                 tt.team_name,
-                u.name AS captain_name,
                 tt.registration_date,
-                tt.status
+                tt.status,
+                tt.invitation_code,
+                u.name AS captain_name,
+                u.email AS captain_email,
+                u.phone_number AS captain_phone
             FROM tournament_teams tt
             JOIN users u ON tt.captain_id = u.id
             WHERE tt.tournament_id = $1
             ORDER BY tt.registration_date ASC
         `;
-        const { rows: teams } = await pool.query(teamsSql, [tournamentId]);
-        res.json({ success: true, tournament, teams: teams || [] });
+        const { rows: teamRows } = await pool.query(teamsSql, [tournamentId]);
+
+        // For each team, fetch members and compute team_size
+        const teamsWithMembers = [];
+        for (const t of teamRows) {
+            const membersSql = `
+                SELECT 
+                    ttm.user_id,
+                    COALESCE(u.name, ttm.user_name) AS name,
+                    u.email,
+                    u.phone_number,
+                    ttm.is_captain,
+                    ttm.joined_at
+                FROM tournament_team_members ttm
+                LEFT JOIN users u ON ttm.user_id = u.id
+                WHERE ttm.team_id = $1
+                ORDER BY ttm.is_captain DESC, ttm.joined_at ASC
+            `;
+            const { rows: members } = await pool.query(membersSql, [t.id]);
+
+            teamsWithMembers.push({
+                team_name: t.team_name,
+                captain_name: t.captain_name,
+                captain_email: t.captain_email || null,
+                captain_phone: t.captain_phone || null,
+                registration_date: t.registration_date,
+                status: t.status,
+                invitation_code: t.invitation_code || null,
+                team_size: (members || []).length,
+                members: members || []
+            });
+        }
+
+        res.json({ success: true, tournament, teams: teamsWithMembers });
     } catch (err) {
         console.error('Error fetching admin tournament teams:', err);
         return res.status(500).json({ success: false, message: 'خطأ في تحميل الفرق' });
@@ -2087,6 +2255,22 @@ app.post('/api/admin/matchmaking-requests/:requestId/approve', checkAdmin, async
         return res.status(500).json({ error: 'Failed to approve request.' });
     } finally {
         client.release();
+    }
+});
+
+// Admin: Mark a matchmaking request as done (manually handled)
+app.post('/api/admin/matchmaking-requests/:requestId/done', checkAdmin, async (req, res) => {
+    const { requestId } = req.params;
+    try {
+        const sql = `UPDATE matchmaking_requests SET status = 'done' WHERE id = $1`;
+        const result = await pool.query(sql, [requestId]);
+        if (result.rowCount === 0) {
+            return res.status(404).json({ error: 'Request not found.' });
+        }
+        res.json({ message: 'Matchmaking request marked as done.' });
+    } catch (err) {
+        console.error('Error marking matchmaking request as done:', err);
+        return res.status(500).json({ error: 'Failed to mark request as done.' });
     }
 });
 
