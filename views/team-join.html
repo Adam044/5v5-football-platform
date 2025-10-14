@@ -385,6 +385,7 @@
                     <div class="progress-bar-container mb-4">
                         <div id="progress-bar-fill" class="progress-bar-fill bg-yellow-500" style="width: 0%;"></div>
                     </div>
+                    <div id="players-needed-indicator" class="text-sm font-semibold text-blue-700 text-center mb-4"></div>
                     <div id="single-team-status" class="text-md font-semibold text-center mb-6"></div>
                     
                     <h3 class="text-2xl font-bold mt-8 mb-4 text-gray-800 border-b pb-2">قائمة اللاعبين</h3>
@@ -638,11 +639,11 @@
         }
 
         // --- Core Functions ---
-        async function loadOrCreateTeam() {
-            const loadingState = document.getElementById('loading-state');
-            const mainContent = document.getElementById('main-content');
-            loadingState.classList.remove('hidden');
-            mainContent.classList.add('hidden');
+async function loadOrCreateTeam() {
+    const loadingState = document.getElementById('loading-state');
+    const mainContent = document.getElementById('main-content');
+    loadingState.classList.remove('hidden');
+    mainContent.classList.add('hidden');
             
             if (!loggedInUserId) {
                 showMessageBox(
@@ -655,10 +656,16 @@
             
             // --- REMOVED TOURNAMENT-SPECIFIC LOGIC ---
             
-            // Get invitation code from path or URL params
-            const pathInvitationCode = window.location.pathname.split('/').pop();
-            const urlInvitationCode = urlParams.get('invitationCode');
-            invitationCode = urlInvitationCode || pathInvitationCode;
+    // Get invitation code from path or URL params
+    // Only treat the last path segment as an invitation code if the URL contains '/join/'
+    const lastSegment = window.location.pathname.split('/').pop();
+    const pathInvitationCode = window.location.pathname.includes('/join/') ? lastSegment : null;
+    const urlInvitationCode = urlParams.get('invitationCode');
+    invitationCode = urlInvitationCode || pathInvitationCode;
+    // Guard against mistakenly using page filenames like 'user-dashboard.html' or 'team-join.html'
+    if (invitationCode && /\.html$/i.test(invitationCode)) {
+        invitationCode = null;
+    }
             
             // Derive booking type from URL params (Only for new session creation)
             currentBookingType = urlParams.get('bookingType');
@@ -667,16 +674,16 @@
             MIN_TEAM_SIZE = parseInt(urlParams.get('minTeamSize')) || 6; 
             MAX_TEAM_SIZE = parseInt(urlParams.get('maxTeamSize')) || 20; 
 
-            if (invitationCode && invitationCode !== 'team-join.html') {
-                // Flow for joining an existing team (via invitation link)
-                await fetchTeamDetails();
-            } else if (currentBookingType) {
-                // Flow for creating a new team (from index.html)
-                const fieldId = urlParams.get('fieldId');
-                const slotDate = urlParams.get('slotDate');
-                const startTime = urlParams.get('startTime');
-                const endTime = urlParams.get('endTime');
-                const initialPlayerCount = urlParams.get('initialPlayerCount');
+    if (invitationCode) {
+        // Flow for joining an existing team (via invitation link)
+        await fetchTeamDetails();
+    } else if (currentBookingType) {
+        // Flow for creating a new team (from index.html)
+        const fieldId = urlParams.get('fieldId');
+        const slotDate = urlParams.get('slotDate');
+        const startTime = urlParams.get('startTime');
+        const endTime = urlParams.get('endTime');
+        const initialPlayerCount = urlParams.get('initialPlayerCount');
                 
                 // Check if necessary params exist
                 const requiresExactTimes = currentBookingType === 'two_teams_ready';
@@ -689,13 +696,13 @@
                     return;
                 }
                 
-                isCreator = true;
-                await createNewTeam(fieldId, slotDate, startTime || null, endTime || null, currentBookingType, initialPlayerCount);
-            } else {
-                showMessageBox('خطأ', 'الرجاء البدء بالحجز من الصفحة الرئيسية.');
-                document.getElementById('loading-state').classList.add('hidden');
-            }
-        }
+        isCreator = true;
+        await createNewTeam(fieldId, slotDate, startTime || null, endTime || null, currentBookingType, initialPlayerCount);
+    } else {
+        showMessageBox('خطأ', 'الرجاء البدء بالحجز من الصفحة الرئيسية.');
+        document.getElementById('loading-state').classList.add('hidden');
+    }
+}
 
 
         async function createNewTeam(fieldId, slotDate, startTime, endTime, bookingType, initialPlayerCount) {
@@ -1072,6 +1079,7 @@
             
             const progressBar = document.getElementById('progress-bar-fill');
             const statusDiv = document.getElementById('single-team-status');
+            const playersNeededDiv = document.getElementById('players-needed-indicator');
             
             // Visual max is based on the limit for the current booking type
             const visualMax = currentBookingType === 'team_looking_for_players' ? 5 : 10;
@@ -1081,6 +1089,14 @@
             let statusText = '';
             let statusColor = 'text-red-600';
             let barColor = 'bg-red-500';
+
+            // Compute players-needed to reach a playable team
+            // For team_vs_team, min is already 6. For team_looking_for_players, target reaching 6 players.
+            const targetMin = currentBookingType === 'team_looking_for_players' ? 6 : min;
+            const playersNeededToSix = Math.max(0, targetMin - current);
+            const neededLabel = playersNeededToSix === 0
+                ? 'جاهزون للمباراة'
+                : `نبحث عن ${playersNeededToSix} ${playersNeededToSix === 1 ? 'لاعب' : 'لاعبين'} إضافيين`;
 
             if (currentBookingType === 'team_looking_for_players') {
                  if (current > max) {
@@ -1115,6 +1131,9 @@
 
             statusDiv.innerHTML = `<i class="fa-solid fa-circle-info ml-1"></i> ${statusText}`;
             statusDiv.className = `text-md font-semibold text-center mb-6 ${statusColor}`;
+            // Update players-needed indicator (clear when none needed)
+            playersNeededDiv.textContent = neededLabel;
+            playersNeededDiv.className = `text-sm font-semibold text-center mb-4 ${playersNeededToSix === 0 ? 'text-green-700' : 'text-blue-700'}`;
             
             // Update progress bar color
             progressBar.className = progressBar.className.replace(/bg-(red|yellow|green|blue)-\d{3}/g, '').trim() + ` ${barColor}`;

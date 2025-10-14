@@ -660,7 +660,8 @@
             if (selectedReservationType === 'two_teams_ready') {
                 priceLabel = 'السعر: سيظهر بعد اختيار الموعد';
             } else {
-                priceLabel = 'السعر: -- شيكل';
+                // Day-only flows: show only field price per hour
+                priceLabel = `سعر الساعة: ${selectedFieldData.price_per_hour} شيكل`;
             }
             
             contentContainer.innerHTML = `
@@ -759,8 +760,8 @@
                             confirmBtn.innerHTML = selectedReservationType === 'players_looking_for_team'
                                 ? `<i class="fa-solid fa-search ml-2"></i> إرسال طلب انضمام`
                                 : `<i class="fa-solid fa-arrow-left ml-2"></i> متابعة`;
-                            // Price display for day-only flows
-                            priceDisplay.innerText = 'السعر: -- شيكل';
+                            // Price display for day-only flows: show only field price/hour
+                            priceDisplay.innerText = `سعر الساعة: ${selectedFieldData.price_per_hour} شيكل`;
                         }
                     } else {
                         timeSlotsContainer.innerHTML = `
