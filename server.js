@@ -1533,7 +1533,7 @@ app.get('/api/team-building/:invitationCode', async (req, res) => {
             SELECT ts.*, f.name as field_name, f.location as field_address, f.image as field_image, f.price_per_hour
             FROM team_sessions ts
             JOIN fields f ON ts.field_id = f.id
-            WHERE ts.invitation_code = $1 AND ts.status = 'active'
+            WHERE ts.invitation_code = $1 AND ts.status IN ('active', 'completed')
         `;
         
         const { rows: sessionRows } = await pool.query(sessionSql, [invitationCode]);
