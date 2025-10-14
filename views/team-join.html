@@ -505,7 +505,7 @@
         let MAX_TEAM_SIZE = parseInt(urlParams.get('maxTeamSize')) || 20; 
         
         // --- Utility Functions ---
-        function showMessageBox(title, content, type = 'error') {
+        function showMessageBox(title, content, type = 'error', actionsHtml = null) {
             const msgBox = document.getElementById('message-box');
             const msgTitle = document.getElementById('message-box-title');
             const msgContent = document.getElementById('message-box-content');
@@ -548,13 +548,16 @@
             box.classList.add('border-t-4', `border-${color}-500`);
             msgContent.innerText = content;
 
-            // Default single OK button
+            // Default single OK button (overridden if actionsHtml provided)
             actionsContainer.innerHTML = `
                 <button onclick="closeMessageBox()" class="text-white px-7 py-3 rounded-xl hover:opacity-90 transition-all duration-300 shadow-md text-lg ${buttonClass}">${buttonText}</button>
             `;
 
-            // If warning and not logged in, show Login/Signup actions
-            if (type === 'warning' && !loggedInUserId) {
+            // Custom actions override (e.g., Home/Dashboard buttons)
+            if (actionsHtml) {
+                actionsContainer.innerHTML = actionsHtml;
+            } else if (type === 'warning' && !loggedInUserId) {
+                // If warning and not logged in, show Login/Signup actions
                 actionsContainer.innerHTML = `
                     <a href="/auth.html?view=sign-in" class="bg-green-600 text-white px-6 py-3 rounded-xl hover:bg-green-700 transition-all duration-300 shadow-md text-lg inline-flex items-center gap-2">
                         <i class="fa-solid fa-right-to-bracket"></i> تسجيل الدخول
@@ -663,7 +666,9 @@ async function loadOrCreateTeam() {
     const urlInvitationCode = urlParams.get('invitationCode');
     invitationCode = urlInvitationCode || pathInvitationCode;
     // Guard against mistakenly using page filenames like 'user-dashboard.html' or 'team-join.html'
+    let invalidRouteHtml = false;
     if (invitationCode && /\.html$/i.test(invitationCode)) {
+        invalidRouteHtml = true;
         invitationCode = null;
     }
             
@@ -699,7 +704,24 @@ async function loadOrCreateTeam() {
         isCreator = true;
         await createNewTeam(fieldId, slotDate, startTime || null, endTime || null, currentBookingType, initialPlayerCount);
     } else {
-        showMessageBox('خطأ', 'الرجاء البدء بالحجز من الصفحة الرئيسية.');
+        // If the path looked like /join/<view>.html, surface a helpful modal with navigation
+        if (invalidRouteHtml) {
+            showMessageBox(
+                'رابط غير صالح',
+                'تم فتح صفحة الانضمام برابط غير صحيح. استخدم رابط دعوة صالح أو عد إلى الصفحة الرئيسية.',
+                'info',
+                `
+                <a href="/index.html" class="bg-blue-600 text-white px-6 py-3 rounded-xl hover:bg-blue-700 transition-all duration-300 shadow-md text-lg inline-flex items-center gap-2">
+                    <i class="fa-solid fa-house"></i> الصفحة الرئيسية
+                </a>
+                <a href="/user-dashboard.html" class="bg-green-600 text-white px-6 py-3 rounded-xl hover:bg-green-700 transition-all duration-300 shadow-md text-lg inline-flex items-center gap-2">
+                    <i class="fa-solid fa-gauge"></i> لوحة التحكم
+                </a>
+                `
+            );
+        } else {
+            showMessageBox('خطأ', 'الرجاء البدء بالحجز من الصفحة الرئيسية.');
+        }
         document.getElementById('loading-state').classList.add('hidden');
     }
 }

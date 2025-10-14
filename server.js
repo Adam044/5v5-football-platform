@@ -55,6 +55,12 @@ app.get('/join', (req, res) => {
     res.sendFile(path.join(__dirname, 'views', 'team-join.html'));
 });
 app.get('/join/:code', (req, res) => {
+    const code = req.params.code || '';
+    // If someone navigates to /join/<something>.html (e.g., user-dashboard.html),
+    // redirect them directly to that view instead of rendering team-join.
+    if (/\.html$/i.test(code)) {
+        return res.redirect(`/${code}`);
+    }
     res.sendFile(path.join(__dirname, 'views', 'team-join.html'));
 });
 
