@@ -1443,8 +1443,8 @@ function getPlayersNeededForMatchmaking(bookingType, currentPlayers) {
             // Total 12 players (6v6). If a team has N, it needs (12 - N) total players for the pool.
             return 12 - currentPlayers; 
         case 'team_looking_for_players':
-            // Max team size 5. If a team has N, it needs (5 - N) individual players.
-            return 5 - currentPlayers; 
+            // Target playable team size 6 (e.g., 6v6). If a team has N, it needs (6 - N) individual players.
+            return 6 - currentPlayers; 
         case 'players_looking_for_team':
             // Single player needs 9 others for a 5v5 game (total 10 players)
             return 9; 
