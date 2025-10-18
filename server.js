@@ -244,7 +244,9 @@ const checkAdmin = async (req, res, next) => {
         if (!row) {
             return res.status(401).json({ error: 'Unauthorized. User not found.' });
         }
-        if (row.is_admin !== 1) {
+        // Handle different data types for is_admin (boolean, integer, string)
+        const isAdmin = row.is_admin === 1 || row.is_admin === true || row.is_admin === '1';
+        if (!isAdmin) {
             return res.status(403).json({ error: 'Forbidden. You do not have administrator access.' });
         }
         next();
@@ -655,6 +657,17 @@ app.get('/api/admin/fields', checkAdmin, async (req, res) => {
             return field;
         });
         res.json({ fields: fieldsWithBase64 });
+    } catch (err) {
+        return res.status(500).json({ error: err.message });
+    }
+});
+
+// Get all players (Admin)
+app.get('/api/admin/players', checkAdmin, async (req, res) => {
+    const sql = `SELECT id, name, phone_number, birthdate, gender, created_at FROM users ORDER BY created_at DESC`;
+    try {
+        const { rows } = await pool.query(sql);
+        res.json({ players: rows });
     } catch (err) {
         return res.status(500).json({ error: err.message });
     }

@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إدارة اللاعبين - 5ع5</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap');
+        
+        :root {
+            --primary-color: #10B981;
+            --secondary-color: #3B82F6;
+            --background-color: #f0f4f8;
+            --text-color: #2c3e50;
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+        }
+        
+        .animate-fade-in {
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .player-card {
+            transition: all 0.3s ease;
+            transform: translateY(0);
+        }
+        
+        .player-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .search-input {
+            transition: all 0.3s ease;
+        }
+        
+        .search-input:focus {
+            transform: scale(1.02);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- Global Header Placeholder -->
+    <div id="global-header"></div>
+
+    <!-- Players Management Content -->
+    <main class="flex-grow container mx-auto px-6 py-20 animate-fade-in">
+        <div class="max-w-7xl mx-auto">
+            <!-- Header Section -->
+            <div class="text-center mb-12">
+                <h1 class="text-5xl font-extrabold text-gray-900 mb-4">
+                    إدارة <span class="text-blue-600">اللاعبين</span>
+                </h1>
+                <p class="text-xl text-gray-600">عرض وإدارة معلومات جميع اللاعبين المسجلين في النظام</p>
+            </div>
+
+            <!-- Search and Filter Section -->
+            <div class="bg-white rounded-2xl shadow-xl p-6 mb-8">
+                <div class="flex flex-col md:flex-row gap-4 items-center justify-between">
+                    <div class="flex-1 max-w-md">
+                        <div class="relative">
+                            <input 
+                                type="text" 
+                                id="search-input" 
+                                placeholder="البحث عن لاعب (الاسم، الهاتف، البريد الإلكتروني...)"
+                                class="search-input w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent text-right"
+                            >
+                            <i class="fa-solid fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        </div>
+                    </div>
+                    <div class="flex gap-3">
+                        <select id="gender-filter" class="px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <option value="">جميع الأجناس</option>
+                            <option value="male">ذكر</option>
+                            <option value="female">أنثى</option>
+                        </select>
+                        <button onclick="refreshPlayers()" class="bg-blue-600 text-white px-6 py-3 rounded-xl hover:bg-blue-700 transition-all duration-300 shadow-md flex items-center gap-2">
+                            <i class="fa-solid fa-refresh"></i>
+                            تحديث
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Players Count -->
+            <div class="bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-2xl p-6 mb-8 shadow-xl">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="text-2xl font-bold mb-2">إجمالي اللاعبين المسجلين</h3>
+                        <p id="total-players-count" class="text-4xl font-extrabold">0</p>
+                    </div>
+                    <i class="fa-solid fa-users text-6xl text-blue-200"></i>
+                </div>
+            </div>
+
+            <!-- Players Table -->
+            <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
+                <div class="p-6 border-b border-gray-200">
+                    <h3 class="text-2xl font-bold text-gray-900 flex items-center gap-3">
+                        <i class="fa-solid fa-table text-blue-600"></i>
+                        قائمة اللاعبين
+                    </h3>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-4 text-right text-sm font-bold text-gray-700 uppercase tracking-wider">
+                                    <i class="fa-solid fa-user ml-2"></i>الاسم
+                                </th>
+                                <th class="px-6 py-4 text-right text-sm font-bold text-gray-700 uppercase tracking-wider">
+                                    <i class="fa-solid fa-phone ml-2"></i>رقم الهاتف
+                                </th>
+                                <th class="px-6 py-4 text-right text-sm font-bold text-gray-700 uppercase tracking-wider">
+                                    <i class="fa-solid fa-calendar ml-2"></i>تاريخ الميلاد
+                                </th>
+                                <th class="px-6 py-4 text-right text-sm font-bold text-gray-700 uppercase tracking-wider">
+                                    <i class="fa-solid fa-venus-mars ml-2"></i>الجنس
+                                </th>
+                                <th class="px-6 py-4 text-right text-sm font-bold text-gray-700 uppercase tracking-wider">
+                                    <i class="fa-solid fa-calendar-plus ml-2"></i>تاريخ التسجيل
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody id="players-table-body" class="bg-white divide-y divide-gray-200">
+                            <!-- Players will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Loading State -->
+                <div id="loading-state" class="text-center py-12">
+                    <i class="fa-solid fa-spinner fa-spin text-4xl text-blue-600 mb-4"></i>
+                    <p class="text-xl text-gray-600">جاري تحميل بيانات اللاعبين...</p>
+                </div>
+                
+                <!-- Empty State -->
+                <div id="empty-state" class="text-center py-12 hidden">
+                    <i class="fa-solid fa-users-slash text-6xl text-gray-400 mb-4"></i>
+                    <p class="text-xl text-gray-600">لا توجد بيانات لاعبين متاحة</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Message Box -->
+    <div id="message-box" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50 animate-fade-in">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 animate-scale-in-up border-t-4">
+            <div class="p-8 text-center">
+                <div id="message-box-title" class="text-2xl font-bold mb-4 flex items-center justify-center gap-3"></div>
+                <div id="message-box-content" class="text-lg text-gray-700 mb-8 leading-relaxed"></div>
+                <div id="message-box-actions" class="flex gap-4 justify-center">
+                    <button onclick="hideMessageBox()" class="px-8 py-3 rounded-xl font-bold transition-all duration-300 shadow-md">حسناً</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white py-12 mt-20">
+        <div class="container mx-auto px-6 text-center">
+            <p class="mb-5 text-lg">&copy; 2025 5ع5. جميع الحقوق محفوظة.</p>
+            <div class="flex justify-center space-x-6 space-x-reverse text-md">
+                <a href="#" class="text-gray-400 hover:text-white transition-colors duration-300">سياسة الخصوصية</a>
+                <a href="#" class="text-gray-400 hover:text-white transition-colors duration-300">شروط الخدمة</a>
+                <a href="#" class="text-gray-400 hover:text-white transition-colors duration-300">الأسئلة الشائعة</a>
+            </div>
+        </div>
+    </footer>
+
+    <script src="header.js"></script>
+    <script>
+        let allPlayers = [];
+        let filteredPlayers = [];
+
+        // --- Admin Access Check on page load ---
+        async function checkAdminAccess() {
+            const userId = localStorage.getItem('userId');
+            const isAdmin = localStorage.getItem('isAdmin');
+            
+            console.log('Debug - userId:', userId, 'isAdmin:', isAdmin); // Debug log
+            
+            if (!userId) {
+                showMessageBox('غير مصرح', 'يجب تسجيل الدخول أولاً.', 'error');
+                setTimeout(() => window.location.href = 'auth.html', 1500);
+                return;
+            }
+
+            // Check admin status from localStorage (same as auth.html logic)
+            if (!isAdmin || isAdmin === 'false' || isAdmin === '0') {
+                showMessageBox('غير مصرح', 'ليس لديك صلاحيات للوصول إلى هذه الصفحة.', 'error');
+                setTimeout(() => window.location.href = 'index.html', 1500);
+                return;
+            }
+                
+            // If admin check passes, load players
+            await loadPlayers();
+        }
+
+        // Load all players from the server
+        async function loadPlayers() {
+            const userId = localStorage.getItem('userId');
+            const loadingState = document.getElementById('loading-state');
+            const emptyState = document.getElementById('empty-state');
+            const tableBody = document.getElementById('players-table-body');
+            
+            loadingState.classList.remove('hidden');
+            emptyState.classList.add('hidden');
+            tableBody.innerHTML = '';
+
+            try {
+                const response = await fetch('/api/admin/players', {
+                    headers: {
+                        'X-User-Id': userId
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                allPlayers = data.players || [];
+                filteredPlayers = [...allPlayers];
+                
+                displayPlayers();
+                updatePlayersCount();
+                
+            } catch (error) {
+                console.error('Error loading players:', error);
+                showMessageBox('خطأ', 'فشل في تحميل بيانات اللاعبين.', 'error');
+                emptyState.classList.remove('hidden');
+            } finally {
+                loadingState.classList.add('hidden');
+            }
+        }
+
+        // Display players in the table
+        function displayPlayers() {
+            const tableBody = document.getElementById('players-table-body');
+            const emptyState = document.getElementById('empty-state');
+            
+            if (filteredPlayers.length === 0) {
+                tableBody.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                return;
+            }
+            
+            emptyState.classList.add('hidden');
+            
+            tableBody.innerHTML = filteredPlayers.map((player, index) => {
+                // Format dates with English numbers
+                const birthdate = player.birthdate ? 
+                    new Date(player.birthdate).toLocaleDateString('en-GB').replace(/\//g, '/') : 'غير محدد';
+                const createdAt = player.created_at ? 
+                    new Date(player.created_at).toLocaleDateString('en-GB').replace(/\//g, '/') : 'غير محدد';
+                
+                const genderText = player.gender === 'male' ? 'ذكر' : 
+                                 player.gender === 'female' ? 'أنثى' : 
+                                 player.gender === 'ذكر' ? 'ذكر' :
+                                 player.gender === 'أنثى' ? 'أنثى' : 'غير محدد';
+                
+                return `
+                    <tr class="player-card hover:bg-gray-50">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0 h-10 w-10">
+                                    <div class="h-10 w-10 rounded-full bg-blue-500 flex items-center justify-center">
+                                        <i class="fa-solid fa-user text-white"></i>
+                                    </div>
+                                </div>
+                                <div class="mr-4">
+                                    <div class="text-sm font-medium text-gray-900">${player.name || 'غير محدد'}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            ${player.phone_number || 'غير محدد'}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            ${birthdate}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                player.gender === 'male' || player.gender === 'ذكر' ? 'bg-blue-100 text-blue-800' : 
+                                player.gender === 'female' || player.gender === 'أنثى' ? 'bg-pink-100 text-pink-800' : 
+                                'bg-gray-100 text-gray-800'
+                            }">
+                                ${genderText}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            ${createdAt}
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Update players count
+        function updatePlayersCount() {
+            document.getElementById('total-players-count').textContent = filteredPlayers.length;
+        }
+
+        // Search and filter functionality
+        function filterPlayers() {
+            const searchTerm = document.getElementById('search-input').value.toLowerCase();
+            const genderFilter = document.getElementById('gender-filter').value;
+            
+            filteredPlayers = allPlayers.filter(player => {
+                const matchesSearch = !searchTerm || 
+                    (player.name && player.name.toLowerCase().includes(searchTerm)) ||
+                    (player.email && player.email.toLowerCase().includes(searchTerm)) ||
+                    (player.phone_number && player.phone_number.includes(searchTerm));
+                
+                const matchesGender = !genderFilter || player.gender === genderFilter;
+                
+                return matchesSearch && matchesGender;
+            });
+            
+            displayPlayers();
+            updatePlayersCount();
+        }
+
+        // Refresh players data
+        async function refreshPlayers() {
+            await loadPlayers();
+        }
+
+        // Message box functions
+        function showMessageBox(title, content, type = 'info', callback = null) {
+            const msgBox = document.getElementById('message-box');
+            const msgTitle = document.getElementById('message-box-title');
+            const msgContent = document.getElementById('message-box-content');
+            const actionsContainer = document.getElementById('message-box-actions');
+            
+            let icon, color, buttonClass, buttonText;
+            
+            switch (type) {
+                case 'success':
+                    icon = `<i class="fa-solid fa-circle-check text-green-500 ml-2"></i>`;
+                    color = 'green';
+                    buttonClass = 'bg-green-600 text-white';
+                    buttonText = 'رائع!';
+                    break;
+                case 'error':
+                    icon = `<i class="fa-solid fa-circle-xmark text-red-500 ml-2"></i>`;
+                    color = 'red';
+                    buttonClass = 'bg-red-600 text-white';
+                    buttonText = 'حسناً';
+                    break;
+                case 'warning':
+                    icon = `<i class="fa-solid fa-triangle-exclamation text-yellow-500 ml-2"></i>`;
+                    color = 'yellow';
+                    buttonClass = 'bg-yellow-600 text-white';
+                    buttonText = 'فهمت';
+                    break;
+                default:
+                    icon = `<i class="fa-solid fa-circle-info text-blue-500 ml-2"></i>`;
+                    color = 'blue';
+                    buttonClass = 'bg-blue-600 text-white';
+                    buttonText = 'حسناً';
+            }
+            
+            msgTitle.innerHTML = `${icon}${title}`;
+            msgContent.textContent = content;
+            msgBox.querySelector('.bg-white').classList.add(`border-t-4`, `border-${color}-500`);
+            
+            actionsContainer.innerHTML = `
+                <button onclick="hideMessageBox(); ${callback ? callback.toString() + '()' : ''}" class="${buttonClass} px-8 py-3 rounded-xl font-bold transition-all duration-300 shadow-md hover:opacity-90">
+                    ${buttonText}
+                </button>
+            `;
+            
+            msgBox.classList.remove('hidden');
+        }
+
+        function hideMessageBox() {
+            document.getElementById('message-box').classList.add('hidden');
+        }
+
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            checkAdminAccess();
+            
+            // Search input event listener
+            document.getElementById('search-input').addEventListener('input', filterPlayers);
+            
+            // Gender filter event listener
+            document.getElementById('gender-filter').addEventListener('change', filterPlayers);
+        });
+    </script>
+</body>
+</html>
