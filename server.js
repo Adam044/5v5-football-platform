@@ -1928,7 +1928,6 @@ app.get('/api/admin/matchmaking/categorized', checkAdmin, async (req, res) => {
             JOIN fields f ON mr.field_id = f.id
             WHERE mr.request_type = 'team_vs_team'
         `;
-
         const playersLookingSql = `
             SELECT mr.id, mr.user_id, u.name AS user_name, u.phone_number AS phone_number, mr.field_id, f.name AS field_name,
                    mr.slot_date, mr.request_type, mr.status, mr.players_needed
