@@ -1044,7 +1044,7 @@
                 if (data.sponsors && data.sponsors.length > 0) {
                     data.sponsors.forEach(sponsor => {
                         const sponsorCard = document.createElement('div');
-                        sponsorCard.className = 'group relative bg-white rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 border border-gray-100 hover:border-blue-200 overflow-hidden';
+                        sponsorCard.className = 'group relative bg-white rounded-2xl p-8 hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 border border-gray-100 hover:border-blue-200 overflow-hidden';
                         
                         const imageUrl = sponsor.image_url || `https://placehold.co/200x100/3b82f6/ffffff?text=${sponsor.name.replace(/\s/g, '+')}`;
                         
@@ -1059,7 +1059,7 @@
                                     <img
                                         src="${imageUrl}"
                                         alt="${sponsor.name}"
-                                        class="max-w-full max-h-full object-contain filter grayscale group-hover:grayscale-0 transition-all duration-500 transform group-hover:scale-110"
+                                        class="max-w-full max-h-full object-contain transition-all duration-500 transform group-hover:scale-110"
                                         loading="lazy" decoding="async"
                                         onerror="this.onerror=null;this.src='https://placehold.co/200x100/3b82f6/ffffff?text=${sponsor.name.replace(/\s/g, '+')}'"
                                     />

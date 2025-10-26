@@ -115,6 +115,8 @@ app.use(express.static(path.join(__dirname, 'views')));
 app.use(express.static(path.join(__dirname, 'components')));
 // Add explicit route for images to handle both /images and /components/images paths
 app.use('/images', express.static(path.join(__dirname, 'components/images')));
+// Add explicit route for components/images to handle direct access
+app.use('/components/images', express.static(path.join(__dirname, 'components/images')));
 
 // Friendly routes to serve specific HTML views
 // Join page alias: allows links like /join/<code> to render team-join
@@ -307,34 +309,49 @@ app.get('/join/:code', (req, res) => {
 
 // Security middleware to check for admin
 const checkAdmin = async (req, res, next) => {
-    const query = req.query || {};
+    const queryParams = req.query || {};
     const body = req.body || {};
     const headers = req.headers || {};
     
     // User ID can come from query, body, or custom header
-    const userId = query.userId || body.userId || headers['x-user-id'];
+    const userId = queryParams.userId || body.userId || headers['x-user-id'];
+    
+    console.log('🔍 CheckAdmin middleware - userId:', userId);
+    console.log('🔍 CheckAdmin middleware - headers:', JSON.stringify(headers, null, 2));
     
     if (!userId) {
+        console.log('❌ CheckAdmin: No userId provided');
         return res.status(401).json({ error: 'Unauthorized. User ID is required.' });
     }
 
     // Use $1 for PostgreSQL parameterized queries
     const sql = `SELECT is_admin FROM users WHERE id = $1`;
     try {
+        console.log('🔍 CheckAdmin: Executing query for userId:', userId);
         const { rows } = await pool.query(sql, [userId]);
         const row = rows[0];
 
         if (!row) {
+            console.log('❌ CheckAdmin: User not found for userId:', userId);
             return res.status(401).json({ error: 'Unauthorized. User not found.' });
         }
+        
+        console.log('🔍 CheckAdmin: User found, is_admin value:', row.is_admin, 'type:', typeof row.is_admin);
+        
         // Handle different data types for is_admin (boolean, integer, string)
         const isAdmin = row.is_admin === 1 || row.is_admin === true || row.is_admin === '1';
+        
+        console.log('🔍 CheckAdmin: isAdmin result:', isAdmin);
+        
         if (!isAdmin) {
+            console.log('❌ CheckAdmin: User is not admin');
             return res.status(403).json({ error: 'Forbidden. You do not have administrator access.' });
         }
+        
+        console.log('✅ CheckAdmin: User is admin, proceeding to next middleware');
         next();
     } catch (err) {
-        console.error('Database error in checkAdmin:', err);
+        console.error('❌ Database error in checkAdmin:', err);
         
         // Provide more specific error messages based on error type
         if (err.code === 'ENOTFOUND' || err.code === 'ECONNREFUSED' || err.code === 'ETIMEDOUT') {
@@ -750,12 +767,22 @@ app.post('/api/matchmake', async (req, res) => {
 // --- Admin API Endpoints (all require checkAdmin middleware) ---
 
 // Get all fields (Admin)
+// Test endpoint to verify server connectivity
+app.get('/api/test', (req, res) => {
+    console.log('🔍 Test endpoint hit - headers:', JSON.stringify(req.headers, null, 2));
+    res.json({ message: 'Server is working', timestamp: new Date().toISOString() });
+});
+
 app.get('/api/admin/fields', checkAdmin, async (req, res) => {
+    console.log('🔍 Admin fields endpoint hit - user passed checkAdmin middleware');
     const sql = `SELECT id, name, description, location, image_url, price_per_hour FROM fields`;
     try {
-        const { rows } = await query(sql);
+        console.log('🔍 Executing query:', sql);
+        const { rows } = await pool.query(sql);
+        console.log('🔍 Query successful, returning', rows.length, 'fields');
         res.json({ fields: rows });
     } catch (err) {
+        console.error('❌ Database error in /api/admin/fields:', err);
         return res.status(500).json({ error: err.message });
     }
 });
@@ -2599,5 +2626,11 @@ app.delete('/api/admin/sponsors/:id', checkAdmin, async (req, res) => {
 });
 
 app.listen(port, () => {
-    console.log(`Server is running at http://localhost:${port}`);
+    console.log(`🚀 Server running on http://localhost:${port}`);
+    console.log('📁 Static files served from:');
+    console.log('   - views: ' + path.join(__dirname, 'views'));
+    console.log('   - components: ' + path.join(__dirname, 'components'));
+    console.log('   - /images -> ' + path.join(__dirname, 'components/images'));
+    console.log('   - /components/images -> ' + path.join(__dirname, 'components/images'));
+    console.log('🔍 Test logo access: http://localhost:' + port + '/components/images/logo.jpg');
 });

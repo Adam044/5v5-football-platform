@@ -260,7 +260,7 @@
             content: '';
             position: absolute;
             inset: 0;
-            background: url('/components/images/logo.jpg') center/cover no-repeat;
+            background: url('/images/logo.jpg') center/cover no-repeat;
             border-radius: 50%;
             filter: drop-shadow(0 2px 4px rgba(0,0,0,.25));
         }
@@ -1051,18 +1051,26 @@
                 return;
             }
             try {
+                console.log('🔍 Making admin access request with userId:', userId);
                 const response = await fetch(`/api/admin/fields`, {
                     headers: {
-                        'X-User-Id': userId
+                        'X-User-Id': userId,
+                        'Content-Type': 'application/json'
                     }
                 });
+                console.log('🔍 Response status:', response.status);
+                console.log('🔍 Response headers:', [...response.headers.entries()]);
+                
                 if (!response.ok) {
+                    const errorText = await response.text();
+                    console.log('🔍 Error response body:', errorText);
+                    
                     if (response.status === 401 || response.status === 403) {
                         showMessageBox('غير مصرح', 'ليس لديك صلاحيات للوصول إلى لوحة تحكم الإدارة.', 'error');
                         setTimeout(() => window.location.href = 'index.html', 1500);
                         return;
                     }
-                    throw new Error('Failed to verify admin access');
+                    throw new Error(`Failed to verify admin access: ${response.status} - ${errorText}`);
                 }
                 fetchData();
             } catch (error) {
