@@ -441,6 +441,9 @@
             <button class="tab-button text-gray-600 font-bold text-xl px-4 py-2" data-tab="gallery-tab">
                 <i class="fa-solid fa-images ml-2"></i> إدارة المعرض
             </button>
+            <button class="tab-button text-gray-600 font-bold text-xl px-4 py-2" data-tab="sponsors-tab">
+                <i class="fa-solid fa-handshake ml-2"></i> إدارة الرعاة
+            </button>
         </div>
 
         <!-- Tab Content -->
@@ -748,6 +751,39 @@
                         </h5>
                         <div id="admin-gallery-container" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                             <!-- images will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Sponsors Tab -->
+            <section id="sponsors-tab" class="tab-pane hidden">
+                <div class="bg-white rounded-2xl shadow-xl p-8 border-b-4 border-purple-500">
+                    <h4 class="text-3xl font-bold text-gray-900 mb-8 flex items-center gap-3">
+                        <i class="fa-solid fa-handshake text-purple-600"></i>
+                        إدارة الرعاة
+                    </h4>
+
+                    <div class="mb-8 bg-purple-50 border border-purple-200 rounded-xl p-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">اسم الراعي:</label>
+                        <input id="sponsor-name" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 mb-4" placeholder="اكتب اسم الراعي..." required>
+                        
+                        <label class="block text-gray-700 text-sm font-bold mb-2">شعار الراعي:</label>
+                        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                            <input id="sponsor-image-file" type="file" accept="image/*" class="w-full sm:flex-1 min-w-0" required>
+                            <button id="sponsor-upload-btn" class="w-full sm:w-auto bg-purple-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-purple-700 transition-all duration-300">
+                                إضافة الراعي
+                            </button>
+                        </div>
+                        <p id="sponsor-upload-status" class="mt-3 text-sm text-gray-500"></p>
+                    </div>
+
+                    <div>
+                        <h5 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                            <i class="fa-solid fa-building text-purple-600"></i> الرعاة الحاليون
+                        </h5>
+                        <div id="admin-sponsors-container" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                            <!-- sponsors will be loaded here -->
                         </div>
                     </div>
                 </div>
@@ -1148,6 +1184,11 @@
             if (tabId === 'gallery-tab') {
                 fetchAdminGallery();
             }
+            
+            // Load sponsors when sponsors tab is activated
+            if (tabId === 'sponsors-tab') {
+                fetchAdminSponsors();
+            }
         }
         
         tabs.forEach(tab => {
@@ -1523,7 +1564,7 @@ async function fetchData() {
             fields.forEach(field => {
                 const card = document.createElement('div');
                 card.className = 'info-card';
-                const imageUrl = field.image ? `data:image/jpeg;base64,${field.image}` : `https://placehold.co/600x400/22c55e/ffffff?text=${field.name.replace(/\s/g, '+')}`;
+                const imageUrl = field.image_url || `https://placehold.co/600x400/22c55e/ffffff?text=${field.name.replace(/\s/g, '+')}`;
                 card.innerHTML = `
                     <div class="info-card-header">
                         <div class="info-card-title">
@@ -1691,7 +1732,7 @@ async function fetchData() {
                 document.getElementById('edit-field-price').value = field.field.price_per_hour;
                 
                 const imagePreview = document.getElementById('edit-field-image-preview');
-                imagePreview.src = field.field.image ? `data:image/jpeg;base64,${field.field.image}` : `https://placehold.co/600x400/22c55e/ffffff?text=${field.field.name.replace(/\s/g, '+')}`;
+                imagePreview.src = field.field.image_url || `https://placehold.co/600x400/22c55e/ffffff?text=${field.field.name.replace(/\s/g, '+')}`;
 
                 document.getElementById('edit-field-modal').classList.remove('hidden');
             } catch (error) {
@@ -1963,8 +2004,8 @@ async function fetchData() {
                     const response = await fetch(`/api/fields/${fieldId}?userId=${localStorage.getItem('userId')}`);
                     if (!response.ok) throw new Error('Failed to fetch field data');
                     const field = await response.json();
-                    if (field.field.image) {
-                        imagePreview.src = `data:image/jpeg;base64,${field.field.image}`;
+                    if (field.field.image_url) {
+                        imagePreview.src = field.field.image_url;
                         imagePreview.classList.remove('hidden');
                         imageInput.removeAttribute('required');
                     } else {
@@ -2588,8 +2629,10 @@ const sexText = user.gender === 'male' ? 'ذكر' : user.gender === 'female' ? '
                     data.images.forEach(img => {
                         const card = document.createElement('div');
                         card.className = 'bg-white p-3 rounded-xl shadow border border-gray-200';
+                        const imageUrl = img.image_url || `https://placehold.co/400x300/3b82f6/ffffff?text=${encodeURIComponent(img.title || 'صورة')}`;
                         card.innerHTML = `
-                            <img src="data:image/jpeg;base64,${img.image}" alt="${img.title || 'صورة'}" class="rounded-lg w-full h-40 object-cover mb-2" loading="lazy" decoding="async">
+                            <img src="${imageUrl}" alt="${img.title || 'صورة'}" class="rounded-lg w-full h-40 object-cover mb-2" loading="lazy" decoding="async"
+                                 onerror="this.onerror=null;this.src='https://placehold.co/400x300/3b82f6/ffffff?text=${encodeURIComponent(img.title || 'صورة')}'">
                             ${img.title ? `<div class=\"text-sm text-gray-700 text-center mb-2\">${img.title}</div>` : ''}
                             <div class="text-center">
                                 <button class="text-red-600 hover:text-red-800 font-bold text-sm" data-id="${img.id}"><i class="fa-solid fa-trash ml-1"></i> حذف</button>
@@ -2666,6 +2709,128 @@ const sexText = user.gender === 'male' ? 'ذكر' : user.gender === 'female' ? '
 
         document.getElementById('gallery-upload-btn')?.addEventListener('click', uploadGalleryImage);
 
+        // Sponsors functions
+        async function fetchAdminSponsors() {
+            const container = document.getElementById('admin-sponsors-container');
+            if (!container) return;
+            container.innerHTML = '<p class="text-center text-gray-500">جاري تحميل الرعاة...</p>';
+            try {
+                const res = await fetch('/api/sponsors');
+                const data = await res.json();
+                container.innerHTML = '';
+                if (res.ok && data.sponsors && data.sponsors.length) {
+                    data.sponsors.forEach(sponsor => {
+                        const card = document.createElement('div');
+                        card.className = 'bg-white p-3 rounded-xl shadow border border-gray-200';
+                        card.innerHTML = `
+                            <img src="${sponsor.image_url || `https://placehold.co/200x100/3b82f6/ffffff?text=${sponsor.name.replace(/\s/g, '+')}`}" alt="${sponsor.name}" class="rounded-lg w-full h-40 object-cover mb-2" loading="lazy" decoding="async">
+                            <div class="text-sm text-gray-700 text-center mb-2 font-semibold">${sponsor.name}</div>
+                            <div class="text-center">
+                                <button class="text-red-600 hover:text-red-800 font-bold text-sm" data-id="${sponsor.id}"><i class="fa-solid fa-trash ml-1"></i> حذف</button>
+                            </div>
+                        `;
+                        container.appendChild(card);
+                    });
+                    container.querySelectorAll('button[data-id]').forEach(btn => {
+                        btn.addEventListener('click', () => deleteSponsor(btn.dataset.id));
+                    });
+                } else {
+                    container.innerHTML = '<p class="text-center text-gray-500">لا يوجد رعاة بعد.</p>';
+                }
+            } catch (e) {
+                console.error('Failed to load sponsors', e);
+                container.innerHTML = '<p class="text-center text-red-500">حدث خطأ في تحميل الرعاة.</p>';
+            }
+        }
+
+        async function uploadSponsor() {
+            const fileInput = document.getElementById('sponsor-image-file');
+            const nameInput = document.getElementById('sponsor-name');
+            const statusEl = document.getElementById('sponsor-upload-status');
+            const userId = localStorage.getItem('userId');
+
+            statusEl.textContent = '';
+            const file = fileInput.files[0];
+            const name = nameInput.value.trim();
+            
+            if (!file) {
+                statusEl.textContent = 'يرجى اختيار صورة أولاً.';
+                return;
+            }
+            
+            if (!name) {
+                statusEl.textContent = 'يرجى إدخال اسم الراعي.';
+                return;
+            }
+
+            try {
+                const imageData = await fileToBase64(file);
+                const res = await fetch('/api/admin/sponsors', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-User-Id': userId },
+                    body: JSON.stringify({ name: name, image: imageData })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    statusEl.textContent = 'تم إضافة الراعي بنجاح.';
+                    fileInput.value = '';
+                    nameInput.value = '';
+                    fetchAdminSponsors();
+                } else {
+                    statusEl.textContent = data.error || 'فشل إضافة الراعي.';
+                }
+            } catch (err) {
+                console.error('Upload failed', err);
+                statusEl.textContent = 'حدث خطأ أثناء الإضافة.';
+            }
+        }
+
+        async function deleteSponsor(id) {
+            // Store the sponsor ID for the confirmation modal
+            window.pendingSponsorDeleteId = id;
+            // Show the confirmation modal
+            document.getElementById('delete-sponsor-modal').classList.remove('hidden');
+        }
+
+        // Function to open the delete sponsor modal
+        function openDeleteSponsorModal(id) {
+            window.pendingSponsorDeleteId = id;
+            document.getElementById('delete-sponsor-modal').classList.remove('hidden');
+        }
+
+        // Function to close the delete sponsor modal
+        function closeDeleteSponsorModal() {
+            document.getElementById('delete-sponsor-modal').classList.add('hidden');
+            window.pendingSponsorDeleteId = null;
+        }
+
+        // Function to actually delete the sponsor after confirmation
+        async function confirmDeleteSponsor() {
+            const id = window.pendingSponsorDeleteId;
+            if (!id) return;
+
+            const userId = localStorage.getItem('userId');
+            try {
+                const res = await fetch(`/api/admin/sponsors/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'X-User-Id': userId }
+                });
+                if (res.ok) {
+                    closeDeleteSponsorModal();
+                    fetchAdminSponsors();
+                    showMessageBox('نجح', 'تم حذف الراعي بنجاح.', 'success');
+                } else {
+                    const data = await res.json().catch(() => ({}));
+                    showMessageBox('خطأ', data.error || 'فشل حذف الراعي.', 'error');
+                }
+            } catch (err) {
+                console.error('Delete failed', err);
+                showMessageBox('خطأ', 'حدث خطأ أثناء الحذف.', 'error');
+            }
+        }
+
+        document.getElementById('sponsor-upload-btn')?.addEventListener('click', uploadSponsor);
+
         // Event listeners for availability management
         document.getElementById('availability-field-select').addEventListener('change', loadAvailabilitySlots);
         document.getElementById('availability-date-select').addEventListener('change', loadAvailabilitySlots);
@@ -2682,5 +2847,34 @@ const sexText = user.gender === 'male' ? 'ذكر' : user.gender === 'female' ? '
             window.location.href = 'index.html';
         }
     </script>
+
+    <!-- Delete Sponsor Confirmation Modal -->
+    <div id="delete-sponsor-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50 animate-fade-in">
+        <div class="bg-white rounded-2xl shadow-3xl w-full max-w-md relative p-8 border-t-4 border-red-500">
+            <button onclick="closeDeleteSponsorModal()" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 transition-colors duration-300 rounded-full bg-gray-100 p-2 hover:bg-gray-200" aria-label="إغلاق">
+                <i class="fa-solid fa-times"></i>
+            </button>
+            
+            <div class="text-center">
+                <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-red-100 mb-6">
+                    <i class="fa-solid fa-trash-can text-red-600 text-2xl"></i>
+                </div>
+                
+                <h3 class="text-2xl font-bold text-gray-900 mb-4">حذف الراعي</h3>
+                <p class="text-gray-600 mb-8">هل أنت متأكد من أنك تريد حذف هذا الراعي؟ لا يمكن التراجع عن هذا الإجراء.</p>
+                
+                <div class="flex gap-4">
+                    <button onclick="closeDeleteSponsorModal()" class="flex-1 bg-gray-500 text-white py-3 rounded-lg hover:bg-gray-600 transition-colors font-medium">
+                        <i class="fa-solid fa-times ml-2"></i>
+                        إلغاء
+                    </button>
+                    <button id="confirm-delete-sponsor-btn" onclick="confirmDeleteSponsor()" class="flex-1 bg-red-600 text-white py-3 rounded-lg hover:bg-red-700 transition-colors font-medium">
+                        <i class="fa-solid fa-trash-can ml-2"></i>
+                        حذف
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

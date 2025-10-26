@@ -886,9 +886,8 @@ async function loadOrCreateTeam() {
             const fieldOverview = document.getElementById('field-overview');
             const { field_name, field_address, field_image } = bookingData.session;
             
-            const imageUrl = field_image 
-                ? `data:image/jpeg;base64,${field_image}` 
-                : `https://placehold.co/600x400/22c55e/ffffff?text=${field_name.replace(/\s/g, '+')}`;
+            const imageUrl = bookingData.session.field_image_url 
+                || `https://placehold.co/600x400/22c55e/ffffff?text=${field_name.replace(/\s/g, '+')}`;
             
             fieldOverview.innerHTML = `
                 <div class="field-card">

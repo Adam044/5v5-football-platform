@@ -250,6 +250,36 @@
         </section>
     </main>
 
+    <!-- Sponsors Section -->
+    <section id="sponsors-section" class="bg-gradient-to-br from-slate-50 to-gray-100 py-20 border-t border-gray-200">
+        <div class="container mx-auto px-6">
+            <div class="text-center mb-16">
+                <div class="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-6">
+                    <i class="fa-solid fa-handshake text-2xl text-blue-600"></i>
+                </div>
+                <h3 class="text-5xl font-extrabold text-gray-900 mb-6 leading-tight">
+                    شركاؤنا <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">الداعمون</span>
+                </h3>
+                <p class="text-gray-600 text-xl max-w-2xl mx-auto leading-relaxed">نفتخر بشراكتنا مع أفضل الشركات والمؤسسات التي تدعم رؤيتنا في تطوير الرياضة</p>
+                <div class="w-24 h-1 bg-gradient-to-r from-blue-600 to-purple-600 mx-auto mt-6 rounded-full"></div>
+            </div>
+            <div id="sponsors-loading" class="flex items-center justify-center py-12 hidden">
+                <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
+                <span class="mr-4 text-gray-600 text-lg">جاري تحميل الشركاء...</span>
+            </div>
+            <div id="sponsors-container" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-8 max-w-6xl mx-auto">
+                <!-- Sponsors will be injected here by JavaScript -->
+            </div>
+            <div id="no-sponsors" class="text-center text-gray-500 py-12 hidden">
+                <div class="inline-flex items-center justify-center w-20 h-20 bg-gray-200 rounded-full mb-4">
+                    <i class="fa-solid fa-building text-2xl text-gray-400"></i>
+                </div>
+                <p class="text-xl font-medium">لا توجد شركاء حالياً</p>
+                <p class="text-gray-400 mt-2">نعمل على إضافة المزيد من الشراكات المميزة</p>
+            </div>
+        </div>
+    </section>
+
     <!-- Main Modal (for all steps) -->
     <div id="main-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50 animate-fade-in">
         <div class="bg-white rounded-2xl shadow-3xl w-full max-w-lg relative p-8 animate-scale-in-up border-b-4 border-green-600 max-h-[90vh] overflow-y-auto">
@@ -928,7 +958,7 @@
                     fields.forEach(field => {
                         const fieldCard = document.createElement('div');
                         fieldCard.className = 'bg-white rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden transform hover:-translate-y-2 border border-gray-100 w-full max-w-sm mx-auto';
-                        const imageUrl = field.image ? `data:image/jpeg;base64,${field.image}` : `https://placehold.co/600x400/22c55e/ffffff?text=${field.name.replace(/\s/g, '+')}`;
+                        const imageUrl = field.image_url || `https://placehold.co/600x400/22c55e/ffffff?text=${field.name.replace(/\s/g, '+')}`;
                         
                         // New details display section
                         const detailsHtml = `
@@ -996,9 +1026,74 @@
             }
         }
         
+        // Fetch and render sponsors
+        async function renderSponsors() {
+            const container = document.getElementById('sponsors-container');
+            const loadingEl = document.getElementById('sponsors-loading');
+            const noSponsorsEl = document.getElementById('no-sponsors');
+            
+            loadingEl.classList.remove('hidden');
+            noSponsorsEl.classList.add('hidden');
+            
+            try {
+                const response = await fetch('/api/sponsors');
+                const data = await response.json();
+                
+                container.innerHTML = '';
+                
+                if (data.sponsors && data.sponsors.length > 0) {
+                    data.sponsors.forEach(sponsor => {
+                        const sponsorCard = document.createElement('div');
+                        sponsorCard.className = 'group relative bg-white rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 border border-gray-100 hover:border-blue-200 overflow-hidden';
+                        
+                        const imageUrl = sponsor.image_url || `https://placehold.co/200x100/3b82f6/ffffff?text=${sponsor.name.replace(/\s/g, '+')}`;
+                        
+                        sponsorCard.innerHTML = `
+                            <!-- Gradient overlay on hover -->
+                            <div class="absolute inset-0 bg-gradient-to-br from-blue-50 to-purple-50 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                            
+                            <!-- Content -->
+                            <div class="relative z-10">
+                                <!-- Logo container -->
+                                <div class="w-full h-24 md:h-28 lg:h-32 flex items-center justify-center mb-6 bg-gray-50 rounded-xl group-hover:bg-white transition-colors duration-300">
+                                    <img
+                                        src="${imageUrl}"
+                                        alt="${sponsor.name}"
+                                        class="max-w-full max-h-full object-contain filter grayscale group-hover:grayscale-0 transition-all duration-500 transform group-hover:scale-110"
+                                        loading="lazy" decoding="async"
+                                        onerror="this.onerror=null;this.src='https://placehold.co/200x100/3b82f6/ffffff?text=${sponsor.name.replace(/\s/g, '+')}'"
+                                    />
+                                </div>
+                                
+                                <!-- Sponsor name -->
+                                <h4 class="text-center font-bold text-gray-800 group-hover:text-blue-600 transition-colors duration-300 text-sm md:text-base leading-tight">${sponsor.name}</h4>
+                                
+                                <!-- Decorative element -->
+                                <div class="w-12 h-0.5 bg-gradient-to-r from-blue-400 to-purple-400 mx-auto mt-3 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                            </div>
+                            
+                            <!-- Shine effect -->
+                            <div class="absolute inset-0 -translate-x-full group-hover:translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-1000 ease-out"></div>
+                        `;
+                        
+                        container.appendChild(sponsorCard);
+                    });
+                } else {
+                    noSponsorsEl.classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error('Failed to fetch sponsors:', error);
+                noSponsorsEl.classList.remove('hidden');
+                noSponsorsEl.textContent = 'حدث خطأ في تحميل الشركاء';
+            } finally {
+                loadingEl.classList.add('hidden');
+            }
+        }
+        
         // Initialize on page load
         document.addEventListener('DOMContentLoaded', () => {
             renderFields();
+            renderSponsors();
         });
     </script>
 </body>

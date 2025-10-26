@@ -5,8 +5,71 @@ const crypto = require('crypto');
 const cors = require('cors');
 require('dotenv').config();
 const sharp = require('sharp');
+const { createClient } = require('@supabase/supabase-js');
 // Import the PostgreSQL Pool from the new database file
 const pool = require('./database');
+
+// Initialize Supabase client for storage
+const supabase = createClient(
+    process.env.SUPABASE_URL,
+    process.env.SUPABASE_ANON_KEY
+);
+
+// Helper function to upload image to Supabase Storage
+async function uploadImageToStorage(imageBuffer, fileName, folder = 'images') {
+    try {
+        const filePath = `${folder}/${Date.now()}_${fileName}`;
+        
+        const { data, error } = await supabase.storage
+            .from('images')
+            .upload(filePath, imageBuffer, {
+                contentType: 'image/jpeg',
+                upsert: false
+            });
+        
+        if (error) {
+            console.error('Supabase storage error:', error);
+            return null;
+        }
+        
+        // Get public URL
+        const { data: urlData } = supabase.storage
+            .from('images')
+            .getPublicUrl(filePath);
+        
+        return urlData.publicUrl;
+    } catch (error) {
+        console.error('Error uploading to storage:', error);
+        return null;
+    }
+}
+
+// Helper function to delete image from Supabase Storage
+async function deleteImageFromStorage(imageUrl) {
+    try {
+        if (!imageUrl) return true;
+        
+        // Extract file path from URL
+        const urlParts = imageUrl.split('/storage/v1/object/public/images/');
+        if (urlParts.length < 2) return true;
+        
+        const filePath = urlParts[1];
+        
+        const { error } = await supabase.storage
+            .from('images')
+            .remove([filePath]);
+        
+        if (error) {
+            console.error('Error deleting from storage:', error);
+            return false;
+        }
+        
+        return true;
+    } catch (error) {
+        console.error('Error in deleteImageFromStorage:', error);
+        return false;
+    }
+}
 const app = express();
 
 // --- Configuration ---
@@ -47,8 +110,11 @@ app.options('/api/login', cors(corsOptions));
 app.use(express.json({ limit: '50mb' }));
 // Support form-encoded bodies for environments that block JSON POSTs
 app.use(express.urlencoded({ extended: true }));
+// Serve static files
 app.use(express.static(path.join(__dirname, 'views')));
 app.use(express.static(path.join(__dirname, 'components')));
+// Add explicit route for images to handle both /images and /components/images paths
+app.use('/images', express.static(path.join(__dirname, 'components/images')));
 
 // Friendly routes to serve specific HTML views
 // Join page alias: allows links like /join/<code> to render team-join
@@ -71,7 +137,7 @@ app.get('/join/:code', (req, res) => {
     console.log('Initializing database schema...');
     try {
         // Use pool.query for schema initialization
-        await pool.query(`
+    await pool.query(`
             -- USERS Table
             CREATE TABLE IF NOT EXISTS users (
                 id SERIAL PRIMARY KEY,
@@ -96,7 +162,7 @@ app.get('/join/:code', (req, res) => {
                 name TEXT NOT NULL,
                 description TEXT,
                 location TEXT,
-                image BYTEA, 
+                image_url TEXT, 
                 price_per_hour REAL
             );
 
@@ -136,15 +202,23 @@ app.get('/join/:code', (req, res) => {
                 tournament_date TEXT NOT NULL,
                 prize TEXT,
                 description TEXT,
-                image_data BYTEA,
+                image_url TEXT,
                 created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
             );
 
             -- GALLERY_IMAGES Table
             CREATE TABLE IF NOT EXISTS gallery_images (
                 id SERIAL PRIMARY KEY,
-                image_data BYTEA NOT NULL,
+                image_url TEXT NOT NULL,
                 title TEXT,
+                created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+            );
+
+            -- SPONSORS Table
+            CREATE TABLE IF NOT EXISTS sponsors (
+                id SERIAL PRIMARY KEY,
+                name TEXT NOT NULL,
+                image_url TEXT NOT NULL,
                 created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
             );
             
@@ -261,7 +335,24 @@ const checkAdmin = async (req, res, next) => {
         next();
     } catch (err) {
         console.error('Database error in checkAdmin:', err);
-        return res.status(500).json({ error: 'Database error during authentication check.' });
+        
+        // Provide more specific error messages based on error type
+        if (err.code === 'ENOTFOUND' || err.code === 'ECONNREFUSED' || err.code === 'ETIMEDOUT') {
+            return res.status(503).json({ 
+                error: 'Database connection temporarily unavailable. Please try again in a moment.',
+                code: 'CONNECTION_ERROR'
+            });
+        } else if (err.message && err.message.includes('Database connection failed after')) {
+            return res.status(503).json({ 
+                error: 'Database service is currently experiencing issues. Please try again later.',
+                code: 'CONNECTION_RETRY_FAILED'
+            });
+        } else {
+            return res.status(500).json({ 
+                error: 'Database error during authentication check.',
+                code: 'DATABASE_ERROR'
+            });
+        }
     }
 };
 
@@ -274,7 +365,9 @@ app.get('/api/fields', async (req, res) => {
     try {
         const { rows } = await pool.query(sql);
         const fieldsWithBase64 = rows.map(field => {
-            if (field.image) {
+            if (field.image_url) {
+                field.image = field.image_url;
+            } else if (field.image) {
                 // PostgreSQL BYTEA is returned as a Buffer
                 field.image = Buffer.from(field.image).toString('base64');
             }
@@ -297,7 +390,9 @@ app.get('/api/fields/:fieldId', async (req, res) => {
         if (!row) {
             return res.status(404).json({ error: 'Field not found' });
         }
-        if (row.image) {
+        if (row.image_url) {
+            row.image = row.image_url;
+        } else if (row.image) {
             row.image = Buffer.from(row.image).toString('base64');
         }
         res.json({ field: row });
@@ -656,16 +751,10 @@ app.post('/api/matchmake', async (req, res) => {
 
 // Get all fields (Admin)
 app.get('/api/admin/fields', checkAdmin, async (req, res) => {
-    const sql = `SELECT id, name, description, location, image, price_per_hour FROM fields`;
+    const sql = `SELECT id, name, description, location, image_url, price_per_hour FROM fields`;
     try {
-        const { rows } = await pool.query(sql);
-        const fieldsWithBase64 = rows.map(field => {
-            if (field.image) {
-                field.image = Buffer.from(field.image).toString('base64');
-            }
-            return field;
-        });
-        res.json({ fields: fieldsWithBase64 });
+        const { rows } = await query(sql);
+        res.json({ fields: rows });
     } catch (err) {
         return res.status(500).json({ error: err.message });
     }
@@ -758,13 +847,29 @@ app.post('/api/admin/fields', checkAdmin, async (req, res) => {
     if (!name || !location || !pricePerHour) {
         return res.status(400).json({ error: 'Name, location, and price per hour are required.' });
     }
-    const sql = `INSERT INTO fields (name, description, location, image, price_per_hour) VALUES ($1, $2, $3, $4, $5) RETURNING id`;
     
     try {
-        const base64Data = image.split(',')[1] || image;
-        const imageData = Buffer.from(base64Data, 'base64');
+        let imageUrl = null;
         
-        const { rows } = await pool.query(sql, [name, description, location, imageData, pricePerHour]);
+        if (image) {
+            const base64Data = image.split(',')[1] || image;
+            const imageBuffer = Buffer.from(base64Data, 'base64');
+            
+            // Optimize image with sharp
+            const optimizedBuffer = await sharp(imageBuffer)
+                .rotate()
+                .resize({ width: 800, fit: 'inside', withoutEnlargement: true })
+                .jpeg({ quality: 75 })
+                .toBuffer();
+
+            // Upload to Supabase Storage
+            const fileName = `fields/field_${Date.now()}_${Math.random().toString(36).substring(7)}.jpg`;
+            imageUrl = await uploadImageToStorage(optimizedBuffer, fileName, 'fields');
+        }
+
+        const sql = `INSERT INTO fields (name, description, location, image_url, price_per_hour) VALUES ($1, $2, $3, $4, $5) RETURNING id`;
+        const { rows } = await pool.query(sql, [name, description, location, imageUrl, pricePerHour]);
+        
         res.status(201).json({ message: 'Field added successfully', fieldId: rows[0].id });
     } catch (err) {
         return res.status(500).json({ error: err.message });
@@ -778,17 +883,50 @@ app.put('/api/admin/fields/:fieldId', checkAdmin, async (req, res) => {
     if (!name || !location || !pricePerHour) {
         return res.status(400).json({ error: 'All fields are required to update.' });
     }
-    const sql = `UPDATE fields SET name = $1, description = $2, location = $3, image = $4, price_per_hour = $5 WHERE id = $6`;
     
     try {
-        const base64Data = image.split(',')[1] || image;
-        const imageData = Buffer.from(base64Data, 'base64');
-        
-        const result = await pool.query(sql, [name, description, location, imageData, pricePerHour, fieldId]);
-        
-        if (result.rowCount === 0) {
+        // First, get the current field to check for existing image_url
+        const getCurrentField = await pool.query(`SELECT image_url FROM fields WHERE id = $1`, [fieldId]);
+        if (getCurrentField.rowCount === 0) {
             return res.status(404).json({ error: 'Field not found.' });
         }
+        
+        const currentField = getCurrentField.rows[0];
+        
+        const base64Data = image.split(',')[1] || image;
+        const imageBuffer = Buffer.from(base64Data, 'base64');
+        
+        // Optimize image with sharp
+        const optimizedBuffer = await sharp(imageBuffer)
+            .rotate()
+            .resize({ width: 800, fit: 'inside', withoutEnlargement: true })
+            .jpeg({ quality: 75 })
+            .toBuffer();
+
+        // Try to upload to Supabase Storage first
+        let imageUrl = null;
+        try {
+            const fileName = `field_${Date.now()}_${Math.random().toString(36).substring(7)}.jpg`;
+            imageUrl = await uploadImageToStorage(optimizedBuffer, fileName, 'fields');
+            
+            // If upload successful and there was an old image_url, delete the old one
+            if (currentField.image_url) {
+                try {
+                    await deleteImageFromStorage(currentField.image_url);
+                } catch (deleteError) {
+                    console.warn('Failed to delete old image from Supabase Storage:', deleteError);
+                }
+            }
+        } catch (uploadError) {
+            console.warn('Failed to upload to Supabase Storage, falling back to database storage:', uploadError);
+        }
+
+        const sql = imageUrl 
+            ? `UPDATE fields SET name = $1, description = $2, location = $3, image_url = $4, image = NULL, price_per_hour = $5 WHERE id = $6`
+            : `UPDATE fields SET name = $1, description = $2, location = $3, image = $4, price_per_hour = $5 WHERE id = $6`;
+        const updateParams = imageUrl ? [name, description, location, imageUrl, pricePerHour, fieldId] : [name, description, location, optimizedBuffer, pricePerHour, fieldId];
+        
+        const result = await pool.query(sql, updateParams);
         res.json({ message: 'Field updated successfully.' });
     } catch (err) {
         return res.status(500).json({ error: 'Failed to update field: ' + err.message });
@@ -799,10 +937,25 @@ app.put('/api/admin/fields/:fieldId', checkAdmin, async (req, res) => {
 app.delete('/api/admin/fields/:fieldId', checkAdmin, async (req, res) => {
     const { fieldId } = req.params;
     try {
-        const result = await pool.query(`DELETE FROM fields WHERE id = $1`, [fieldId]);
-        if (result.rowCount === 0) {
+        // First, get the field to check if it has an image_url
+        const getField = await pool.query(`SELECT image_url FROM fields WHERE id = $1`, [fieldId]);
+        if (getField.rowCount === 0) {
             return res.status(404).json({ error: 'Field not found.' });
         }
+
+        const field = getField.rows[0];
+        
+        // If there's an image_url, delete from Supabase Storage
+        if (field.image_url) {
+            try {
+                await deleteImageFromStorage(field.image_url);
+            } catch (deleteError) {
+                console.warn('Failed to delete image from Supabase Storage:', deleteError);
+            }
+        }
+
+        // Delete the field record from database
+        const result = await pool.query(`DELETE FROM fields WHERE id = $1`, [fieldId]);
         res.json({ message: 'Field deleted successfully.' });
     } catch (err) {
         // Foreign key violation
@@ -1031,24 +1184,15 @@ app.put('/api/admin/availability/:id', checkAdmin, async (req, res) => {
 app.get('/api/tournaments', async (req, res) => {
     const sql = `
         SELECT
-            t.id, t.name, t.tournament_date, t.prize, t.description, t.image_data,
-            f.name AS field_name, f.image as field_image
+            t.id, t.name, t.tournament_date, t.prize, t.description, t.image_url,
+            f.name AS field_name, f.image_url as field_image_url
         FROM tournaments t
         JOIN fields f ON t.field_id = f.id
         ORDER BY t.tournament_date ASC;
     `;
     try {
         const { rows } = await pool.query(sql);
-        const tournamentsWithBase64 = rows.map(t => {
-            if (t.image_data) {
-                t.image = Buffer.from(t.image_data).toString('base64');
-            }
-            if (t.field_image) {
-                t.field_image = Buffer.from(t.field_image).toString('base64');
-            }
-            return t;
-        });
-        res.json({ tournaments: tournamentsWithBase64 });
+        res.json({ tournaments: rows });
     } catch (err) {
         return res.status(500).json({ error: err.message });
     }
@@ -1060,13 +1204,25 @@ app.post('/api/admin/tournaments', checkAdmin, async (req, res) => {
     if (!name || !fieldId || !date || !prize || !image) {
         return res.status(400).json({ error: 'Tournament name, field, date, prize, and image are required.' });
     }
-    const sql = `INSERT INTO tournaments (name, field_id, tournament_date, prize, image_data, description) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`;
     
     try {
         const base64Data = image.split(',')[1] || image;
-        const imageData = Buffer.from(base64Data, 'base64');
+        const imageBuffer = Buffer.from(base64Data, 'base64');
         
-        const { rows } = await pool.query(sql, [name, fieldId, date, prize, imageData, description]);
+        // Optimize image with sharp
+        const optimizedBuffer = await sharp(imageBuffer)
+            .rotate()
+            .resize({ width: 800, fit: 'inside', withoutEnlargement: true })
+            .jpeg({ quality: 75 })
+            .toBuffer();
+
+        // Upload to Supabase Storage
+        const fileName = `tournaments/tournament_${Date.now()}_${Math.random().toString(36).substring(7)}.jpg`;
+        const imageUrl = await uploadImageToStorage(optimizedBuffer, fileName, 'tournaments');
+        
+        const sql = `INSERT INTO tournaments (name, field_id, tournament_date, prize, image_url, description) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`;
+        const { rows } = await pool.query(sql, [name, fieldId, date, prize, imageUrl, description]);
+        
         res.status(201).json({ message: 'Tournament added successfully', tournamentId: rows[0].id });
     } catch (err) {
         return res.status(500).json({ error: err.message });
@@ -1095,8 +1251,8 @@ app.get('/api/tournaments/:tournamentId', async (req, res) => {
     
     const sql = `
         SELECT
-            t.id, t.name, t.tournament_date, t.prize, t.description, t.image_data,
-            f.name AS field_name, f.image as field_image, f.id as field_id
+            t.id, t.name, t.tournament_date, t.prize, t.description, t.image_url,
+            f.name AS field_name, f.image_url as field_image_url, f.id as field_id
         FROM tournaments t
         JOIN fields f ON t.field_id = f.id
         WHERE t.id = $1;
@@ -1108,10 +1264,6 @@ app.get('/api/tournaments/:tournamentId', async (req, res) => {
 
         if (!row) {
             return res.status(404).json({ error: 'Tournament not found' });
-        }
-        
-        if (row.image_data) {
-            row.image = Buffer.from(row.image_data).toString('base64');
         }
         
         res.json({ tournament: row });
@@ -2307,14 +2459,9 @@ app.post('/api/admin/matchmaking-requests/:requestId/done', checkAdmin, async (r
 // Public: List gallery images
 app.get('/api/gallery', async (req, res) => {
     try {
-        const sql = `SELECT id, image_data, title, created_at FROM gallery_images ORDER BY created_at DESC`;
+        const sql = `SELECT id, image_url, title, created_at FROM gallery_images ORDER BY created_at DESC`;
         const { rows } = await pool.query(sql);
-        const images = rows.map(r => ({
-            id: r.id,
-            title: r.title,
-            created_at: r.created_at,
-            image: r.image_data ? Buffer.from(r.image_data).toString('base64') : null
-        })).filter(i => i.image);
+        const images = rows.filter(r => r.image_url);
         res.json({ images });
     } catch (err) {
         console.error('Error fetching gallery:', err);
@@ -2331,6 +2478,7 @@ app.post('/api/admin/gallery', checkAdmin, async (req, res) => {
     try {
         const base64 = image.replace(/^data:image\/[a-zA-Z]+;base64,/, '');
         const buffer = Buffer.from(base64, 'base64');
+        
         // Optimize: rotate based on EXIF, resize to max width 1600px, re-encode JPEG quality 75
         const optimizedBuffer = await sharp(buffer)
             .rotate()
@@ -2338,9 +2486,13 @@ app.post('/api/admin/gallery', checkAdmin, async (req, res) => {
             .jpeg({ quality: 75 })
             .toBuffer();
 
-        const insertSql = `INSERT INTO gallery_images (image_data, title) VALUES ($1, $2) RETURNING id`;
-        const result = await pool.query(insertSql, [optimizedBuffer, title || null]);
-        res.json({ message: 'Image uploaded successfully', id: result.rows[0].id });
+        // Try to upload to Supabase Storage
+        const imageUrl = await uploadImageToStorage(optimizedBuffer, `gallery_${Date.now()}.jpg`, 'gallery');
+        
+        // Store image URL in database
+        const insertSql = `INSERT INTO gallery_images (image_url, title) VALUES ($1, $2) RETURNING id`;
+        const result = await pool.query(insertSql, [imageUrl, title || null]);
+        res.json({ message: 'Image uploaded successfully', id: result.rows[0].id, image_url: imageUrl });
     } catch (err) {
         console.error('Error uploading gallery image:', err);
         return res.status(500).json({ error: 'Failed to upload image.' });
@@ -2351,6 +2503,16 @@ app.post('/api/admin/gallery', checkAdmin, async (req, res) => {
 app.delete('/api/admin/gallery/:id', checkAdmin, async (req, res) => {
     const { id } = req.params;
     try {
+        // First get the image info to delete from storage if needed
+        const getImageSql = `SELECT image_url FROM gallery_images WHERE id = $1`;
+        const imageResult = await pool.query(getImageSql, [id]);
+        
+        if (imageResult.rows.length > 0 && imageResult.rows[0].image_url) {
+            // Delete from Supabase Storage
+            await deleteImageFromStorage(imageResult.rows[0].image_url);
+        }
+        
+        // Delete from database
         const del = await pool.query(`DELETE FROM gallery_images WHERE id = $1`, [id]);
         if (del.rowCount === 0) {
             return res.status(404).json({ error: 'Image not found.' });
@@ -2359,6 +2521,80 @@ app.delete('/api/admin/gallery/:id', checkAdmin, async (req, res) => {
     } catch (err) {
         console.error('Error deleting gallery image:', err);
         return res.status(500).json({ error: 'Failed to delete image.' });
+    }
+});
+
+// --- Sponsors Endpoints ---
+
+// Public: List sponsors
+app.get('/api/sponsors', async (req, res) => {
+    try {
+        const sql = `SELECT id, name, image_url, created_at FROM sponsors ORDER BY created_at DESC`;
+        const { rows } = await pool.query(sql);
+        const sponsors = rows.filter(r => r.image_url);
+        res.json({ sponsors });
+    } catch (err) {
+        console.error('Error fetching sponsors:', err);
+        return res.status(500).json({ error: 'Failed to fetch sponsors.' });
+    }
+});
+
+// Admin: Add sponsor
+app.post('/api/admin/sponsors', checkAdmin, async (req, res) => {
+    const { name, image } = req.body || {};
+    if (!name || !image) {
+        return res.status(400).json({ error: 'Name and image are required.' });
+    }
+    try {
+        const base64 = image.replace(/^data:image\/[a-zA-Z]+;base64,/, '');
+        const buffer = Buffer.from(base64, 'base64');
+        // Optimize: rotate based on EXIF, resize to max width 800px, re-encode JPEG quality 75
+        const optimizedBuffer = await sharp(buffer)
+            .rotate()
+            .resize({ width: 800, fit: 'inside', withoutEnlargement: true })
+            .jpeg({ quality: 75 })
+            .toBuffer();
+
+        // Upload to Supabase Storage
+        const fileName = `sponsor_${Date.now()}_${Math.random().toString(36).substring(7)}.jpg`;
+        const imageUrl = await uploadImageToStorage(optimizedBuffer, fileName, 'sponsors');
+        
+        const insertSql = `INSERT INTO sponsors (name, image_url) VALUES ($1, $2) RETURNING id`;
+        const result = await pool.query(insertSql, [name, imageUrl]);
+        res.json({ message: 'Sponsor added successfully', id: result.rows[0].id });
+    } catch (err) {
+        console.error('Error adding sponsor:', err);
+        return res.status(500).json({ error: 'Failed to add sponsor.' });
+    }
+});
+
+// Admin: Delete sponsor
+app.delete('/api/admin/sponsors/:id', checkAdmin, async (req, res) => {
+    const { id } = req.params;
+    try {
+        // First, get the sponsor to check if it has an image_url
+        const getSponsor = await pool.query(`SELECT image_url FROM sponsors WHERE id = $1`, [id]);
+        if (getSponsor.rowCount === 0) {
+            return res.status(404).json({ error: 'Sponsor not found.' });
+        }
+
+        const sponsor = getSponsor.rows[0];
+        
+        // If there's an image_url, delete from Supabase Storage
+        if (sponsor.image_url) {
+            try {
+                await deleteImageFromStorage(sponsor.image_url);
+            } catch (deleteError) {
+                console.warn('Failed to delete image from Supabase Storage:', deleteError);
+            }
+        }
+
+        // Delete the sponsor record from database
+        const del = await pool.query(`DELETE FROM sponsors WHERE id = $1`, [id]);
+        res.json({ message: 'Sponsor deleted.' });
+    } catch (err) {
+        console.error('Error deleting sponsor:', err);
+        return res.status(500).json({ error: 'Failed to delete sponsor.' });
     }
 });
 
