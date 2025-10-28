@@ -204,7 +204,14 @@ app.get('/join/:code', (req, res) => {
                 tournament_date TEXT NOT NULL,
                 prize TEXT,
                 description TEXT,
-                image_url TEXT,
+                created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+            );
+
+            -- CATEGORIES Table (for gallery image categorization)
+            CREATE TABLE IF NOT EXISTS categories (
+                id SERIAL PRIMARY KEY,
+                name TEXT NOT NULL UNIQUE,
+                description TEXT,
                 created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
             );
 
@@ -213,8 +220,12 @@ app.get('/join/:code', (req, res) => {
                 id SERIAL PRIMARY KEY,
                 image_url TEXT NOT NULL,
                 title TEXT,
+                category_id INTEGER REFERENCES categories(id) ON DELETE SET NULL,
                 created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
             );
+
+            -- Add category_id column to existing gallery_images table (safe to run multiple times)
+            ALTER TABLE gallery_images ADD COLUMN IF NOT EXISTS category_id INTEGER REFERENCES categories(id) ON DELETE SET NULL;
 
             -- SPONSORS Table
             CREATE TABLE IF NOT EXISTS sponsors (
@@ -1211,44 +1222,31 @@ app.put('/api/admin/availability/:id', checkAdmin, async (req, res) => {
 app.get('/api/tournaments', async (req, res) => {
     const sql = `
         SELECT
-            t.id, t.name, t.tournament_date, t.prize, t.description, t.image_url,
-            f.name AS field_name, f.image_url as field_image_url
+            t.id, t.name, t.tournament_date, t.prize, t.description,
+            f.name AS field_name, f.image_url as image_url
         FROM tournaments t
-        JOIN fields f ON t.field_id = f.id
+        LEFT JOIN fields f ON t.field_id = f.id
         ORDER BY t.tournament_date ASC;
     `;
     try {
         const { rows } = await pool.query(sql);
         res.json({ tournaments: rows });
     } catch (err) {
+        console.error('Error fetching tournaments:', err);
         return res.status(500).json({ error: err.message });
     }
 });
 
 // Create new tournament (Admin)
 app.post('/api/admin/tournaments', checkAdmin, async (req, res) => {
-    const { name, fieldId, date, prize, image, description } = req.body;
-    if (!name || !fieldId || !date || !prize || !image) {
-        return res.status(400).json({ error: 'Tournament name, field, date, prize, and image are required.' });
+    const { name, fieldId, date, prize, description } = req.body;
+    if (!name || !fieldId || !date || !prize) {
+        return res.status(400).json({ error: 'Tournament name, field, date, and prize are required.' });
     }
     
     try {
-        const base64Data = image.split(',')[1] || image;
-        const imageBuffer = Buffer.from(base64Data, 'base64');
-        
-        // Optimize image with sharp
-        const optimizedBuffer = await sharp(imageBuffer)
-            .rotate()
-            .resize({ width: 800, fit: 'inside', withoutEnlargement: true })
-            .jpeg({ quality: 75 })
-            .toBuffer();
-
-        // Upload to Supabase Storage
-        const fileName = `tournaments/tournament_${Date.now()}_${Math.random().toString(36).substring(7)}.jpg`;
-        const imageUrl = await uploadImageToStorage(optimizedBuffer, fileName, 'tournaments');
-        
-        const sql = `INSERT INTO tournaments (name, field_id, tournament_date, prize, image_url, description) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`;
-        const { rows } = await pool.query(sql, [name, fieldId, date, prize, imageUrl, description]);
+        const sql = `INSERT INTO tournaments (name, field_id, tournament_date, prize, description) VALUES ($1, $2, $3, $4, $5) RETURNING id`;
+        const { rows } = await pool.query(sql, [name, fieldId, date, prize, description]);
         
         res.status(201).json({ message: 'Tournament added successfully', tournamentId: rows[0].id });
     } catch (err) {
@@ -2481,15 +2479,140 @@ app.post('/api/admin/matchmaking-requests/:requestId/done', checkAdmin, async (r
 });
 
 // Start the server
+// --- Category Endpoints ---
+
+// Public: List categories
+app.get('/api/categories', async (req, res) => {
+    try {
+        const sql = `SELECT id, name, description, created_at FROM categories ORDER BY name ASC`;
+        const { rows } = await pool.query(sql);
+        res.json({ categories: rows });
+    } catch (err) {
+        console.error('Error fetching categories:', err);
+        return res.status(500).json({ error: 'Failed to fetch categories.' });
+    }
+});
+
+// Admin: Create category
+app.post('/api/admin/categories', checkAdmin, async (req, res) => {
+    const { name, description } = req.body || {};
+    if (!name || !name.trim()) {
+        return res.status(400).json({ error: 'Category name is required.' });
+    }
+    try {
+        const insertSql = `INSERT INTO categories (name, description) VALUES ($1, $2) RETURNING id, name, description, created_at`;
+        const result = await pool.query(insertSql, [name.trim(), description || null]);
+        res.json({ message: 'Category created successfully', category: result.rows[0] });
+    } catch (err) {
+        if (err.code === '23505') { // Unique constraint violation
+            return res.status(400).json({ error: 'Category name already exists.' });
+        }
+        console.error('Error creating category:', err);
+        return res.status(500).json({ error: 'Failed to create category.' });
+    }
+});
+
+// Admin: Update category
+app.put('/api/admin/categories/:id', checkAdmin, async (req, res) => {
+    const { id } = req.params;
+    const { name, description } = req.body || {};
+    if (!name || !name.trim()) {
+        return res.status(400).json({ error: 'Category name is required.' });
+    }
+    try {
+        const updateSql = `UPDATE categories SET name = $1, description = $2 WHERE id = $3 RETURNING id, name, description, created_at`;
+        const result = await pool.query(updateSql, [name.trim(), description || null, id]);
+        if (result.rowCount === 0) {
+            return res.status(404).json({ error: 'Category not found.' });
+        }
+        res.json({ message: 'Category updated successfully', category: result.rows[0] });
+    } catch (err) {
+        if (err.code === '23505') { // Unique constraint violation
+            return res.status(400).json({ error: 'Category name already exists.' });
+        }
+        console.error('Error updating category:', err);
+        return res.status(500).json({ error: 'Failed to update category.' });
+    }
+});
+
+// Admin: Delete category
+app.delete('/api/admin/categories/:id', checkAdmin, async (req, res) => {
+    const { id } = req.params;
+    try {
+        // Check if category is being used by any gallery images
+        const checkUsageSql = `SELECT COUNT(*) as count FROM gallery_images WHERE category_id = $1`;
+        const usageResult = await pool.query(checkUsageSql, [id]);
+        
+        if (usageResult.rows[0].count > 0) {
+            return res.status(400).json({ 
+                error: `Cannot delete category. It is being used by ${usageResult.rows[0].count} gallery image(s).` 
+            });
+        }
+        
+        const deleteSql = `DELETE FROM categories WHERE id = $1`;
+        const result = await pool.query(deleteSql, [id]);
+        if (result.rowCount === 0) {
+            return res.status(404).json({ error: 'Category not found.' });
+        }
+        res.json({ message: 'Category deleted successfully.' });
+    } catch (err) {
+        console.error('Error deleting category:', err);
+        return res.status(500).json({ error: 'Failed to delete category.' });
+    }
+});
+
 // --- Gallery Endpoints ---
 
 // Public: List gallery images
 app.get('/api/gallery', async (req, res) => {
+    const { category, page = 1, limit = 12 } = req.query;
+    const offset = (page - 1) * limit;
+    
     try {
-        const sql = `SELECT id, image_url, title, created_at FROM gallery_images ORDER BY created_at DESC`;
-        const { rows } = await pool.query(sql);
+        // Get total count for pagination
+        let countSql = `SELECT COUNT(*) FROM gallery_images g`;
+        let countParams = [];
+        
+        if (category) {
+            countSql += ` WHERE g.category_id = $1`;
+            countParams.push(category);
+        }
+        
+        const { rows: countRows } = await pool.query(countSql, countParams);
+        const totalImages = parseInt(countRows[0].count);
+        const totalPages = Math.ceil(totalImages / limit);
+        
+        // Get paginated images
+        let sql = `
+            SELECT g.id, g.image_url, g.title, g.created_at, c.name as category_name, c.id as category_id
+            FROM gallery_images g
+            LEFT JOIN categories c ON g.category_id = c.id
+        `;
+        let params = [];
+        
+        if (category) {
+            sql += ` WHERE g.category_id = $1`;
+            params.push(category);
+            sql += ` ORDER BY g.created_at DESC LIMIT $2 OFFSET $3`;
+            params.push(limit, offset);
+        } else {
+            sql += ` ORDER BY g.created_at DESC LIMIT $1 OFFSET $2`;
+            params.push(limit, offset);
+        }
+        
+        const { rows } = await pool.query(sql, params);
         const images = rows.filter(r => r.image_url);
-        res.json({ images });
+        
+        res.json({ 
+            images,
+            pagination: {
+                currentPage: parseInt(page),
+                totalPages,
+                totalImages,
+                hasNextPage: page < totalPages,
+                hasPrevPage: page > 1
+            }
+        });
     } catch (err) {
         console.error('Error fetching gallery:', err);
         return res.status(500).json({ error: 'Failed to fetch gallery.' });
@@ -2498,7 +2621,7 @@ app.get('/api/gallery', async (req, res) => {
 
 // Admin: Upload gallery image
 app.post('/api/admin/gallery', checkAdmin, async (req, res) => {
-    const { image, title } = req.body || {};
+    const { image, title, categoryId } = req.body || {};
     if (!image) {
         return res.status(400).json({ error: 'Image is required.' });
     }
@@ -2506,23 +2629,49 @@ app.post('/api/admin/gallery', checkAdmin, async (req, res) => {
         const base64 = image.replace(/^data:image\/[a-zA-Z]+;base64,/, '');
         const buffer = Buffer.from(base64, 'base64');
         
-        // Optimize: rotate based on EXIF, resize to max width 1600px, re-encode JPEG quality 75
+        // Optimize: rotate based on EXIF, resize to max width 1200px, re-encode with better compression
         const optimizedBuffer = await sharp(buffer)
             .rotate()
-            .resize({ width: 1600, fit: 'inside', withoutEnlargement: true })
-            .jpeg({ quality: 75 })
+            .resize({ width: 1200, fit: 'inside', withoutEnlargement: true })
+            .webp({ quality: 80, effort: 6 }) // Use WebP format for better compression
             .toBuffer();
 
-        // Try to upload to Supabase Storage
-        const imageUrl = await uploadImageToStorage(optimizedBuffer, `gallery_${Date.now()}.jpg`, 'gallery');
+        // Try to upload to Supabase Storage with WebP extension
+        const imageUrl = await uploadImageToStorage(optimizedBuffer, `gallery_${Date.now()}.webp`, 'gallery');
         
-        // Store image URL in database
-        const insertSql = `INSERT INTO gallery_images (image_url, title) VALUES ($1, $2) RETURNING id`;
-        const result = await pool.query(insertSql, [imageUrl, title || null]);
+        // Store image URL in database with category
+        const insertSql = `INSERT INTO gallery_images (image_url, title, category_id) VALUES ($1, $2, $3) RETURNING id`;
+        const result = await pool.query(insertSql, [imageUrl, title || null, categoryId || null]);
         res.json({ message: 'Image uploaded successfully', id: result.rows[0].id, image_url: imageUrl });
     } catch (err) {
         console.error('Error uploading gallery image:', err);
         return res.status(500).json({ error: 'Failed to upload image.' });
+    }
+});
+
+// Admin: Update gallery image
+app.put('/api/admin/gallery/:id', checkAdmin, async (req, res) => {
+    const { id } = req.params;
+    const { title, category_id } = req.body;
+    
+    try {
+        // Validate input
+        if (!title || !category_id) {
+            return res.status(400).json({ error: 'Title and category are required.' });
+        }
+        
+        // Update the image
+        const updateSql = `UPDATE gallery_images SET title = $1, category_id = $2 WHERE id = $3 RETURNING *`;
+        const result = await pool.query(updateSql, [title, category_id, id]);
+        
+        if (result.rowCount === 0) {
+            return res.status(404).json({ error: 'Image not found.' });
+        }
+        
+        res.json({ message: 'Image updated successfully', image: result.rows[0] });
+    } catch (err) {
+        console.error('Error updating gallery image:', err);
+        return res.status(500).json({ error: 'Failed to update image.' });
     }
 });
 

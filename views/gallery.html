@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>معرض الصور - منصة كرة القدم</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap');
+        
+        * {
+            font-family: 'Cairo', sans-serif;
+        }
+        
+        .gallery-card {
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+        
+        .gallery-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+        
+        .gallery-image {
+            transition: transform 0.3s ease;
+        }
+        
+        .gallery-card:hover .gallery-image {
+            transform: scale(1.05);
+        }
+        
+        .filter-btn {
+            transition: all 0.3s ease;
+        }
+        
+        .filter-btn.active {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
+        }
+        
+        .loading-spinner {
+            border: 3px solid #f3f4f6;
+            border-top: 3px solid #10b981;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .modal-overlay {
+            backdrop-filter: blur(5px);
+            background: rgba(0, 0, 0, 0.8);
+        }
+        
+        .modal-content {
+            max-width: 90vw;
+            max-height: 90vh;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Header -->
+    <div id="global-header"></div>
+
+    <!-- Hero Section -->
+    <section class="bg-gradient-to-r from-green-600 to-blue-600 text-white py-16">
+        <div class="container mx-auto px-4 text-center">
+            <h1 class="text-4xl md:text-5xl font-bold mb-4">معرض الصور</h1>
+            <p class="text-xl opacity-90 max-w-2xl mx-auto">
+                اكتشف أجمل اللحظات من بطولاتنا ومبارياتنا
+            </p>
+        </div>
+    </section>
+
+    <!-- Gallery Section -->
+    <section class="py-16">
+        <div class="container mx-auto px-4">
+            <!-- Category Filters -->
+            <div class="mb-8">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">تصفية حسب الفئة</h2>
+                <div id="category-filters" class="flex flex-wrap justify-center gap-3">
+                    <button class="filter-btn active px-6 py-3 rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300 font-semibold" data-category="">
+                        جميع الصور
+                    </button>
+                    <!-- Categories will be loaded here -->
+                </div>
+            </div>
+
+            <!-- Search Bar -->
+            <div class="mb-8 max-w-md mx-auto">
+                <div class="relative">
+                    <input type="text" id="search-input" placeholder="البحث في الصور..." 
+                           class="w-full px-4 py-3 pr-12 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                    <i class="fa-solid fa-search absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                </div>
+            </div>
+
+            <!-- Loading Spinner -->
+            <div id="loading-spinner" class="flex justify-center items-center py-16">
+                <div class="loading-spinner"></div>
+            </div>
+
+            <!-- Gallery Grid -->
+            <div id="gallery-grid" class="hidden grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                <!-- Images will be loaded here -->
+            </div>
+
+            <!-- No Results Message -->
+            <div id="no-results" class="hidden text-center py-16">
+                <i class="fa-solid fa-images text-6xl text-gray-300 mb-4"></i>
+                <h3 class="text-xl font-semibold text-gray-600 mb-2">لا توجد صور</h3>
+                <p class="text-gray-500">لم يتم العثور على صور تطابق البحث أو الفئة المحددة</p>
+            </div>
+
+            <!-- Pagination -->
+            <div id="pagination" class="hidden flex justify-center items-center mt-12 space-x-2 space-x-reverse">
+                <button id="prev-btn" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <i class="fa-solid fa-chevron-right ml-2"></i>
+                    السابق
+                </button>
+                <div id="page-numbers" class="flex space-x-1 space-x-reverse">
+                    <!-- Page numbers will be generated here -->
+                </div>
+                <button id="next-btn" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed">
+                    التالي
+                    <i class="fa-solid fa-chevron-left mr-2"></i>
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Image Modal -->
+    <div id="image-modal" class="hidden fixed inset-0 z-50 modal-overlay flex items-center justify-center p-4">
+        <div class="modal-content bg-white rounded-lg overflow-hidden">
+            <div class="relative">
+                <button id="close-modal" class="absolute top-4 left-4 z-10 bg-black bg-opacity-50 text-white rounded-full w-10 h-10 flex items-center justify-center hover:bg-opacity-70 transition-colors">
+                    <i class="fa-solid fa-times"></i>
+                </button>
+                <img id="modal-image" src="" alt="" class="w-full h-auto max-h-[80vh] object-contain">
+                <div id="modal-info" class="p-6">
+                    <h3 id="modal-title" class="text-xl font-bold text-gray-800 mb-2 text-center"></h3>
+                    <p id="modal-category" class="text-sm text-gray-600 mb-2 text-center"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div id="global-footer"></div>
+
+    <!-- Scripts -->
+    <script src="header.js"></script>
+    <script src="footer.js"></script>
+    <script>
+        // Gallery functionality
+        let allImages = [];
+        let filteredImages = [];
+        let currentCategory = '';
+        let currentSearch = '';
+        let currentPage = 1;
+        let totalPages = 1;
+        const imagesPerPage = 12;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadCategories();
+            loadGallery();
+            setupEventListeners();
+        });
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // All Images button event listener
+            const allImagesBtn = document.querySelector('[data-category=""]');
+            if (allImagesBtn) {
+                allImagesBtn.addEventListener('click', () => filterByCategory('', allImagesBtn));
+            }
+
+            // Search functionality
+            const searchInput = document.getElementById('search-input');
+            searchInput.addEventListener('input', (e) => {
+                currentSearch = e.target.value.toLowerCase().trim();
+                currentPage = 1;
+                filterAndDisplayImages();
+            });
+
+            // Modal close events
+            document.getElementById('close-modal').addEventListener('click', closeModal);
+            document.getElementById('image-modal').addEventListener('click', (e) => {
+                if (e.target.id === 'image-modal') closeModal();
+            });
+
+            // Pagination events
+            document.getElementById('prev-btn').addEventListener('click', () => {
+                if (currentPage > 1) {
+                    loadGallery(currentPage - 1);
+                }
+            });
+
+            document.getElementById('next-btn').addEventListener('click', () => {
+                loadGallery(currentPage + 1);
+            });
+
+            // Keyboard events
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') closeModal();
+            });
+        }
+
+        // Show loading state
+        function showLoading() {
+            document.getElementById('loading-spinner').classList.remove('hidden');
+            document.getElementById('gallery-grid').classList.add('hidden');
+            document.getElementById('no-results').classList.add('hidden');
+            document.getElementById('pagination').classList.add('hidden');
+        }
+
+        // Show no results state
+        function showNoResults() {
+            document.getElementById('loading-spinner').classList.add('hidden');
+            document.getElementById('gallery-grid').classList.add('hidden');
+            document.getElementById('no-results').classList.remove('hidden');
+            document.getElementById('pagination').classList.add('hidden');
+        }
+
+        // Format date
+        function formatDate(dateString) {
+            if (!dateString) return '';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('ar-SA', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        }
+
+        // Load categories
+        async function loadCategories() {
+            try {
+                const response = await fetch('/api/categories');
+                const data = await response.json();
+                
+                if (response.ok && data.categories) {
+                    const filtersContainer = document.getElementById('category-filters');
+                    
+                    data.categories.forEach(category => {
+                        const button = document.createElement('button');
+                        button.className = 'filter-btn px-6 py-3 rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300 font-semibold';
+                        button.setAttribute('data-category', category.id);
+                        button.textContent = category.name;
+                        button.addEventListener('click', () => filterByCategory(category.id, button));
+                        filtersContainer.appendChild(button);
+                    });
+                }
+            } catch (error) {
+                console.error('Failed to load categories:', error);
+            }
+        }
+
+        // Filter by category
+        function filterByCategory(categoryId, button) {
+            // Update active button
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+            
+            currentCategory = categoryId;
+            currentPage = 1;
+            loadGallery(1); // Reload with new category filter
+        }
+
+        // Load gallery images with pagination
+        async function loadGallery(page = 1) {
+            try {
+                showLoading();
+                
+                // Build query parameters
+                const params = new URLSearchParams({
+                    page: page,
+                    limit: 12
+                });
+                
+                if (currentCategory && currentCategory !== '') {
+                    params.append('category', currentCategory);
+                }
+                
+                const response = await fetch(`/api/gallery?${params}`);
+                const data = await response.json();
+                
+                if (response.ok && data.images) {
+                    allImages = data.images;
+                    
+                    // Update pagination info
+                    if (data.pagination) {
+                        currentPage = data.pagination.currentPage;
+                        totalPages = data.pagination.totalPages;
+                        updatePaginationControls(data.pagination);
+                    }
+                    
+                    filterAndDisplayImages();
+                } else {
+                    showNoResults();
+                }
+            } catch (error) {
+                console.error('Failed to load gallery:', error);
+                showNoResults();
+            }
+        }
+
+        // Update pagination controls
+        function updatePaginationControls(pagination) {
+            const prevBtn = document.getElementById('prev-btn');
+            const nextBtn = document.getElementById('next-btn');
+            const pageInfo = document.getElementById('page-info');
+            
+            prevBtn.disabled = !pagination.hasPrevPage;
+            nextBtn.disabled = !pagination.hasNextPage;
+            
+            prevBtn.className = `px-4 py-2 rounded-lg font-semibold transition-colors ${
+                pagination.hasPrevPage 
+                    ? 'bg-green-600 text-white hover:bg-green-700' 
+                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+            }`;
+            
+            nextBtn.className = `px-4 py-2 rounded-lg font-semibold transition-colors ${
+                pagination.hasNextPage 
+                    ? 'bg-green-600 text-white hover:bg-green-700' 
+                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+            }`;
+            
+            pageInfo.textContent = `صفحة ${pagination.currentPage} من ${pagination.totalPages}`;
+            
+            // Show pagination if there are multiple pages
+            const paginationContainer = document.getElementById('pagination');
+            if (pagination.totalPages > 1) {
+                paginationContainer.classList.remove('hidden');
+            } else {
+                paginationContainer.classList.add('hidden');
+            }
+        }
+
+        // Filter and display images
+        function filterAndDisplayImages() {
+            filteredImages = allImages.filter(image => {
+                const matchesCategory = !currentCategory || currentCategory === '' || image.category_id == currentCategory;
+                const matchesSearch = !currentSearch || 
+                    (image.title && image.title.toLowerCase().includes(currentSearch)) ||
+                    (image.category_name && image.category_name.toLowerCase().includes(currentSearch));
+                
+                return matchesCategory && matchesSearch;
+            });
+
+            totalPages = Math.ceil(filteredImages.length / imagesPerPage);
+            currentPage = Math.min(currentPage, Math.max(1, totalPages));
+            
+            displayImages();
+        }
+
+        // Display images
+        function displayImages() {
+            const galleryGrid = document.getElementById('gallery-grid');
+            const loadingSpinner = document.getElementById('loading-spinner');
+            const noResults = document.getElementById('no-results');
+            const pagination = document.getElementById('pagination');
+
+            if (filteredImages.length === 0) {
+                showNoResults();
+                return;
+            }
+
+            // Calculate pagination
+            const startIndex = (currentPage - 1) * imagesPerPage;
+            const endIndex = startIndex + imagesPerPage;
+            const currentImages = filteredImages.slice(startIndex, endIndex);
+
+            // Clear and populate grid
+            galleryGrid.innerHTML = '';
+            
+            currentImages.forEach(image => {
+                const imageCard = createImageCard(image);
+                galleryGrid.appendChild(imageCard);
+            });
+
+            // Show grid and hide loading/no results
+            loadingSpinner.classList.add('hidden');
+            noResults.classList.add('hidden');
+            galleryGrid.classList.remove('hidden');
+            galleryGrid.classList.add('fade-in');
+
+            // Update pagination
+            updatePagination();
+            pagination.classList.remove('hidden');
+        }
+
+        // Create image card
+        function createImageCard(image) {
+            const card = document.createElement('div');
+            card.className = 'gallery-card bg-white rounded-lg shadow-md overflow-hidden cursor-pointer';
+            
+            const imageUrl = image.image_url || `https://placehold.co/400x300/10b981/ffffff?text=${encodeURIComponent(image.title || 'صورة')}`;
+            
+            card.innerHTML = `
+                <div class="relative overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100">
+                    <img src="${imageUrl}" alt="${image.title || 'صورة'}" 
+                         class="gallery-image w-full h-48 object-cover object-center"
+                         style="object-position: center 30%;"
+                         loading="lazy"
+                         onerror="this.onerror=null;this.src='https://placehold.co/400x300/10b981/ffffff?text=${encodeURIComponent(image.title || 'صورة')}'">
+                    ${image.category_name ? `<div class="absolute top-2 right-2 bg-green-600 text-white px-2 py-1 rounded-full text-xs font-semibold">${image.category_name}</div>` : ''}
+                </div>
+                <div class="p-4">
+                    ${image.title ? `<h3 class="font-semibold text-gray-800 mb-2 line-clamp-2 text-center">${image.title}</h3>` : ''}
+                </div>
+            `;
+            
+            card.addEventListener('click', () => openModal(image));
+            return card;
+        }
+
+        // Open modal
+        function openModal(image) {
+            const modal = document.getElementById('image-modal');
+            const modalImage = document.getElementById('modal-image');
+            const modalTitle = document.getElementById('modal-title');
+            const modalCategory = document.getElementById('modal-category');
+
+            const imageUrl = image.image_url || `https://placehold.co/800x600/10b981/ffffff?text=${encodeURIComponent(image.title || 'صورة')}`;
+            
+            modalImage.src = imageUrl;
+            modalImage.alt = image.title || 'صورة';
+            modalTitle.textContent = image.title || 'بدون عنوان';
+            modalCategory.textContent = image.category_name ? `الفئة: ${image.category_name}` : '';
+
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        // Close modal
+        function closeModal() {
+            const modal = document.getElementById('image-modal');
+            modal.classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
+
+        // Update pagination
+        function updatePagination() {
+            const prevBtn = document.getElementById('prev-btn');
+            const nextBtn = document.getElementById('next-btn');
+            const pageNumbers = document.getElementById('page-numbers');
+
+            // Update button states
+            prevBtn.disabled = currentPage === 1;
+            nextBtn.disabled = currentPage === totalPages;
+
+            // Generate page numbers
+            pageNumbers.innerHTML = '';
+            
+            const maxVisiblePages = 5;
+            let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+            let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+            
+            if (endPage - startPage + 1 < maxVisiblePages) {
+                startPage = Math.max(1, endPage - maxVisiblePages + 1);
+            }
+
+            for (let i = startPage; i <= endPage; i++) {
+                const pageBtn = document.createElement('button');
+                pageBtn.className = `px-3 py-2 rounded-lg ${i === currentPage ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`;
+                pageBtn.textContent = i;
+                pageBtn.addEventListener('click', () => {
+                    currentPage = i;
+                    displayImages();
+                });
+                pageNumbers.appendChild(pageBtn);
+            }
+        }
+    </script>
+</body>
+</html>

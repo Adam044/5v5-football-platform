@@ -72,22 +72,6 @@
         </div>
     </section>
 
-    <!-- Gallery Section -->
-    <section id="tournaments-gallery" class="bg-gray-50 py-10">
-        <div class="container mx-auto px-6">
-            <div class="flex items-center justify-between mb-6">
-                <h3 class="text-2xl font-bold text-gray-900 flex items-center gap-2">
-                    <i class="fa-solid fa-images text-purple-600"></i>
-                    صور من البطولات
-                </h3>
-                <div class="text-sm text-gray-500">اسحب أفقياً لمشاهدة المزيد</div>
-            </div>
-            <div id="tournaments-gallery-strip" class="flex gap-5 md:gap-6 lg:gap-8 overflow-x-auto no-scrollbar snap-x snap-mandatory pb-2">
-                <!-- images will be injected here -->
-            </div>
-        </div>
-    </section>
-
     <!-- Main Content for Tournaments -->
     <main class="flex-grow container mx-auto px-6 py-20">
         <section id="upcoming-tournaments" class="mb-20">
@@ -588,42 +572,9 @@
             document.getElementById('teams-modal').classList.add('hidden');
         }
 
-        // Gallery fetch and render
-        async function fetchAndRenderGallery() {
-            const strip = document.getElementById('tournaments-gallery-strip');
-            if (!strip) return;
-            strip.innerHTML = '<div class="text-center w-full text-gray-500">جاري تحميل الصور...</div>';
-            try {
-                const res = await fetch('/api/gallery');
-                const data = await res.json();
-                strip.innerHTML = '';
-                if (res.ok && data.images && data.images.length) {
-                    data.images.forEach(img => {
-                        const card = document.createElement('div');
-                        card.className = 'snap-start flex-none w-72 md:w-80 lg:w-96 bg-white rounded-xl shadow border border-gray-200 overflow-hidden';
-                        
-                        const imageUrl = img.image_url || `https://placehold.co/400x300/3b82f6/ffffff?text=${encodeURIComponent(img.title || 'صورة')}`;
-                        
-                        card.innerHTML = `
-                            <img src="${imageUrl}" alt="${img.title || 'صورة'}" class="w-full h-48 md:h-56 lg:h-64 object-cover" loading="lazy" decoding="async" 
-                                 onerror="this.onerror=null;this.src='https://placehold.co/400x300/3b82f6/ffffff?text=${encodeURIComponent(img.title || 'صورة')}'">
-                            ${img.title ? `<div class=\"px-3 py-2 text-sm text-gray-700 text-center\">${img.title}</div>` : ''}
-                        `;
-                        strip.appendChild(card);
-                    });
-                } else {
-                    strip.innerHTML = '<div class="text-center w-full text-gray-500">لا توجد صور حالياً.</div>';
-                }
-            } catch (err) {
-                console.error('Failed to load gallery', err);
-                strip.innerHTML = '<div class="text-center w-full text-red-500">حدث خطأ في تحميل الصور.</div>';
-            }
-        }
-
         // Initialize on page load
         document.addEventListener('DOMContentLoaded', () => {
             fetchAndRenderTournaments();
-            fetchAndRenderGallery();
         });
     </script>
 </body>
