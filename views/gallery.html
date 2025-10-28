@@ -136,8 +136,8 @@
                     <i class="fa-solid fa-chevron-right ml-2"></i>
                     السابق
                 </button>
-                <div id="page-numbers" class="flex space-x-1 space-x-reverse">
-                    <!-- Page numbers will be generated here -->
+                <div id="page-info" class="mx-4 text-gray-600 font-semibold">
+                    <!-- Page info will be displayed here -->
                 </div>
                 <button id="next-btn" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed">
                     التالي
@@ -463,32 +463,21 @@
         function updatePagination() {
             const prevBtn = document.getElementById('prev-btn');
             const nextBtn = document.getElementById('next-btn');
-            const pageNumbers = document.getElementById('page-numbers');
+            const pageInfo = document.getElementById('page-info');
 
             // Update button states
             prevBtn.disabled = currentPage === 1;
             nextBtn.disabled = currentPage === totalPages;
 
-            // Generate page numbers
-            pageNumbers.innerHTML = '';
+            // Update page info text
+            pageInfo.textContent = `صفحة ${currentPage} من ${totalPages}`;
             
-            const maxVisiblePages = 5;
-            let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
-            let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
-            
-            if (endPage - startPage + 1 < maxVisiblePages) {
-                startPage = Math.max(1, endPage - maxVisiblePages + 1);
-            }
-
-            for (let i = startPage; i <= endPage; i++) {
-                const pageBtn = document.createElement('button');
-                pageBtn.className = `px-3 py-2 rounded-lg ${i === currentPage ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`;
-                pageBtn.textContent = i;
-                pageBtn.addEventListener('click', () => {
-                    currentPage = i;
-                    displayImages();
-                });
-                pageNumbers.appendChild(pageBtn);
+            // Show/hide pagination based on total pages
+            const paginationContainer = document.getElementById('pagination');
+            if (totalPages > 1) {
+                paginationContainer.classList.remove('hidden');
+            } else {
+                paginationContainer.classList.add('hidden');
             }
         }
     </script>
