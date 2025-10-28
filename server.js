@@ -1276,7 +1276,7 @@ app.get('/api/tournaments/:tournamentId', async (req, res) => {
     
     const sql = `
         SELECT
-            t.id, t.name, t.tournament_date, t.prize, t.description, t.image_url,
+            t.id, t.name, t.tournament_date, t.prize, t.description,
             f.name AS field_name, f.image_url as field_image_url, f.id as field_id
         FROM tournaments t
         JOIN fields f ON t.field_id = f.id

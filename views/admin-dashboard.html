@@ -973,13 +973,13 @@
                     </div>
                     
                     <div>
-                        <label for="tournament-description" class="block text-gray-700 font-semibold mb-2 text-right">الوصف</label>
-                        <textarea id="tournament-description" rows="3" class="p-3 border border-gray-300 rounded-lg w-full text-right"></textarea>
+                        <label for="tournament-description" class="block text-gray-700 font-semibold mb-2 text-right">الوصف (اختياري)</label>
+                        <textarea id="tournament-description" rows="3" class="p-3 border border-gray-300 rounded-lg w-full text-right" placeholder="وصف البطولة (اختياري)"></textarea>
                     </div>
 
                     <div>
-                        <label for="tournament-prize" class="block text-gray-700 font-semibold mb-2 text-right">الجائزة</label>
-                        <input type="text" id="tournament-prize" class="p-3 border border-gray-300 rounded-lg w-full text-right" required>
+                        <label for="tournament-prize" class="block text-gray-700 font-semibold mb-2 text-right">الجائزة (اختياري)</label>
+                        <input type="text" id="tournament-prize" class="p-3 border border-gray-300 rounded-lg w-full text-right" placeholder="جائزة البطولة (اختياري)">
                     </div>
 
                     <div>
@@ -2484,7 +2484,7 @@ async function fetchData() {
                         <h3 class="text-xl font-bold text-gray-800 mb-2">${tournament.name}</h3>
                         <div class="space-y-2 text-sm text-gray-600">
                             <p><i class="fa-solid fa-calendar ml-1 text-orange-500"></i> ${tournament.tournament_date}</p>
-                            <p><i class="fa-solid fa-gift ml-1 text-orange-500"></i> ${tournament.prize}</p>
+                            ${tournament.prize ? `<p><i class="fa-solid fa-gift ml-1 text-orange-500"></i> ${tournament.prize}</p>` : ''}
                             <p><i class="fa-solid fa-map-marker-alt ml-1 text-orange-500"></i> ${tournament.field_name}</p>
                         </div>
                         <div class="mt-4 flex gap-2">

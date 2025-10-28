@@ -402,14 +402,14 @@
                     <p class="text-gray-600 flex items-center justify-center gap-2 mb-2">
                         <i class="fa-solid fa-map-pin text-orange-500"></i> ${tournament.field_name}
                     </p>
-                    <p class="text-gray-700 text-sm mb-4 leading-relaxed">${tournament.description || 'لا يوجد وصف.'}</p>
+                    ${tournament.description ? `<p class="text-gray-700 text-sm mb-4 leading-relaxed">${tournament.description}</p>` : ''}
                     <div class="flex flex-wrap justify-center gap-2 mb-4 text-gray-700">
                         <span class="bg-gray-100 px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1">
                             <i class="fa-solid fa-calendar-alt text-blue-500"></i> ${tournament.tournament_date}
                         </span>
-                        <span class="bg-gray-100 px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1">
-                            <i class="fa-solid fa-award text-yellow-500"></i> ${tournament.prize || 'غير محددة'}
-                        </span>
+                        ${tournament.prize ? `<span class="bg-gray-100 px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1">
+                            <i class="fa-solid fa-award text-yellow-500"></i> ${tournament.prize}
+                        </span>` : ''}
                     </div>
                     <div class="mt-4">
                         ${buttonHtml}
