@@ -1599,7 +1599,17 @@ app.post('/api/team-signup/join', async (req, res) => {
             return res.status(400).json({ error: 'Team is full' });
         }
         
-        // 3. Add user to team
+        // 3. Verify user exists
+        const userSql = `SELECT id, name FROM users WHERE id = $1`;
+        const { rows: userRows } = await client.query(userSql, [userId]);
+        const user = userRows[0];
+
+        if (!user) {
+            await client.query("ROLLBACK");
+            return res.status(400).json({ error: 'User not found. Please make sure you are logged in.' });
+        }
+        
+        // 4. Add user to team
         const addMemberSql = `
             INSERT INTO tournament_team_members (team_id, user_id, user_name, is_captain, joined_at)
             VALUES ($1, $2, $3, 0, NOW())
@@ -1615,6 +1625,10 @@ app.post('/api/team-signup/join', async (req, res) => {
         // Check for unique constraint violation (user already in team)
         if (err.code === '23505') { 
             return res.status(400).json({ error: 'User already in team' });
+        }
+        // Check for foreign key constraint violation (user doesn't exist)
+        if (err.code === '23503') {
+            return res.status(400).json({ error: 'User not found. Please make sure you are logged in.' });
         }
         console.error('Error joining team:', err);
         return res.status(500).json({ error: 'Failed to join team' });

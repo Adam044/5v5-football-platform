@@ -373,6 +373,54 @@
             document.getElementById('message-box').classList.add('hidden');
         }
 
+        // Show login/signup modal for unauthenticated users
+        function showLoginModal() {
+            const msgBox = document.getElementById('message-box');
+            const msgTitle = document.getElementById('message-box-title');
+            const msgContent = document.getElementById('message-box-content');
+            const actionsContainer = document.getElementById('message-box-actions');
+            
+            msgTitle.innerHTML = '';
+            const box = msgBox.querySelector('.bg-white');
+            box.classList.remove('border-t-4', 'border-red-500', 'border-green-600', 'border-yellow-500', 'border-blue-500');
+            box.classList.add('border-t-4', 'border-blue-500');
+
+            msgTitle.innerHTML = `<i class="fa-solid fa-user-plus text-blue-600 ml-2"></i>تسجيل الدخول مطلوب`;
+            msgContent.innerHTML = `
+                <p class="text-gray-700 mb-4 text-lg">للانضمام إلى هذا الفريق، يرجى تسجيل الدخول أو إنشاء حساب جديد.</p>
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                    <div class="flex items-center">
+                        <i class="fa-solid fa-info-circle text-blue-500 ml-2"></i>
+                        <span class="text-blue-800 font-medium">إنشاء حساب مجاني وسريع!</span>
+                    </div>
+                </div>
+            `;
+
+            actionsContainer.innerHTML = `
+                <div class="flex gap-3 justify-center">
+                    <button onclick="redirectToLogin()" class="bg-blue-600 text-white px-6 py-3 rounded-xl hover:bg-blue-700 transition-all duration-300 shadow-md text-lg font-medium flex items-center gap-2">
+                        <i class="fa-solid fa-sign-in-alt"></i>
+                        تسجيل الدخول
+                    </button>
+                    <button onclick="redirectToSignup()" class="bg-green-600 text-white px-6 py-3 rounded-xl hover:bg-green-700 transition-all duration-300 shadow-md text-lg font-medium flex items-center gap-2">
+                        <i class="fa-solid fa-user-plus"></i>
+                        إنشاء حساب
+                    </button>
+                </div>
+            `;
+            
+            msgBox.classList.remove('hidden');
+        }
+
+        // Redirect functions
+        function redirectToLogin() {
+            window.location.href = 'auth.html?mode=login';
+        }
+
+        function redirectToSignup() {
+            window.location.href = 'auth.html?mode=signup';
+        }
+
         function generateQRCode(text) {
             const canvas = document.getElementById('qrcode-canvas');
             if (!canvas) return;
@@ -571,6 +619,12 @@
         }
         
         async function joinTournamentTeam() {
+            // Check if user is logged in
+            if (!loggedInUserId) {
+                showLoginModal();
+                return;
+            }
+            
             if (teamData.status === 'registered') {
                 showMessageBox('الفريق مسجل بالفعل', 'هذا الفريق مسجل بالفعل في البطولة ولا يقبل أعضاء جدد.');
                 return;
@@ -599,6 +653,11 @@
                 const data = await response.json();
                 
                 if (!response.ok) {
+                    // Check if it's a user authentication error
+                    if (data.error && data.error.includes('User not found')) {
+                        showLoginModal();
+                        return;
+                    }
                     throw new Error(data.error || 'فشل في الانضمام للفريق');
                 }
                 
