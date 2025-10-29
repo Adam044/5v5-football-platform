@@ -299,7 +299,15 @@
     <script>
         const urlParams = new URLSearchParams(window.location.search);
         let tournamentId = urlParams.get('tournamentId');
-        let invitationCode = urlParams.get('invitationCode') || window.location.pathname.split('/').pop();
+        let invitationCode = urlParams.get('invitationCode') || urlParams.get('code');
+        
+        // Only use pathname if it's not the HTML file itself
+        if (!invitationCode) {
+            const pathSegment = window.location.pathname.split('/').pop();
+            if (pathSegment && pathSegment !== 'tournament-team-hub.html' && !pathSegment.includes('.html')) {
+                invitationCode = pathSegment;
+            }
+        }
         
         let tournamentData = null;
         let teamData = null;
@@ -417,20 +425,20 @@
             loadingState.classList.remove('hidden');
             mainContent.classList.add('hidden');
             
-            if (!loggedInUserId) {
-                 showMessageBox(
-                    'تسجيل الدخول مطلوب',
-                    'للتسجيل في البطولة، يرجى تسجيل الدخول أولاً.',
-                    'warning'
-                );
-                return;
-            }
-
-            if (invitationCode && invitationCode !== 'tournament-team-hub.html') {
+            if (invitationCode && invitationCode !== 'tournament-team-hub.html' && invitationCode.length > 5) {
                  // Flow 1: User joining via invitation code (or creator revisiting)
+                 // Allow viewing team details even without login, but require login for joining
                  await fetchTeamDetailsByCode(invitationCode);
             } else if (tournamentId) {
-                // Flow 2: Creator started registration from tournaments.html
+                // Flow 2: Creator started registration from tournaments.html - requires login
+                if (!loggedInUserId) {
+                     showMessageBox(
+                        'تسجيل الدخول مطلوب',
+                        'لإنشاء فريق في البطولة، يرجى تسجيل الدخول أولاً.',
+                        'warning'
+                    );
+                    return;
+                }
                 await fetchTournamentDetails(tournamentId);
                 // Assume creator starts the flow, check or show creation form
                 await checkOrCreateTeam(tournamentId);
@@ -469,6 +477,12 @@
                 
                 renderTournamentInfo();
                 renderTeamHub();
+
+                // Hide loading state and show main content
+                const loadingState = document.getElementById('loading-state');
+                const mainContent = document.getElementById('main-content');
+                if (loadingState) loadingState.classList.add('hidden');
+                if (mainContent) mainContent.classList.remove('hidden');
 
                 // Start polling only if the team is still forming
                 if (teamData.status === 'forming') {
@@ -870,6 +884,15 @@
                     registrationMessage.classList.add('text-red-500');
                 }
             }
+        }
+
+        // Copy invitation link to clipboard
+        function copyLink() {
+            const invitationLink = document.getElementById('invitation-link');
+            invitationLink.select();
+            invitationLink.setSelectionRange(0, 99999);
+            document.execCommand('copy');
+            showMessageBox('تم النسخ!', 'تم نسخ رابط الدعوة بنجاح.', 'success');
         }
 
 

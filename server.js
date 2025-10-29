@@ -1407,6 +1407,104 @@ app.post('/api/team-signup/create', async (req, res) => {
     }
 });
 
+// Get user's team status for a specific tournament
+app.get('/api/user/:userId/tournament/:tournamentId/team-status', async (req, res) => {
+    const { userId, tournamentId } = req.params;
+    
+    try {
+        const sql = `
+            SELECT 
+                tt.id,
+                tt.team_name,
+                tt.invitation_code,
+                tt.status,
+                tt.registration_date,
+                (SELECT COUNT(*) FROM tournament_team_members ttm WHERE ttm.team_id = tt.id) as member_count
+            FROM tournament_teams tt
+            WHERE tt.captain_id = $1 AND tt.tournament_id = $2
+        `;
+        
+        const { rows } = await pool.query(sql, [userId, tournamentId]);
+        
+        if (rows.length === 0) {
+            return res.json({ 
+                hasTeam: false,
+                status: null,
+                team: null
+            });
+        }
+        
+        const team = rows[0];
+        res.json({
+            hasTeam: true,
+            status: team.status,
+            team: {
+                id: team.id,
+                name: team.team_name,
+                invitation_code: team.invitation_code,
+                member_count: parseInt(team.member_count),
+                registration_date: team.registration_date
+            }
+        });
+        
+    } catch (err) {
+        console.error('Error fetching user team status:', err);
+        return res.status(500).json({ error: 'Failed to fetch team status' });
+    }
+});
+
+// Get all user's tournament teams across all tournaments
+app.get('/api/user/:userId/tournament-teams', async (req, res) => {
+    const { userId } = req.params;
+    
+    try {
+        const sql = `
+            SELECT 
+                tt.id,
+                tt.team_name,
+                tt.invitation_code,
+                tt.status,
+                tt.registration_date,
+                t.id as tournament_id,
+                t.name as tournament_name,
+                t.tournament_date,
+                t.prize,
+                f.name as field_name,
+                (SELECT COUNT(*) FROM tournament_team_members ttm WHERE ttm.team_id = tt.id) as member_count
+            FROM tournament_teams tt
+            JOIN tournaments t ON tt.tournament_id = t.id
+            JOIN fields f ON t.field_id = f.id
+            WHERE tt.captain_id = $1
+            ORDER BY t.tournament_date DESC, tt.registration_date DESC
+        `;
+        
+        const { rows } = await pool.query(sql, [userId]);
+        
+        res.json({
+            success: true,
+            teams: rows.map(row => ({
+                id: row.id,
+                team_name: row.team_name,
+                invitation_code: row.invitation_code,
+                status: row.status,
+                member_count: parseInt(row.member_count),
+                registration_date: row.registration_date,
+                tournament: {
+                    id: row.tournament_id,
+                    name: row.tournament_name,
+                    tournament_date: row.tournament_date,
+                    prize: row.prize,
+                    field_name: row.field_name
+                }
+            }))
+        });
+        
+    } catch (err) {
+        console.error('Error fetching user tournament teams:', err);
+        return res.status(500).json({ error: 'Failed to fetch tournament teams' });
+    }
+});
+
 // Get team details by invitation code (for tournament-team-hub.html)
 app.get('/api/team-signup/:invitationCode', async (req, res) => {
     const { invitationCode } = req.params;
