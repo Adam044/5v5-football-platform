@@ -250,6 +250,77 @@
         </section>
     </main>
 
+    <!-- Tournament Section -->
+    <section id="tournaments-section" class="bg-gradient-to-br from-purple-50 to-blue-50 py-20 border-t border-gray-200">
+        <div class="container mx-auto px-6">
+            <div class="text-center mb-16">
+                <div class="inline-flex items-center justify-center w-16 h-16 bg-purple-100 rounded-full mb-6">
+                    <i class="fa-solid fa-trophy text-2xl text-purple-600"></i>
+                </div>
+                <h3 class="text-5xl font-extrabold text-gray-900 mb-6 leading-tight">
+                    البطولات 
+                </h3>
+                <p class="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+                    انضم إلى بطولاتنا الشيقة واختبر مهاراتك مع أفضل الفرق في المنطقة. فرصة رائعة للمنافسة والفوز بجوائز قيمة!
+                </p>
+            </div>
+            
+            <div class="max-w-4xl mx-auto">
+                <div class="bg-white rounded-3xl shadow-2xl overflow-hidden transform hover:scale-105 transition-all duration-500">
+                    <div class="relative">
+                        <div class="absolute inset-0 bg-gradient-to-r from-purple-600 to-blue-600 opacity-90"></div>
+                        <img src="/components/images/tournament.jpg" alt="Tournament" class="w-full h-64 object-cover">
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <div class="text-center text-white">
+                                <i class="fa-solid fa-trophy text-6xl mb-4 animate-pulse"></i>
+                                <h4 class="text-3xl font-bold mb-2">بطولة 5ع5 الكبرى</h4>
+                                <p class="text-lg opacity-90">المنافسة الأقوى في المنطقة</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="p-8">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                            <div class="text-center">
+                                <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                                    <i class="fa-solid fa-users text-purple-600 text-xl"></i>
+                                </div>
+                                <h5 class="font-bold text-gray-800 mb-1">فرق متنوعة</h5>
+                                <p class="text-gray-600 text-sm">أكثر من 15 فريق مشارك</p>
+                            </div>
+                            <div class="text-center">
+                                <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                                    <i class="fa-solid fa-medal text-blue-600 text-xl"></i>
+                                </div>
+                                <h5 class="font-bold text-gray-800 mb-1">جوائز قيمة</h5>
+                                <p class="text-gray-600 text-sm">جوائز وكؤوس</p>
+                            </div>
+                            <div class="text-center">
+                                <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                                    <i class="fa-solid fa-calendar text-green-600 text-xl"></i>
+                                </div>
+                                <h5 class="font-bold text-gray-800 mb-1">تنظيم محترف</h5>
+                                <p class="text-gray-600 text-sm">إدارة متميزة ومواعيد منتظمة</p>
+                            </div>
+                        </div>
+                        
+                        <div class="text-center">
+                            <a href="tournaments.html" 
+                               class="inline-flex items-center gap-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white px-8 py-4 rounded-xl hover:from-purple-700 hover:to-blue-700 transition-all duration-300 shadow-lg text-lg font-bold transform hover:-translate-y-1">
+                                <i class="fa-solid fa-rocket"></i>
+                                اكتشف البطولات الحالية وسجل الآن!
+                            </a>
+                            <p class="text-gray-500 text-sm mt-4">
+                                <i class="fa-solid fa-info-circle ml-1"></i>
+                                المشاركة مفتوحة للجميع
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- Sponsors Section -->
     <section id="sponsors-section" class="bg-gradient-to-br from-slate-50 to-gray-100 py-20 border-t border-gray-200">
         <div class="container mx-auto px-6">
@@ -713,9 +784,12 @@
                         <!-- Time slots will be loaded dynamically -->
                     </div>
                 </div>
+                <!-- Price display hidden for public view -->
+                <!-- 
                 <div id="price-display" class="bg-gray-100 p-4 rounded-lg text-center font-bold text-gray-800 text-lg mb-6">
                     ${priceLabel}
                 </div>
+                -->
                 <button type="button" id="confirm-availability-btn" class="bg-green-600 text-white font-bold py-4 px-8 rounded-xl w-full hover:bg-green-700 transition-all duration-300 shadow-lg text-lg btn-hover-effect" disabled>
                     <i class="fa-solid fa-arrow-left ml-2"></i> متابعة
                 </button>
@@ -785,11 +859,12 @@
                                     const startHour = parseInt(slot.start_time.split(':')[0]);
                                     const endHour = parseInt(slot.end_time.split(':')[0]);
                                     const duration = endHour - startHour;
-                                    const totalPrice = duration * selectedFieldData.price_per_hour;
+                                    // Price calculation hidden for public view
+                                    // const totalPrice = duration * selectedFieldData.price_per_hour;
                                     
-                                    // Update price display based on reservation type
-                                    let priceText = `السعر: ${totalPrice} شيكل`;
-                                    priceDisplay.innerText = priceText;
+                                    // Update price display based on reservation type - Hidden for public view
+                                    // let priceText = `السعر: ${totalPrice} شيكل`;
+                                    // priceDisplay.innerText = priceText;
                                     confirmBtn.disabled = false;
                                     confirmBtn.innerHTML = `<i class=\"fa-solid fa-arrow-left ml-2\"></i> متابعة`;
                                 };
@@ -802,8 +877,8 @@
                             confirmBtn.innerHTML = selectedReservationType === 'players_looking_for_team'
                                 ? `<i class="fa-solid fa-search ml-2"></i> إرسال طلب انضمام`
                                 : `<i class="fa-solid fa-arrow-left ml-2"></i> متابعة`;
-                            // Price display for day-only flows: show only field price/hour
-                            priceDisplay.innerText = `سعر الساعة: ${selectedFieldData.price_per_hour} شيكل`;
+                            // Price display for day-only flows: show only field price/hour - Hidden for public view
+                            // priceDisplay.innerText = `سعر الساعة: ${selectedFieldData.price_per_hour} شيكل`;
                         }
                     } else {
                         console.log('No availability found, showing simple fallback message'); // Debug log
@@ -969,11 +1044,13 @@
                                     <span class="text-sm font-medium">${field.location || 'العنوان غير متوفر'}</span>
                                 </div>
                                 
-                                <!-- Price Per Hour -->
+                                <!-- Price Per Hour - Hidden for public view -->
+                                <!-- 
                                 <div class="flex items-center justify-center">
                                     <i class="fa-solid fa-money-bill-wave text-green-600 ml-3 flex-shrink-0"></i>
                                     <span class="text-md font-bold text-green-700">${field.price_per_hour} شيكل / ساعة</span>
                                 </div>
+                                -->
 
                                 <!-- Description (Shortened for card view) -->
                                 <div class="flex items-start justify-center pt-2 border-t border-gray-100">

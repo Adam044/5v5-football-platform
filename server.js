@@ -1459,12 +1459,13 @@ app.get('/api/user/:userId/tournament-teams', async (req, res) => {
     
     try {
         const sql = `
-            SELECT 
+            SELECT DISTINCT
                 tt.id,
                 tt.team_name,
                 tt.invitation_code,
                 tt.status,
                 tt.registration_date,
+                tt.captain_id,
                 t.id as tournament_id,
                 t.name as tournament_name,
                 t.tournament_date,
@@ -1474,7 +1475,8 @@ app.get('/api/user/:userId/tournament-teams', async (req, res) => {
             FROM tournament_teams tt
             JOIN tournaments t ON tt.tournament_id = t.id
             JOIN fields f ON t.field_id = f.id
-            WHERE tt.captain_id = $1
+            LEFT JOIN tournament_team_members ttm ON tt.id = ttm.team_id
+            WHERE tt.captain_id = $1 OR ttm.user_id = $1
             ORDER BY t.tournament_date DESC, tt.registration_date DESC
         `;
         
@@ -1489,6 +1491,7 @@ app.get('/api/user/:userId/tournament-teams', async (req, res) => {
                 status: row.status,
                 member_count: parseInt(row.member_count),
                 registration_date: row.registration_date,
+                captain_id: row.captain_id, // Add captain_id for filtering
                 tournament: {
                     id: row.tournament_id,
                     name: row.tournament_name,
@@ -2474,6 +2477,7 @@ app.get('/api/admin/tournaments/:tournamentId/teams', checkAdmin, async (req, re
             const { rows: members } = await pool.query(membersSql, [t.id]);
 
             teamsWithMembers.push({
+                id: t.id, // Add the team ID
                 team_name: t.team_name,
                 captain_name: t.captain_name,
                 captain_email: t.captain_email || null,
@@ -2490,6 +2494,37 @@ app.get('/api/admin/tournaments/:tournamentId/teams', checkAdmin, async (req, re
     } catch (err) {
         console.error('Error fetching admin tournament teams:', err);
         return res.status(500).json({ success: false, message: 'خطأ في تحميل الفرق' });
+    }
+});
+
+// Admin: Delete tournament team
+app.delete('/api/admin/teams/:teamId', checkAdmin, async (req, res) => {
+    const { teamId } = req.params;
+    
+    const client = await pool.connect();
+    try {
+        await client.query("BEGIN");
+        
+        // First delete all team members
+        await client.query('DELETE FROM tournament_team_members WHERE team_id = $1', [teamId]);
+        
+        // Then delete the team
+        const result = await client.query('DELETE FROM tournament_teams WHERE id = $1', [teamId]);
+        
+        if (result.rowCount === 0) {
+            await client.query("ROLLBACK");
+            return res.status(404).json({ success: false, message: 'Team not found' });
+        }
+        
+        await client.query("COMMIT");
+        res.json({ success: true, message: 'Team deleted successfully' });
+        
+    } catch (err) {
+        await client.query("ROLLBACK");
+        console.error('Error deleting team:', err);
+        return res.status(500).json({ success: false, message: 'Failed to delete team' });
+    } finally {
+        client.release();
     }
 });
 

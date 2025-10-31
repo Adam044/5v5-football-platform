@@ -184,6 +184,25 @@
                     </div>
                 </h4>
 
+                <!-- Filter Buttons -->
+                <div class="flex gap-2 mb-6">
+                    <button id="filter-all" onclick="filterTournamentTeams('all')" 
+                            class="filter-btn active bg-purple-600 text-white px-3 py-1.5 rounded-lg hover:bg-purple-700 transition-all duration-200 flex items-center gap-1.5 text-sm">
+                        <i class="fa-solid fa-list text-xs"></i>
+                        جميع الفرق
+                    </button>
+                    <button id="filter-created" onclick="filterTournamentTeams('created')" 
+                            class="filter-btn bg-gray-200 text-gray-700 px-3 py-1.5 rounded-lg hover:bg-gray-300 transition-all duration-200 flex items-center gap-1.5 text-sm">
+                        <i class="fa-solid fa-crown text-xs"></i>
+                        الفرق التي أنشأتها
+                    </button>
+                    <button id="filter-joined" onclick="filterTournamentTeams('joined')" 
+                            class="filter-btn bg-gray-200 text-gray-700 px-3 py-1.5 rounded-lg hover:bg-gray-300 transition-all duration-200 flex items-center gap-1.5 text-sm">
+                        <i class="fa-solid fa-user-plus text-xs"></i>
+                        الفرق التي انضممت إليها
+                    </button>
+                </div>
+
                 <!-- Tournament Teams Content -->
                 <div id="tournament-teams-list" class="space-y-4">
                     <!-- Loading state -->
@@ -799,6 +818,9 @@ document.getElementById('gender').value = user.gender === 'male' ? 'ذكر' : us
         }
 
         // Tournament Teams Functions
+        let allTournamentTeams = []; // Store all teams for filtering
+        let currentFilter = 'all';
+
         async function fetchUserTournamentTeams() {
             const userId = localStorage.getItem('userId');
             if (!userId) return;
@@ -808,7 +830,8 @@ document.getElementById('gender').value = user.gender === 'male' ? 'ذكر' : us
                 const data = await response.json();
                 
                 if (data.success) {
-                    renderTournamentTeams(data.teams);
+                    allTournamentTeams = data.teams;
+                    renderTournamentTeams(allTournamentTeams);
                 } else {
                     throw new Error('Failed to fetch tournament teams');
                 }
@@ -816,6 +839,34 @@ document.getElementById('gender').value = user.gender === 'male' ? 'ذكر' : us
                 console.error('Error fetching tournament teams:', error);
                 showTournamentTeamsError();
             }
+        }
+
+        function filterTournamentTeams(filter) {
+            currentFilter = filter;
+            
+            // Update button styles
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active', 'bg-purple-600', 'text-white');
+                btn.classList.add('bg-gray-200', 'text-gray-700');
+            });
+            
+            const activeBtn = document.getElementById(`filter-${filter}`);
+            if (activeBtn) {
+                activeBtn.classList.remove('bg-gray-200', 'text-gray-700');
+                activeBtn.classList.add('active', 'bg-purple-600', 'text-white');
+            }
+            
+            // Filter teams
+            let filteredTeams = allTournamentTeams;
+            const userId = parseInt(localStorage.getItem('userId'));
+            
+            if (filter === 'created') {
+                filteredTeams = allTournamentTeams.filter(team => team.captain_id === userId);
+            } else if (filter === 'joined') {
+                filteredTeams = allTournamentTeams.filter(team => team.captain_id !== userId);
+            }
+            
+            renderTournamentTeams(filteredTeams);
         }
 
         function renderTournamentTeams(teams) {
@@ -868,53 +919,68 @@ document.getElementById('gender').value = user.gender === 'male' ? 'ذكر' : us
                 };
 
                 const config = statusConfig[team.status] || statusConfig['forming'];
-                const tournamentDate = new Date(team.tournament.tournament_date).toLocaleDateString('ar-EG');
+                const tournamentDate = new Date(team.tournament.tournament_date).toLocaleDateString('en-US');
                 const isUpcoming = new Date(team.tournament.tournament_date) >= new Date();
+                const userId = parseInt(localStorage.getItem('userId'));
+                const isCreator = team.captain_id === userId;
 
                 return `
-                    <div class="bg-gradient-to-r from-white to-gray-50 border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-all duration-300">
-                        <div class="flex items-start justify-between mb-4">
-                            <div class="flex-1">
-                                <div class="flex items-center gap-3 mb-2">
-                                    <h5 class="text-xl font-bold text-gray-900">${team.team_name}</h5>
-                                    <span class="px-3 py-1 rounded-full text-xs font-medium border ${config.color}">
-                                        <i class="fa-solid ${config.icon} ml-1"></i>
-                                        ${config.text}
-                                    </span>
-                                </div>
-                                <div class="flex items-center gap-4 text-sm text-gray-600 mb-3">
-                                    <div class="flex items-center gap-1">
-                                        <i class="fa-solid fa-trophy text-purple-500"></i>
-                                        <span class="font-medium">${team.tournament.name}</span>
-                                    </div>
-                                    <div class="flex items-center gap-1">
-                                        <i class="fa-solid fa-map-pin text-orange-500"></i>
-                                        <span>${team.tournament.field_name}</span>
-                                    </div>
-                                </div>
-                                <div class="flex items-center gap-4 text-sm text-gray-500">
-                                    <div class="flex items-center gap-1">
-                                        <i class="fa-solid fa-calendar text-blue-500"></i>
-                                        <span>${tournamentDate}</span>
-                                        ${!isUpcoming ? '<span class="text-red-500 font-medium">(انتهت)</span>' : ''}
-                                    </div>
-                                    <div class="flex items-center gap-1">
-                                        <i class="fa-solid fa-users text-green-500"></i>
-                                        <span>${team.member_count} لاعب</span>
-                                    </div>
-                                    ${team.tournament.prize ? `
-                                        <div class="flex items-center gap-1">
-                                            <i class="fa-solid fa-award text-yellow-500"></i>
-                                            <span>${team.tournament.prize}</span>
+                    <div class="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 relative overflow-hidden">
+                        <div class="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-purple-100 to-blue-100 rounded-full -mr-10 -mt-10 opacity-50"></div>
+                        <div class="relative z-10">
+                            <div class="flex items-start justify-between mb-4">
+                                <div class="flex-1">
+                                    <div class="flex items-center gap-3 mb-3">
+                                        <div class="w-10 h-10 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg">
+                                            ${team.team_name.charAt(0).toUpperCase()}
                                         </div>
-                                    ` : ''}
+                                        <div>
+                                            <h5 class="text-xl font-bold text-gray-900 flex items-center gap-2">
+                                                ${team.team_name}
+                                                ${isCreator ? '<i class="fa-solid fa-crown text-yellow-500 text-sm" title="أنت قائد هذا الفريق"></i>' : ''}
+                                            </h5>
+                                            <span class="px-3 py-1 rounded-full text-xs font-medium border ${config.color}">
+                                                <i class="fa-solid ${config.icon} ml-1"></i>
+                                                ${config.text}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="bg-gray-50 rounded-lg p-4 mb-4">
+                                        <div class="flex items-center gap-2 mb-2">
+                                            <i class="fa-solid fa-trophy text-purple-500"></i>
+                                            <span class="font-semibold text-gray-800">${team.tournament.name}</span>
+                                        </div>
+                                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm text-gray-600">
+                                            <div class="flex items-center gap-2">
+                                                <i class="fa-solid fa-map-pin text-orange-500 w-4"></i>
+                                                <span>${team.tournament.field_name}</span>
+                                            </div>
+                                            <div class="flex items-center gap-2">
+                                                <i class="fa-solid fa-calendar text-blue-500 w-4"></i>
+                                                <span>${tournamentDate}</span>
+                                                ${!isUpcoming ? '<span class="text-red-500 font-medium mr-1">(انتهت)</span>' : ''}
+                                            </div>
+                                            <div class="flex items-center gap-2">
+                                                <i class="fa-solid fa-users text-green-500 w-4"></i>
+                                                <span><strong>${team.member_count}</strong> لاعب</span>
+                                            </div>
+                                        </div>
+                                        ${team.tournament.prize ? `
+                                            <div class="flex items-center gap-2 mt-2 text-sm">
+                                                <i class="fa-solid fa-award text-yellow-500 w-4"></i>
+                                                <span class="text-yellow-700 font-medium">${team.tournament.prize}</span>
+                                            </div>
+                                        ` : ''}
+                                    </div>
                                 </div>
                             </div>
-                            <div class="flex flex-col gap-2">
+                            
+                            <div class="flex gap-2 justify-end">
                                 ${config.action}
                                 <button onclick="viewTournamentDetails(${team.tournament.id})" 
-                                        class="bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 transition-colors duration-200 text-sm font-medium">
-                                    <i class="fa-solid fa-info-circle ml-1"></i>
+                                        class="bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 transition-all duration-200 text-sm font-medium flex items-center gap-2 shadow-md hover:shadow-lg">
+                                    <i class="fa-solid fa-info-circle"></i>
                                     البطولة
                                 </button>
                             </div>
