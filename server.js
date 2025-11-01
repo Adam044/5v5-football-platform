@@ -1781,6 +1781,15 @@ app.post('/api/team-building/initiate', async (req, res) => {
     try {
         await client.query("BEGIN");
         
+        // 0. Validate that the user exists
+        const userCheckSql = `SELECT id FROM users WHERE id = $1`;
+        const { rows: userRows } = await client.query(userCheckSql, [userId]);
+        
+        if (userRows.length === 0) {
+            await client.query("ROLLBACK");
+            return res.status(400).json({ error: 'User not found. Please make sure you are logged in.' });
+        }
+        
         // 1. Check if the slot is already reserved 
         // If a specific startTime is provided (two_teams_ready), ensure it isn't reserved.
         let slotRows = [];
@@ -1850,7 +1859,7 @@ app.get('/api/team-building/:invitationCode', async (req, res) => {
     try {
         // 1. Get session details
         const sessionSql = `
-            SELECT ts.*, f.name as field_name, f.location as field_address, f.image as field_image, f.price_per_hour
+            SELECT ts.*, f.name as field_name, f.location as field_address, f.price_per_hour, f.image_url as field_image_url
             FROM team_sessions ts
             JOIN fields f ON ts.field_id = f.id
             WHERE ts.invitation_code = $1 AND ts.status IN ('active', 'completed')
@@ -1874,14 +1883,13 @@ app.get('/api/team-building/:invitationCode', async (req, res) => {
         
         const { rows: members } = await pool.query(membersSql, [session.id]);
         
-        // Convert field image to base64 if it exists
-        if (session.field_image) {
-            session.field_image = Buffer.from(session.field_image).toString('base64');
-        }
+        // Note: field_image removed as it doesn't exist in the database schema
         
         res.json({ session, members });
     } catch (err) {
         console.error('Error fetching team building session:', err);
+        console.error('Invitation code:', invitationCode);
+        console.error('Error details:', err.message);
         return res.status(500).json({ error: 'Failed to fetch team building session.' });
     }
 });

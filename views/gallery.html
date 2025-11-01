@@ -130,18 +130,11 @@
                 <p class="text-gray-500">لم يتم العثور على صور تطابق البحث أو الفئة المحددة</p>
             </div>
 
-            <!-- Pagination -->
-            <div id="pagination" class="hidden flex justify-center items-center mt-12 space-x-2 space-x-reverse">
-                <button id="prev-btn" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed">
-                    <i class="fa-solid fa-chevron-right ml-2"></i>
-                    السابق
-                </button>
-                <div id="page-info" class="mx-4 text-gray-600 font-semibold">
-                    <!-- Page info will be displayed here -->
-                </div>
-                <button id="next-btn" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed">
-                    التالي
-                    <i class="fa-solid fa-chevron-left mr-2"></i>
+            <!-- Load More Button -->
+            <div id="load-more-container" class="hidden flex justify-center mt-12">
+                <button id="load-more-btn" class="bg-green-600 text-white px-8 py-3 rounded-lg hover:bg-green-700 transition-all duration-200 font-semibold flex items-center gap-2">
+                    <i class="fa-solid fa-plus"></i>
+                    تحميل المزيد
                 </button>
             </div>
         </div>
@@ -170,13 +163,13 @@
     <script src="header.js"></script>
     <script src="footer.js"></script>
     <script>
-        // Gallery functionality
+        // Global variables
         let allImages = [];
-        let filteredImages = [];
+        let displayedImages = [];
         let currentCategory = '';
         let currentSearch = '';
         let currentPage = 1;
-        let totalPages = 1;
+        let hasMorePages = false;
         const imagesPerPage = 12;
 
         // Initialize
@@ -198,7 +191,6 @@
             const searchInput = document.getElementById('search-input');
             searchInput.addEventListener('input', (e) => {
                 currentSearch = e.target.value.toLowerCase().trim();
-                currentPage = 1;
                 filterAndDisplayImages();
             });
 
@@ -208,16 +200,8 @@
                 if (e.target.id === 'image-modal') closeModal();
             });
 
-            // Pagination events
-            document.getElementById('prev-btn').addEventListener('click', () => {
-                if (currentPage > 1) {
-                    loadGallery(currentPage - 1);
-                }
-            });
-
-            document.getElementById('next-btn').addEventListener('click', () => {
-                loadGallery(currentPage + 1);
-            });
+            // Load More button event
+            document.getElementById('load-more-btn').addEventListener('click', loadMoreImages);
 
             // Keyboard events
             document.addEventListener('keydown', (e) => {
@@ -230,7 +214,7 @@
             document.getElementById('loading-spinner').classList.remove('hidden');
             document.getElementById('gallery-grid').classList.add('hidden');
             document.getElementById('no-results').classList.add('hidden');
-            document.getElementById('pagination').classList.add('hidden');
+            document.getElementById('load-more-container').classList.add('hidden');
         }
 
         // Show no results state
@@ -238,7 +222,7 @@
             document.getElementById('loading-spinner').classList.add('hidden');
             document.getElementById('gallery-grid').classList.add('hidden');
             document.getElementById('no-results').classList.remove('hidden');
-            document.getElementById('pagination').classList.add('hidden');
+            document.getElementById('load-more-container').classList.add('hidden');
         }
 
         // Format date
@@ -286,15 +270,17 @@
             loadGallery(1); // Reload with new category filter
         }
 
-        // Load gallery images with pagination
-        async function loadGallery(page = 1) {
+        // Load gallery images with Load More approach
+        async function loadGallery(page = 1, append = false) {
             try {
-                showLoading();
+                if (!append) {
+                    showLoading();
+                }
                 
                 // Build query parameters
                 const params = new URLSearchParams({
                     page: page,
-                    limit: 12
+                    limit: imagesPerPage
                 });
                 
                 if (currentCategory && currentCategory !== '') {
@@ -305,97 +291,98 @@
                 const data = await response.json();
                 
                 if (response.ok && data.images) {
-                    allImages = data.images;
+                    if (append) {
+                        // Append new images to existing ones
+                        allImages = [...allImages, ...data.images];
+                    } else {
+                        // Replace images (new search/filter)
+                        allImages = data.images;
+                    }
                     
                     // Update pagination info
                     if (data.pagination) {
                         currentPage = data.pagination.currentPage;
-                        totalPages = data.pagination.totalPages;
-                        updatePaginationControls(data.pagination);
+                        hasMorePages = data.pagination.hasNextPage;
+                        updateLoadMoreButton();
                     }
                     
                     filterAndDisplayImages();
                 } else {
-                    showNoResults();
+                    if (!append) {
+                        showNoResults();
+                    }
                 }
             } catch (error) {
                 console.error('Failed to load gallery:', error);
-                showNoResults();
+                if (!append) {
+                    showNoResults();
+                }
             }
         }
 
-        // Update pagination controls
-        function updatePaginationControls(pagination) {
-            const prevBtn = document.getElementById('prev-btn');
-            const nextBtn = document.getElementById('next-btn');
-            const pageInfo = document.getElementById('page-info');
+        // Update Load More button
+        function updateLoadMoreButton() {
+            const loadMoreContainer = document.getElementById('load-more-container');
+            const loadMoreBtn = document.getElementById('load-more-btn');
             
-            prevBtn.disabled = !pagination.hasPrevPage;
-            nextBtn.disabled = !pagination.hasNextPage;
-            
-            prevBtn.className = `px-4 py-2 rounded-lg font-semibold transition-colors ${
-                pagination.hasPrevPage 
-                    ? 'bg-green-600 text-white hover:bg-green-700' 
-                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-            }`;
-            
-            nextBtn.className = `px-4 py-2 rounded-lg font-semibold transition-colors ${
-                pagination.hasNextPage 
-                    ? 'bg-green-600 text-white hover:bg-green-700' 
-                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-            }`;
-            
-            pageInfo.textContent = `صفحة ${pagination.currentPage} من ${pagination.totalPages}`;
-            
-            // Show pagination if there are multiple pages
-            const paginationContainer = document.getElementById('pagination');
-            if (pagination.totalPages > 1) {
-                paginationContainer.classList.remove('hidden');
+            if (hasMorePages) {
+                loadMoreContainer.classList.remove('hidden');
+                loadMoreBtn.disabled = false;
+                loadMoreBtn.innerHTML = `
+                    <i class="fa-solid fa-plus"></i>
+                    تحميل المزيد
+                `;
             } else {
-                paginationContainer.classList.add('hidden');
+                loadMoreContainer.classList.add('hidden');
             }
+        }
+
+        // Load more images
+        function loadMoreImages() {
+            const loadMoreBtn = document.getElementById('load-more-btn');
+            
+            // Show loading state
+            loadMoreBtn.disabled = true;
+            loadMoreBtn.innerHTML = `
+                <i class="fa-solid fa-spinner fa-spin"></i>
+                جاري التحميل...
+            `;
+            
+            // Load next page and append to current images
+            loadGallery(currentPage + 1, true);
         }
 
         // Filter and display images
         function filterAndDisplayImages() {
-            filteredImages = allImages.filter(image => {
-                const matchesCategory = !currentCategory || currentCategory === '' || image.category_id == currentCategory;
-                const matchesSearch = !currentSearch || 
-                    (image.title && image.title.toLowerCase().includes(currentSearch)) ||
-                    (image.category_name && image.category_name.toLowerCase().includes(currentSearch));
-                
-                return matchesCategory && matchesSearch;
-            });
-
-            totalPages = Math.ceil(filteredImages.length / imagesPerPage);
-            currentPage = Math.min(currentPage, Math.max(1, totalPages));
+            // Filter images based on search (category filtering is done server-side)
+            let imagesToDisplay = allImages;
             
-            displayImages();
+            if (currentSearch) {
+                imagesToDisplay = allImages.filter(image => {
+                    return (image.title && image.title.toLowerCase().includes(currentSearch)) ||
+                           (image.category_name && image.category_name.toLowerCase().includes(currentSearch));
+                });
+            }
+            
+            displayImages(imagesToDisplay);
         }
 
         // Display images
-        function displayImages() {
+        function displayImages(images = allImages) {
             const galleryGrid = document.getElementById('gallery-grid');
             const loadingSpinner = document.getElementById('loading-spinner');
             const noResults = document.getElementById('no-results');
-            const pagination = document.getElementById('pagination');
 
-            if (filteredImages.length === 0) {
+            if (images.length === 0) {
                 showNoResults();
                 return;
             }
 
-            // Calculate pagination
-            const startIndex = (currentPage - 1) * imagesPerPage;
-            const endIndex = startIndex + imagesPerPage;
-            const currentImages = filteredImages.slice(startIndex, endIndex);
-
-            // Clear and populate grid
+            // Clear grid and add all images
             galleryGrid.innerHTML = '';
-            
-            currentImages.forEach(image => {
-                const imageCard = createImageCard(image);
-                galleryGrid.appendChild(imageCard);
+            images.forEach(image => {
+                const card = createImageCard(image);
+                galleryGrid.appendChild(card);
             });
 
             // Show grid and hide loading/no results
@@ -404,9 +391,8 @@
             galleryGrid.classList.remove('hidden');
             galleryGrid.classList.add('fade-in');
 
-            // Update pagination
-            updatePagination();
-            pagination.classList.remove('hidden');
+            // Update Load More button
+            updateLoadMoreButton();
         }
 
         // Create image card
@@ -416,6 +402,9 @@
             
             const imageUrl = image.image_url || `https://placehold.co/400x300/10b981/ffffff?text=${encodeURIComponent(image.title || 'صورة')}`;
             
+            // Only show category tag if we're viewing "All Images" (no category filter)
+            const showCategoryTag = !currentCategory || currentCategory === '';
+            
             card.innerHTML = `
                 <div class="relative overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100">
                     <img src="${imageUrl}" alt="${image.title || 'صورة'}" 
@@ -423,7 +412,7 @@
                          style="object-position: center 30%;"
                          loading="lazy"
                          onerror="this.onerror=null;this.src='https://placehold.co/400x300/10b981/ffffff?text=${encodeURIComponent(image.title || 'صورة')}'">
-                    ${image.category_name ? `<div class="absolute top-2 right-2 bg-green-600 text-white px-2 py-1 rounded-full text-xs font-semibold">${image.category_name}</div>` : ''}
+                    ${showCategoryTag && image.category_name ? `<div class="absolute top-2 right-2 bg-green-600 text-white px-2 py-1 rounded-full text-xs font-semibold">${image.category_name}</div>` : ''}
                 </div>
                 <div class="p-4">
                     ${image.title ? `<h3 class="font-semibold text-gray-800 mb-2 line-clamp-2 text-center">${image.title}</h3>` : ''}
@@ -459,27 +448,6 @@
             document.body.style.overflow = 'auto';
         }
 
-        // Update pagination
-        function updatePagination() {
-            const prevBtn = document.getElementById('prev-btn');
-            const nextBtn = document.getElementById('next-btn');
-            const pageInfo = document.getElementById('page-info');
-
-            // Update button states
-            prevBtn.disabled = currentPage === 1;
-            nextBtn.disabled = currentPage === totalPages;
-
-            // Update page info text
-            pageInfo.textContent = `صفحة ${currentPage} من ${totalPages}`;
-            
-            // Show/hide pagination based on total pages
-            const paginationContainer = document.getElementById('pagination');
-            if (totalPages > 1) {
-                paginationContainer.classList.remove('hidden');
-            } else {
-                paginationContainer.classList.add('hidden');
-            }
-        }
     </script>
 </body>
 </html>
