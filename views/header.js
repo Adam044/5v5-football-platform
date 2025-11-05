@@ -24,6 +24,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         <a href="tournaments.html" class="text-gray-700 hover:text-green-700 transition-colors duration-300 text-lg flex items-center gap-2">
                             <i class="fa-solid fa-trophy"></i> البطولات
                         </a>
+                        <a href="giveaways.html" class="text-gray-700 hover:text-green-700 transition-colors duration-300 text-lg flex items-center gap-2">
+                            <i class="fa-solid fa-gift"></i> المسابقات
+                        </a>
                         <a href="gallery.html" class="text-gray-700 hover:text-green-700 transition-colors duration-300 text-lg flex items-center gap-2">
                             <i class="fa-solid fa-images"></i> معرض الصور
                         </a>
@@ -58,6 +61,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         </a>
                         <a href="tournaments.html" class="block text-gray-700 py-2 hover:bg-green-50 w-full text-center rounded-lg flex items-center gap-2 justify-center">
                             <i class="fa-solid fa-trophy"></i> البطولات
+                        </a>
+                        <a href="giveaways.html" class="block text-gray-700 py-2 hover:bg-green-50 w-full text-center rounded-lg flex items-center gap-2 justify-center">
+                            <i class="fa-solid fa-gift"></i> المسابقات
                         </a>
                         <a href="gallery.html" class="block text-gray-700 py-2 hover:bg-green-50 w-full text-center rounded-lg flex items-center gap-2 justify-center">
                             <i class="fa-solid fa-images"></i> معرض الصور

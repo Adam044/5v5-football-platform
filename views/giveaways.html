@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>المسابقات | 5v5</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/styles.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+</head>
+<body class="bg-gray-100 text-gray-800">
+    <div id="global-header"></div>
+
+    <main class="container mx-auto px-6 py-8">
+        <section class="mb-8 text-center">
+            <h1 class="text-3xl font-extrabold text-green-700 flex items-center justify-center gap-3 text-center">
+                <i class="fa-solid fa-gift"></i>
+                المسابقات
+            </h1>
+            <p class="text-gray-700 mt-2 text-center text-lg">اكتشف مسابقاتنا الحالية وانضم <span class="text-green-700 font-semibold">مجانًا</span>! شارك لتحصل على فرص رائعة.</p>
+        </section>
+
+        <!-- Note: Users only view and join giveaways; creation is in admin dashboard. -->
+
+        <!-- Giveaways List -->
+        <section>
+            <div id="giveaways-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+
+            <div id="no-giveaways" class="hidden text-center text-gray-500 mt-8">
+                لا توجد مسابقات حالياً.
+            </div>
+        </section>
+
+        <!-- Participants Modal -->
+        <div id="participants-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+            <div class="bg-white rounded-xl shadow-lg w-full max-w-lg p-6 relative">
+                <button id="participants-modal-close" class="absolute top-3 left-3 text-gray-500 hover:text-gray-700">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+                <h3 class="text-xl font-semibold mb-4">المشاركون</h3>
+                <ul id="participants-list" class="space-y-2"></ul>
+                <div id="participants-empty" class="hidden text-center text-gray-500 mt-4">لا يوجد مشاركون بعد.</div>
+            </div>
+        </div>
+
+        <!-- Auth Prompt Modal -->
+        <div id="auth-prompt-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+            <div class="bg-white rounded-xl shadow-lg w-full max-w-md p-6 relative text-center">
+                <button id="auth-prompt-close" class="absolute top-3 left-3 text-gray-500 hover:text-gray-700">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+                <h3 class="text-xl font-semibold mb-3">سجّل الدخول للمشاركة</h3>
+                <p class="text-gray-600 mb-5">لتنضم إلى هذه المسابقة وتحصل على مزايا أكثر على منصتنا.</p>
+                <div class="flex items-center justify-center gap-3">
+                    <a href="auth.html" class="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-lg">
+                        تسجيل الدخول
+                    </a>
+                    <a href="auth.html#signup" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg">
+                        إنشاء حساب
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Join Success Modal -->
+        <div id="join-success-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+            <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 relative text-center overflow-hidden">
+                <button id="join-success-close" class="absolute top-3 left-3 text-gray-500 hover:text-gray-700">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+                <div class="relative inline-block mb-4">
+                    <span class="absolute -top-2 -left-2 w-10 h-10 bg-green-200 rounded-full animate-ping"></span>
+                    <div class="inline-flex items-center justify-center w-20 h-20 bg-green-100 rounded-full">
+                        <i class="fa-solid fa-trophy text-3xl text-green-600 animate-bounce"></i>
+                    </div>
+                </div>
+                <h3 class="text-2xl font-bold mb-2">تهانينا!</h3>
+                <p class="text-gray-600 mb-6">تم انضمامك إلى المسابقة بنجاح. بالتوفيق!</p>
+                <button id="join-success-ok" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg">رائع!</button>
+            </div>
+        </div>
+    </main>
+
+    <div id="global-footer"></div>
+
+    <script src="header.js"></script>
+    <script src="footer.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Load giveaways
+            loadGiveaways();
+
+            // Modal close
+            document.getElementById('participants-modal-close').addEventListener('click', () => hideParticipantsModal());
+            document.getElementById('auth-prompt-close').addEventListener('click', () => hideAuthPromptModal());
+            document.getElementById('join-success-close').addEventListener('click', () => hideJoinSuccessModal());
+            document.getElementById('join-success-ok').addEventListener('click', () => hideJoinSuccessModal());
+        });
+
+        async function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
+
+        async function loadGiveaways() {
+            const container = document.getElementById('giveaways-container');
+            const empty = document.getElementById('no-giveaways');
+            container.innerHTML = '';
+            empty.classList.add('hidden');
+            try {
+                const resp = await fetch('/api/giveaways');
+                const data = await resp.json();
+                if (!resp.ok) throw new Error(data.error || 'Failed to fetch');
+                const giveaways = data.giveaways || [];
+                if (giveaways.length === 0) {
+                    empty.classList.remove('hidden');
+                    return;
+                }
+                giveaways.forEach(g => container.appendChild(createGiveawayCard(g)));
+            } catch (err) {
+                console.error('Error loading giveaways:', err);
+                empty.classList.remove('hidden');
+            }
+        }
+
+        function createGiveawayCard(g) {
+            const userId = localStorage.getItem('userId');
+            const card = document.createElement('div');
+            card.className = 'bg-white rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden transform hover:-translate-y-2 border border-gray-100 flex flex-col';
+
+            const imageUrl = g.image_url || 'components/images/tournament.jpg';
+            const deadlineText = g.deadline ? new Date(g.deadline).toLocaleDateString('en-GB') : null;
+            const isExpiredJoin = g.deadline ? (Date.now() > new Date(g.deadline).getTime()) : false;
+            const initialCount = Number(g.participants_count || 0);
+
+            card.innerHTML = `
+                <img
+                    src="${imageUrl}"
+                    alt="${g.name || 'مسابقة'}"
+                    class="w-full h-56 object-cover"
+                    loading="lazy" decoding="async"
+                />
+                <div class="p-6 flex-1 flex flex-col text-center">
+                    <h3 class="text-2xl font-bold mb-2 text-gray-900 flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-gift text-pink-600"></i>
+                        ${g.name || 'مسابقة'}
+                    </h3>
+                    ${g.description ? `<p class="text-gray-700 text-sm mb-4 leading-relaxed">${g.description}</p>` : ''}
+                    <div class="flex flex-wrap justify-center gap-2 mb-4 text-gray-700">
+                        ${deadlineText ? `<span class="bg-gray-100 px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1 ${isExpiredJoin ? 'text-red-700' : ''}">
+                            <i class="fa-solid fa-calendar-alt ${isExpiredJoin ? 'text-red-500' : 'text-blue-500'}"></i> ${deadlineText}
+                        </span>` : ''}
+                        <span class="bg-gray-100 px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1">
+                            <i class="fa-solid fa-users text-purple-600"></i> ${initialCount} مشارك
+                        </span>
+                        ${isExpiredJoin ? `<span class="bg-red-100 px-3 py-1 rounded-full text-xs font-semibold text-red-700 flex items-center gap-1">
+                            <i class="fa-solid fa-circle-xmark"></i> انتهت
+                        </span>` : ''}
+                    </div>
+                    <div class="mt-auto flex gap-2 justify-center">
+                        <button id="join-btn" class="bg-gradient-to-r from-green-600 to-teal-500 text-white px-6 py-3 rounded-xl hover:from-green-700 hover:to-teal-600 transition-all duration-300 shadow-lg text-lg transform hover:-translate-y-1 flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-user-plus ml-2"></i> انضم
+                        </button>
+                        <button id="participants-btn" class="bg-gradient-to-r from-indigo-500 to-purple-500 text-white px-6 py-3 rounded-xl hover:from-indigo-600 hover:to-purple-600 transition-all duration-300 shadow-md text-lg flex items-center justify-center gap-2" data-count="${initialCount}">
+                            <i class="fa-solid fa-users ml-2"></i> المشاركون (${initialCount})
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            const joinBtn = card.querySelector('#join-btn');
+            const participantsBtn = card.querySelector('#participants-btn');
+
+            if (isExpiredJoin && joinBtn) {
+                joinBtn.disabled = true;
+                joinBtn.className = 'bg-gradient-to-r from-gray-300 to-gray-400 text-gray-700 px-6 py-3 rounded-xl cursor-not-allowed text-lg flex items-center justify-center gap-2';
+                joinBtn.innerHTML = '<i class="fa-solid fa-ban ml-2"></i> انتهى الوقت';
+            } else {
+                joinBtn?.addEventListener('click', (e) => handleJoinClick(e, g.id, participantsBtn));
+            }
+
+            participantsBtn?.addEventListener('click', () => showParticipants(g.id));
+
+            if (userId && !isExpiredJoin && joinBtn) {
+                checkIfJoined(g.id, userId, joinBtn);
+            }
+
+            return card;
+        }
+
+        async function checkIfJoined(giveawayId, userId, joinBtn) {
+            try {
+                const resp = await fetch(`/api/giveaways/${giveawayId}/participants`);
+                const data = await resp.json();
+                const participants = data.participants || [];
+                const already = participants.some(p => String(p.user_id) === String(userId));
+                if (already) {
+                    joinBtn.disabled = true;
+                    joinBtn.className = 'bg-gradient-to-r from-gray-300 to-gray-400 text-gray-700 px-6 py-3 rounded-xl cursor-not-allowed text-lg flex items-center justify-center gap-2';
+                    joinBtn.innerHTML = '<i class="fa-solid fa-check ml-2"></i> أنت مشارك';
+                }
+            } catch (err) {
+                console.warn('Could not check joined state:', err);
+            }
+        }
+
+        async function handleJoinClick(event, giveawayId, participantsBtn) {
+            const btn = event.currentTarget;
+            const userId = localStorage.getItem('userId');
+            if (!userId) {
+                showAuthPromptModal();
+                return;
+            }
+            // Prevent double clicks and add a subtle animation
+            btn.disabled = true;
+            btn.classList.add('transform', 'scale-105');
+            btn.classList.add('animate-pulse');
+            try {
+                const resp = await fetch(`/api/giveaways/${giveawayId}/join`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId })
+                });
+                const data = await resp.json();
+                if (!resp.ok) {
+                    // If already joined, reflect in UI; else show error
+                    const msg = (data && data.error) ? data.error : 'فشل الانضمام';
+                    if (msg.includes('already') || msg.includes('موجود')) {
+                        btn.className = 'bg-gradient-to-r from-gray-300 to-gray-400 text-gray-700 px-6 py-3 rounded-xl cursor-not-allowed text-lg flex items-center justify-center gap-2';
+                        btn.innerHTML = '<i class="fa-solid fa-check ml-2"></i> أنت مشارك';
+                    } else {
+                        alert(msg);
+                        btn.disabled = false;
+                        btn.classList.remove('animate-pulse', 'scale-105');
+                    }
+                    return;
+                }
+                // Success: show modal and reflect state
+                btn.className = 'bg-gradient-to-r from-gray-300 to-gray-400 text-gray-700 px-6 py-3 rounded-xl cursor-not-allowed text-lg flex items-center justify-center gap-2';
+                btn.innerHTML = '<i class="fa-solid fa-check ml-2"></i> أنت مشارك';
+                showJoinSuccessModal();
+                // Increment participants count locally
+                if (participantsBtn) {
+                    const current = Number(participantsBtn.dataset.count || '0');
+                    const next = current + 1;
+                    participantsBtn.dataset.count = String(next);
+                    participantsBtn.innerHTML = `<i class="fa-solid fa-users ml-2"></i> المشاركون (${next})`;
+                }
+            } catch (err) {
+                console.error('Join error:', err);
+                alert('حدث خطأ أثناء الانضمام');
+                btn.disabled = false;
+                btn.classList.remove('animate-pulse', 'scale-105');
+            }
+        }
+
+        async function showParticipants(giveawayId) {
+            try {
+                const resp = await fetch(`/api/giveaways/${giveawayId}/participants`);
+                const data = await resp.json();
+                const list = document.getElementById('participants-list');
+                const empty = document.getElementById('participants-empty');
+                list.innerHTML = '';
+                const participants = data.participants || [];
+                if (participants.length === 0) {
+                    empty.classList.remove('hidden');
+                } else {
+                    empty.classList.add('hidden');
+                    participants.forEach(p => {
+                        const li = document.createElement('li');
+                        li.className = 'border rounded-lg px-4 py-2 flex justify-between';
+                        const dateOnly = new Date(p.joined_at).toLocaleDateString('en-GB');
+                        li.innerHTML = `<span>${p.user_name || 'مستخدم'}</span><span class="text-sm text-gray-500">${dateOnly}</span>`;
+                        list.appendChild(li);
+                    });
+                }
+                showParticipantsModal();
+            } catch (err) {
+                console.error('Error loading participants:', err);
+                alert('فشل تحميل قائمة المشاركين');
+            }
+        }
+
+        function showParticipantsModal() {
+            const modal = document.getElementById('participants-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+        function hideParticipantsModal() {
+            const modal = document.getElementById('participants-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function showAuthPromptModal() {
+            const modal = document.getElementById('auth-prompt-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+        function hideAuthPromptModal() {
+            const modal = document.getElementById('auth-prompt-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function showJoinSuccessModal() {
+            const modal = document.getElementById('join-success-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+        function hideJoinSuccessModal() {
+            const modal = document.getElementById('join-success-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+    </script>
+    <div id="global-footer"></div>
+    <script src="header.js"></script>
+    <script src="footer.js"></script>
+</body>
+</html>

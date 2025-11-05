@@ -235,6 +235,28 @@ app.get('/join/:code', (req, res) => {
                 created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
             );
             
+            -- GIVEAWAYS Table
+            CREATE TABLE IF NOT EXISTS giveaways (
+                id SERIAL PRIMARY KEY,
+                name TEXT NOT NULL,
+                description TEXT,
+                image_url TEXT,
+                deadline TIMESTAMP WITH TIME ZONE,
+                created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+            );
+
+            -- Ensure deadline column exists (safe to run multiple times)
+            ALTER TABLE giveaways ADD COLUMN IF NOT EXISTS deadline TIMESTAMP WITH TIME ZONE;
+
+            -- GIVEAWAY_PARTICIPANTS Table
+            CREATE TABLE IF NOT EXISTS giveaway_participants (
+                id SERIAL PRIMARY KEY,
+                giveaway_id INTEGER NOT NULL REFERENCES giveaways(id) ON DELETE CASCADE,
+                user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                joined_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE (giveaway_id, user_id)
+            );
+            
             -- TEAM_SESSIONS Table (For Field Booking/Matchmaking Pre-reg)
             CREATE TABLE IF NOT EXISTS team_sessions (
                 id SERIAL PRIMARY KEY,
@@ -2926,6 +2948,257 @@ app.delete('/api/admin/sponsors/:id', checkAdmin, async (req, res) => {
     } catch (err) {
         console.error('Error deleting sponsor:', err);
         return res.status(500).json({ error: 'Failed to delete sponsor.' });
+    }
+});
+
+// --- Giveaways Endpoints ---
+
+// Public: List giveaways
+app.get('/api/giveaways', async (req, res) => {
+    try {
+        const sql = `
+            SELECT g.id, g.name, g.description, g.image_url, g.created_at,
+                   g.deadline,
+                   COALESCE(p.count, 0) AS participants_count
+            FROM giveaways g
+            LEFT JOIN (
+                SELECT giveaway_id, COUNT(*) AS count
+                FROM giveaway_participants
+                GROUP BY giveaway_id
+            ) p ON p.giveaway_id = g.id
+            ORDER BY g.created_at DESC
+        `;
+        const { rows } = await pool.query(sql);
+        res.json({ giveaways: rows });
+    } catch (err) {
+        console.error('Error fetching giveaways:', err);
+        return res.status(500).json({ error: 'Failed to fetch giveaways.' });
+    }
+});
+
+// Admin: Create a giveaway with image upload
+app.post('/api/admin/giveaways', checkAdmin, async (req, res) => {
+    const { name, description, image, deadline } = req.body || {};
+    if (!name) {
+        return res.status(400).json({ error: 'Name is required.' });
+    }
+    try {
+        let imageUrl = null;
+        if (image) {
+            const base64 = image.replace(/^data:image\/[a-zA-Z]+;base64,/, '');
+            const buffer = Buffer.from(base64, 'base64');
+
+            const optimizedBuffer = await sharp(buffer)
+                .rotate()
+                .resize({ width: 1200, fit: 'inside', withoutEnlargement: true })
+                .webp({ quality: 80, effort: 6 })
+                .toBuffer();
+
+            imageUrl = await uploadImageToStorage(optimizedBuffer, `giveaway_${Date.now()}.webp`, 'giveaways');
+        }
+
+        const insertSql = `
+            INSERT INTO giveaways (name, description, image_url, deadline)
+            VALUES ($1, $2, $3, $4) RETURNING id
+        `;
+        const deadlineValue = deadline ? new Date(deadline) : null;
+        const result = await pool.query(insertSql, [name, description || null, imageUrl || null, deadlineValue]);
+        res.json({ message: 'Giveaway created successfully', id: result.rows[0].id, image_url: imageUrl });
+    } catch (err) {
+        console.error('Error creating giveaway:', err);
+        return res.status(500).json({ error: 'Failed to create giveaway.' });
+    }
+});
+
+// Admin: Update a giveaway (name, description, deadline, optional image)
+app.put('/api/admin/giveaways/:id', checkAdmin, async (req, res) => {
+    const { id } = req.params;
+    const { name, description, deadline, image } = req.body || {};
+    try {
+        // If image provided, process and upload; otherwise keep existing
+        let newImageUrl = null;
+        if (image) {
+            const base64 = image.replace(/^data:image\/[a-zA-Z]+;base64,/, '');
+            const buffer = Buffer.from(base64, 'base64');
+
+            const optimizedBuffer = await sharp(buffer)
+                .rotate()
+                .resize({ width: 1200, fit: 'inside', withoutEnlargement: true })
+                .webp({ quality: 80, effort: 6 })
+                .toBuffer();
+
+            const fileName = `giveaways/${Date.now()}_${Math.random().toString(36).slice(2)}.webp`;
+            const { data: uploadData, error: uploadError } = await supabase
+                .storage
+                .from('public-assets')
+                .upload(fileName, optimizedBuffer, {
+                    contentType: 'image/webp',
+                    upsert: true
+                });
+
+            if (uploadError) {
+                console.error('Supabase upload error (update):', uploadError);
+                return res.status(500).json({ error: 'Failed to upload image.' });
+            }
+            const { data: urlData } = supabase.storage.from('public-assets').getPublicUrl(uploadData.path);
+            newImageUrl = urlData.publicUrl;
+        }
+
+        // Update fields
+        const sql = `
+            UPDATE giveaways
+            SET
+                name = COALESCE($2, name),
+                description = COALESCE($3, description),
+                deadline = $4,
+                image_url = COALESCE($5, image_url)
+            WHERE id = $1
+            RETURNING id
+        `;
+        const params = [id, name || null, description || null, deadline ? new Date(deadline) : null, newImageUrl || null];
+        const result = await pool.query(sql, params);
+        if (result.rowCount === 0) {
+            return res.status(404).json({ error: 'Giveaway not found.' });
+        }
+        res.json({ message: 'Giveaway updated successfully.' });
+    } catch (err) {
+        console.error('Error updating giveaway:', err);
+        return res.status(500).json({ error: 'Failed to update giveaway.' });
+    }
+});
+
+// Admin: Delete a giveaway
+app.delete('/api/admin/giveaways/:id', checkAdmin, async (req, res) => {
+    const { id } = req.params;
+    try {
+        // Fetch image_url to delete from storage if present
+        const getSql = 'SELECT image_url FROM giveaways WHERE id = $1';
+        const getRes = await pool.query(getSql, [id]);
+        if (getRes.rowCount === 0) {
+            return res.status(404).json({ error: 'Giveaway not found.' });
+        }
+        const { image_url } = getRes.rows[0];
+        if (image_url) {
+            try {
+                await deleteImageFromStorage(image_url);
+            } catch (delErr) {
+                console.warn('Failed to delete giveaway image from storage:', delErr);
+            }
+        }
+        const delSql = 'DELETE FROM giveaways WHERE id = $1';
+        await pool.query(delSql, [id]);
+        res.json({ message: 'Giveaway deleted.' });
+    } catch (err) {
+        console.error('Error deleting giveaway:', err);
+        return res.status(500).json({ error: 'Failed to delete giveaway.' });
+    }
+});
+
+// Admin: Update a giveaway
+app.put('/api/admin/giveaways/:id', checkAdmin, async (req, res) => {
+    const { id } = req.params;
+    const { name, description, deadline, image } = req.body || {};
+    try {
+        // If image provided, process and upload
+        let newImageUrl = undefined;
+        if (image) {
+            const base64 = image.replace(/^data:image\/[a-zA-Z]+;base64,/, '');
+            const buffer = Buffer.from(base64, 'base64');
+
+            const optimizedBuffer = await sharp(buffer)
+                .rotate()
+                .resize({ width: 1200, fit: 'inside', withoutEnlargement: true })
+                .webp({ quality: 80, effort: 6 })
+                .toBuffer();
+
+            newImageUrl = await uploadImageToStorage(optimizedBuffer, `giveaway_${Date.now()}.webp`, 'giveaways');
+        }
+
+        // Build dynamic update
+        const fields = [];
+        const params = [];
+        let idx = 1;
+
+        if (name !== undefined) { fields.push(`name = $${idx++}`); params.push(name || null); }
+        if (description !== undefined) { fields.push(`description = $${idx++}`); params.push(description || null); }
+        if (deadline !== undefined) { fields.push(`deadline = $${idx++}`); params.push(deadline ? new Date(deadline) : null); }
+        if (newImageUrl !== undefined) { fields.push(`image_url = $${idx++}`); params.push(newImageUrl); }
+
+        if (fields.length === 0) {
+            return res.status(400).json({ error: 'No fields to update.' });
+        }
+
+        const sql = `UPDATE giveaways SET ${fields.join(', ')} WHERE id = $${idx} RETURNING id, name, description, image_url, deadline`;
+        params.push(id);
+
+        const result = await pool.query(sql, params);
+        if (result.rowCount === 0) {
+            return res.status(404).json({ error: 'Giveaway not found.' });
+        }
+        res.json({ message: 'Giveaway updated successfully', giveaway: result.rows[0] });
+    } catch (err) {
+        console.error('Error updating giveaway:', err);
+        return res.status(500).json({ error: 'Failed to update giveaway.' });
+    }
+});
+
+// User: Join a giveaway
+app.post('/api/giveaways/:id/join', async (req, res) => {
+    const { id } = req.params;
+    const { userId } = req.body || {};
+    if (!userId) {
+        return res.status(400).json({ error: 'User ID is required.' });
+    }
+    try {
+        // Verify user exists
+        const userSql = `SELECT id FROM users WHERE id = $1`;
+        const { rows: userRows } = await pool.query(userSql, [userId]);
+        if (!userRows[0]) {
+            return res.status(404).json({ error: 'User not found. Please log in.' });
+        }
+
+        // Verify giveaway exists and check deadline
+        const gwSql = `SELECT id, deadline FROM giveaways WHERE id = $1`;
+        const { rows: gwRows } = await pool.query(gwSql, [id]);
+        if (!gwRows[0]) {
+            return res.status(404).json({ error: 'Giveaway not found.' });
+        }
+        const deadline = gwRows[0].deadline ? new Date(gwRows[0].deadline) : null;
+        if (deadline && Date.now() > deadline.getTime()) {
+            return res.status(400).json({ error: 'انتهى الموعد النهائي للمسابقة.' });
+        }
+
+        const insertSql = `
+            INSERT INTO giveaway_participants (giveaway_id, user_id)
+            VALUES ($1, $2)
+        `;
+        await pool.query(insertSql, [id, userId]);
+        res.json({ message: 'Joined giveaway successfully.' });
+    } catch (err) {
+        if (err.code === '23505') {
+            return res.status(400).json({ error: 'You have already joined this giveaway.' });
+        }
+        console.error('Error joining giveaway:', err);
+        return res.status(500).json({ error: 'Failed to join giveaway.' });
+    }
+});
+
+// Public: List participants for a giveaway
+app.get('/api/giveaways/:id/participants', async (req, res) => {
+    const { id } = req.params;
+    try {
+        const sql = `
+            SELECT gp.user_id, u.name AS user_name, gp.joined_at
+            FROM giveaway_participants gp
+            JOIN users u ON u.id = gp.user_id
+            WHERE gp.giveaway_id = $1
+            ORDER BY gp.joined_at DESC
+        `;
+        const { rows } = await pool.query(sql, [id]);
+        res.json({ participants: rows });
+    } catch (err) {
+        console.error('Error fetching giveaway participants:', err);
+        return res.status(500).json({ error: 'Failed to fetch participants.' });
     }
 });
 

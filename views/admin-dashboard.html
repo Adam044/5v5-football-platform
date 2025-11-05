@@ -444,6 +444,9 @@
             <button class="tab-button text-gray-600 font-bold text-xl px-4 py-2" data-tab="sponsors-tab">
                 <i class="fa-solid fa-handshake ml-2"></i> إدارة الرعاة
             </button>
+            <button class="tab-button text-gray-600 font-bold text-xl px-4 py-2" data-tab="giveaways-tab">
+                <i class="fa-solid fa-gift ml-2"></i> إدارة المسابقات
+            </button>
         </div>
 
         <!-- Tab Content -->
@@ -832,6 +835,46 @@
                         </h5>
                         <div id="admin-sponsors-container" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                             <!-- sponsors will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Giveaways Tab -->
+            <section id="giveaways-tab" class="tab-pane hidden">
+                <div class="bg-white rounded-2xl shadow-xl p-8 border-b-4 border-pink-500">
+                    <h4 class="text-3xl font-bold text-gray-900 mb-8 flex items-center gap-3">
+                        <i class="fa-solid fa-gift text-pink-600"></i>
+                        إدارة المسابقات
+                    </h4>
+
+                    <!-- Create Giveaway -->
+                    <div class="mb-8 bg-pink-50 border border-pink-200 rounded-xl p-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">اسم المسابقة:</label>
+                        <input id="giveaway-admin-name" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 mb-4" placeholder="اكتب اسم المسابقة..." required>
+
+                        <label class="block text-gray-700 text-sm font-bold mb-2">الوصف:</label>
+                        <textarea id="giveaway-admin-description" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 mb-4" rows="3" placeholder="اكتب وصفًا مختصرًا"></textarea>
+
+                        <label class="block text-gray-700 text-sm font-bold mb-2">الموعد النهائي:</label>
+                        <input id="giveaway-admin-deadline" type="datetime-local" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 mb-4" required>
+
+                        <label class="block text-gray-700 text-sm font-bold mb-2">صورة المسابقة:</label>
+                        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                            <input id="giveaway-admin-image-file" type="file" accept="image/*" class="w-full sm:flex-1 min-w-0">
+                            <button id="giveaway-upload-btn" class="w-full sm:w-auto bg-pink-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-pink-700 transition-all duration-300">
+                                إضافة المسابقة
+                            </button>
+                        </div>
+                        <p id="giveaway-upload-status" class="mt-3 text-sm text-gray-500"></p>
+                    </div>
+
+                    <div>
+                        <h5 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                            <i class="fa-solid fa-list text-pink-600"></i> المسابقات الحالية
+                        </h5>
+                        <div id="admin-giveaways-container" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                            <!-- giveaways will be loaded here -->
                         </div>
                     </div>
                 </div>
@@ -1245,6 +1288,10 @@
             // Load sponsors when sponsors tab is activated
             if (tabId === 'sponsors-tab') {
                 fetchAdminSponsors();
+            }
+            // Load giveaways when giveaways tab is activated
+            if (tabId === 'giveaways-tab') {
+                fetchAdminGiveaways();
             }
         }
         
@@ -3235,6 +3282,195 @@ const sexText = user.gender === 'male' ? 'ذكر' : user.gender === 'female' ? '
 
         document.getElementById('sponsor-upload-btn')?.addEventListener('click', uploadSponsor);
 
+        // Giveaways functions
+        async function fetchAdminGiveaways() {
+            const container = document.getElementById('admin-giveaways-container');
+            if (!container) return;
+            container.innerHTML = '<p class="text-center text-gray-500">جاري تحميل المسابقات...</p>';
+            try {
+                const res = await fetch('/api/giveaways');
+                const data = await res.json();
+                container.innerHTML = '';
+                if (res.ok && data.giveaways && data.giveaways.length) {
+                    data.giveaways.forEach(g => {
+                        const card = document.createElement('div');
+                        card.className = 'bg-white p-3 rounded-xl shadow border border-gray-200';
+                        const imageUrl = g.image_url || `https://placehold.co/400x300/f472b6/ffffff?text=${encodeURIComponent(g.name || 'مسابقة')}`;
+                        const deadlineText = g.deadline ? new Date(g.deadline).toLocaleString('ar-EG') : 'غير محدد';
+                        const isExpired = g.deadline ? (Date.now() > new Date(g.deadline).getTime()) : false;
+                        card.innerHTML = `
+                            <img src="${imageUrl}" alt="${g.name || 'مسابقة'}" class="rounded-lg w-full h-40 object-cover mb-2" loading="lazy" decoding="async" onerror="this.onerror=null;this.src='https://placehold.co/400x300/f472b6/ffffff?text=${encodeURIComponent(g.name || 'مسابقة')}'">
+                            <div class="text-sm text-gray-700 mb-2 font-semibold">${g.name}</div>
+                            <div class="text-xs text-gray-600 mb-2">${g.description || ''}</div>
+                            <div class="text-xs ${isExpired ? 'text-red-600' : 'text-gray-700'} mb-2"><i class="fa-regular fa-clock ml-1"></i> الموعد النهائي: ${deadlineText}</div>
+                            <div class="text-xs text-gray-500"><i class="fa-solid fa-users ml-1"></i> عدد المشاركين: ${g.participants_count || 0}</div>
+                            <div class="mt-3 flex gap-2">
+                                <button class="bg-pink-600 hover:bg-pink-700 text-white text-xs px-3 py-2 rounded-lg" onclick='openEditGiveawayModal(${JSON.stringify({id:g.id,name:g.name,description:g.description,deadline:g.deadline,image_url:g.image_url})})'>
+                                    <i class="fa-solid fa-pen ml-1"></i> تعديل
+                                </button>
+                                <button class="bg-red-600 hover:bg-red-700 text-white text-xs px-3 py-2 rounded-lg" onclick='openDeleteGiveawayModal(${g.id})'>
+                                    <i class="fa-solid fa-trash ml-1"></i> حذف
+                                </button>
+                            </div>
+                        `;
+                        container.appendChild(card);
+                    });
+                } else {
+                    container.innerHTML = '<p class="text-center text-gray-500">لا توجد مسابقات بعد.</p>';
+                }
+            } catch (e) {
+                console.error('Failed to load giveaways', e);
+                container.innerHTML = '<p class="text-center text-red-500">حدث خطأ في تحميل المسابقات.</p>';
+            }
+        }
+
+        // --- Edit Giveaway Modal ---
+        function openEditGiveawayModal(g) {
+            const modal = document.getElementById('edit-giveaway-modal');
+            document.getElementById('edit-giveaway-id').value = g.id;
+            document.getElementById('edit-giveaway-name').value = g.name || '';
+            document.getElementById('edit-giveaway-description').value = g.description || '';
+            document.getElementById('edit-giveaway-deadline').value = g.deadline ? new Date(g.deadline).toISOString().slice(0,16) : '';
+            const preview = document.getElementById('edit-giveaway-image-preview');
+            const imgUrl = g.image_url || `https://placehold.co/600x300/f472b6/ffffff?text=${encodeURIComponent(g.name || 'مسابقة')}`;
+            if (preview) preview.src = imgUrl;
+            document.getElementById('edit-giveaway-status').textContent = '';
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+        function closeEditGiveawayModal() {
+            const modal = document.getElementById('edit-giveaway-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+        async function saveGiveawayEdit() {
+            const id = document.getElementById('edit-giveaway-id').value;
+            const name = document.getElementById('edit-giveaway-name').value.trim();
+            const description = document.getElementById('edit-giveaway-description').value.trim();
+            const deadlineVal = document.getElementById('edit-giveaway-deadline').value;
+            const fileInput = document.getElementById('edit-giveaway-image-file');
+            const statusEl = document.getElementById('edit-giveaway-status');
+            const userId = localStorage.getItem('userId');
+
+            statusEl.textContent = '';
+            let imageData = null;
+            const file = fileInput.files && fileInput.files[0];
+            if (file) {
+                imageData = await fileToBase64(file);
+            }
+            const body = {
+                name,
+                description,
+                deadline: deadlineVal ? new Date(deadlineVal).toISOString() : null,
+            };
+            if (imageData) body.image = imageData;
+
+            try {
+                const res = await fetch(`/api/admin/giveaways/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json', 'X-User-Id': userId },
+                    body: JSON.stringify(body)
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    statusEl.textContent = 'تم تعديل المسابقة بنجاح.';
+                    closeEditGiveawayModal();
+                    fetchAdminGiveaways();
+                } else {
+                    statusEl.textContent = data.error || 'فشل تعديل المسابقة.';
+                }
+            } catch (err) {
+                console.error('Edit failed', err);
+                statusEl.textContent = 'حدث خطأ أثناء التعديل.';
+            }
+        }
+
+        // Delete Giveaway
+        function openDeleteGiveawayModal(id) {
+            const modal = document.getElementById('delete-giveaway-modal');
+            document.getElementById('delete-giveaway-id').value = id;
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+        function closeDeleteGiveawayModal() {
+            const modal = document.getElementById('delete-giveaway-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+        async function confirmDeleteGiveaway() {
+            const id = document.getElementById('delete-giveaway-id').value;
+            const userId = localStorage.getItem('userId');
+            try {
+                const res = await fetch(`/api/admin/giveaways/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'X-User-Id': userId }
+                });
+                if (res.ok) {
+                    closeDeleteGiveawayModal();
+                    fetchAdminGiveaways();
+                    showMessageBox('نجح', 'تم حذف المسابقة بنجاح.', 'success');
+                } else {
+                    const data = await res.json().catch(() => ({}));
+                    showMessageBox('خطأ', data.error || 'فشل حذف المسابقة.', 'error');
+                }
+            } catch (err) {
+                console.error('Delete failed', err);
+                showMessageBox('خطأ', 'حدث خطأ أثناء الحذف.', 'error');
+            }
+        }
+
+        async function uploadAdminGiveaway() {
+            const nameInput = document.getElementById('giveaway-admin-name');
+            const descInput = document.getElementById('giveaway-admin-description');
+            const deadlineInput = document.getElementById('giveaway-admin-deadline');
+            const fileInput = document.getElementById('giveaway-admin-image-file');
+            const statusEl = document.getElementById('giveaway-upload-status');
+            const userId = localStorage.getItem('userId');
+
+            statusEl.textContent = '';
+            const name = nameInput.value.trim();
+            const description = descInput.value.trim();
+            const deadlineVal = deadlineInput.value;
+            const file = fileInput.files && fileInput.files[0];
+
+            if (!name) {
+                statusEl.textContent = 'يرجى إدخال اسم المسابقة.';
+                return;
+            }
+            if (!deadlineVal) {
+                statusEl.textContent = 'يرجى تحديد الموعد النهائي للمسابقة.';
+                return;
+            }
+
+            try {
+                let imageData = null;
+                if (file) {
+                    imageData = await fileToBase64(file);
+                }
+                const res = await fetch('/api/admin/giveaways', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-User-Id': userId },
+                    body: JSON.stringify({ name, description, image: imageData, deadline: new Date(deadlineVal).toISOString() })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    statusEl.textContent = 'تم إضافة المسابقة بنجاح.';
+                    nameInput.value = '';
+                    descInput.value = '';
+                    deadlineInput.value = '';
+                    if (fileInput) fileInput.value = '';
+                    fetchAdminGiveaways();
+                } else {
+                    statusEl.textContent = data.error || 'فشل إضافة المسابقة.';
+                }
+            } catch (err) {
+                console.error('Upload failed', err);
+                statusEl.textContent = 'حدث خطأ أثناء الإضافة.';
+            }
+        }
+
+        document.getElementById('giveaway-upload-btn')?.addEventListener('click', uploadAdminGiveaway);
+
         // Event listeners for availability management
         document.getElementById('availability-field-select').addEventListener('change', loadAvailabilitySlots);
         document.getElementById('availability-date-select').addEventListener('change', loadAvailabilitySlots);
@@ -3242,6 +3478,11 @@ const sexText = user.gender === 'male' ? 'ذكر' : user.gender === 'female' ? '
         // --- Initialize on page load ---
         document.addEventListener('DOMContentLoaded', () => {
             checkAdminAccess();
+            // Attach modal listeners after DOM is ready
+            const cancelBtn = document.getElementById('edit-giveaway-cancel');
+            const saveBtn = document.getElementById('edit-giveaway-save');
+            if (cancelBtn) cancelBtn.addEventListener('click', closeEditGiveawayModal);
+            if (saveBtn) saveBtn.addEventListener('click', saveGiveawayEdit);
         });
 
         // Logout function
@@ -3251,6 +3492,43 @@ const sexText = user.gender === 'male' ? 'ذكر' : user.gender === 'female' ? '
             window.location.href = 'index.html';
         }
     </script>
+
+    <!-- Edit Giveaway Modal -->
+    <div id="edit-giveaway-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg p-4 sm:p-6 relative max-h-[85vh] overflow-y-auto">
+            <button class="absolute top-3 left-3 text-gray-500 hover:text-gray-700" id="edit-giveaway-cancel">
+                <i class="fa-solid fa-xmark text-xl"></i>
+            </button>
+            <h3 class="text-xl sm:text-2xl font-bold mb-3 flex items-center gap-2"><i class="fa-solid fa-pen text-pink-600"></i> تعديل المسابقة</h3>
+            <input type="hidden" id="edit-giveaway-id" />
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">الصورة الحالية</label>
+                    <img id="edit-giveaway-image-preview" src="https://placehold.co/600x300/f472b6/ffffff?text=مسابقة" alt="صورة المسابقة" class="w-full h-32 sm:h-40 object-cover rounded-lg border" onerror="this.onerror=null;this.src='https://placehold.co/600x300/f472b6/ffffff?text=مسابقة'" />
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">اسم المسابقة</label>
+                    <input id="edit-giveaway-name" type="text" class="w-full px-3 py-2 border rounded-lg" placeholder="اكتب الاسم" />
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">الوصف</label>
+                    <textarea id="edit-giveaway-description" class="w-full px-3 py-2 border rounded-lg" rows="3" placeholder="اكتب الوصف"></textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">الموعد النهائي</label>
+                    <input id="edit-giveaway-deadline" type="datetime-local" class="w-full px-3 py-2 border rounded-lg" />
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">تحديث الصورة (اختياري)</label>
+                    <input id="edit-giveaway-image-file" type="file" accept="image/*" class="w-full" />
+                </div>
+                <p id="edit-giveaway-status" class="text-sm text-gray-500"></p>
+                <div class="flex items-center justify-end gap-3 mt-2">
+                    <button id="edit-giveaway-save" class="bg-pink-600 hover:bg-pink-700 text-white px-5 py-2 rounded-lg">حفظ</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Delete Sponsor Confirmation Modal -->
     <div id="delete-sponsor-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50 animate-fade-in">
@@ -3273,6 +3551,33 @@ const sexText = user.gender === 'male' ? 'ذكر' : user.gender === 'female' ? '
                         إلغاء
                     </button>
                     <button id="confirm-delete-sponsor-btn" onclick="confirmDeleteSponsor()" class="flex-1 bg-red-600 text-white py-3 rounded-lg hover:bg-red-700 transition-colors font-medium">
+                        <i class="fa-solid fa-trash-can ml-2"></i>
+                        حذف
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Giveaway Confirmation Modal -->
+    <div id="delete-giveaway-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50 animate-fade-in">
+        <div class="bg-white rounded-2xl shadow-3xl w-full max-w-md relative p-8 border-t-4 border-red-500">
+            <button onclick="closeDeleteGiveawayModal()" class="absolute top-4 left-4 text-gray-500 hover:text-gray-800 transition-colors duration-300 rounded-full bg-gray-100 p-2 hover:bg-gray-200" aria-label="إغلاق">
+                <i class="fa-solid fa-times"></i>
+            </button>
+            <div class="text-center">
+                <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-red-100 mb-6">
+                    <i class="fa-solid fa-trash-can text-red-600 text-2xl"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-900 mb-4">حذف المسابقة</h3>
+                <p class="text-gray-600 mb-8">هل أنت متأكد من أنك تريد حذف هذه المسابقة؟ سيتم حذف المشاركين المرتبطين بها.</p>
+                <input type="hidden" id="delete-giveaway-id" />
+                <div class="flex gap-4">
+                    <button onclick="closeDeleteGiveawayModal()" class="flex-1 bg-gray-500 text-white py-3 rounded-lg hover:bg-gray-600 transition-colors font-medium">
+                        <i class="fa-solid fa-times ml-2"></i>
+                        إلغاء
+                    </button>
+                    <button onclick="confirmDeleteGiveaway()" class="flex-1 bg-red-600 text-white py-3 rounded-lg hover:bg-red-700 transition-colors font-medium">
                         <i class="fa-solid fa-trash-can ml-2"></i>
                         حذف
                     </button>
