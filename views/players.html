@@ -195,26 +195,24 @@
 
         // --- Admin Access Check on page load ---
         async function checkAdminAccess() {
-            const userId = localStorage.getItem('userId');
-            const isAdmin = localStorage.getItem('isAdmin');
-            
-            console.log('Debug - userId:', userId, 'isAdmin:', isAdmin); // Debug log
-            
-            if (!userId) {
-                showMessageBox('غير مصرح', 'يجب تسجيل الدخول أولاً.', 'error');
-                setTimeout(() => window.location.href = 'auth.html', 1500);
-                return;
+            try {
+                const meResp = await fetch('/api/me', { credentials: 'include' });
+                if (!meResp.ok) {
+                    showMessageBox('غير مصرح', 'يجب تسجيل الدخول أولاً.', 'error');
+                    setTimeout(() => window.location.href = 'auth.html', 1500);
+                    return;
+                }
+                const { user } = await meResp.json();
+                if (!user || !user.isAdmin) {
+                    showMessageBox('غير مصرح', 'ليس لديك صلاحيات للوصول إلى هذه الصفحة.', 'error');
+                    setTimeout(() => window.location.href = 'index.html', 1500);
+                    return;
+                }
+                await loadPlayers();
+            } catch (e) {
+                console.error('Admin access check failed:', e);
+                showMessageBox('خطأ', 'حدث خطأ أثناء التحقق من الوصول.', 'error');
             }
-
-            // Check admin status from localStorage (same as auth.html logic)
-            if (!isAdmin || isAdmin === 'false' || isAdmin === '0') {
-                showMessageBox('غير مصرح', 'ليس لديك صلاحيات للوصول إلى هذه الصفحة.', 'error');
-                setTimeout(() => window.location.href = 'index.html', 1500);
-                return;
-            }
-                
-            // If admin check passes, load players
-            await loadPlayers();
         }
 
         // Load all players from the server
@@ -229,11 +227,7 @@
             tableBody.innerHTML = '';
 
             try {
-                const response = await fetch('/api/admin/players', {
-                    headers: {
-                        'X-User-Id': userId
-                    }
-                });
+                const response = await fetch('/api/admin/players', { credentials: 'include' });
 
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);

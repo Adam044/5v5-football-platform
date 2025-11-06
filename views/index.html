@@ -8,6 +8,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Font Awesome CDN -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="/styles.css" />
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap');
         
@@ -1022,14 +1023,29 @@
         async function renderFields() {
             const container = document.getElementById('fields-container');
             const loadingEl = document.getElementById('fields-loading');
-            container.innerHTML = ''; // Clear existing fields
-            loadingEl.classList.remove('hidden');
+            // Show skeleton placeholders while fetching
+            loadingEl.classList.add('hidden');
+            const fieldSkeleton = () => `
+                <div class="bg-white rounded-2xl shadow border border-gray-100 w-full max-w-sm mx-auto overflow-hidden">
+                    <div class="skeleton-block h-56 w-full"></div>
+                    <div class="p-6">
+                        <div class="skeleton-line h-6 w-2/3 mx-auto mb-4"></div>
+                        <div class="space-y-2">
+                            <div class="skeleton-line h-4 w-full"></div>
+                            <div class="skeleton-line h-4 w-5/6"></div>
+                            <div class="skeleton-line h-4 w-4/6"></div>
+                        </div>
+                        <div class="skeleton-block h-10 w-full mt-6"></div>
+                    </div>
+                </div>`;
+            container.innerHTML = Array.from({ length: 8 }).map(fieldSkeleton).join('');
             try {
                 const response = await fetch('/api/fields');
                 const data = await response.json();
                 const fields = data.fields;
 
                 if (fields && fields.length > 0) {
+                    container.innerHTML = '';
                     fields.forEach(field => {
                         const fieldCard = document.createElement('div');
                         fieldCard.className = 'bg-white rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden transform hover:-translate-y-2 border border-gray-100 w-full max-w-sm mx-auto';
@@ -1109,7 +1125,14 @@
             const loadingEl = document.getElementById('sponsors-loading');
             const noSponsorsEl = document.getElementById('no-sponsors');
             
-            loadingEl.classList.remove('hidden');
+            // Show skeletons instead of spinner while loading
+            loadingEl.classList.add('hidden');
+            const sponsorSkeleton = () => `
+                <div class="bg-white rounded-2xl p-8 border border-gray-100">
+                    <div class="skeleton-block h-24 w-full mb-6"></div>
+                    <div class="skeleton-line h-4 w-1/2 mx-auto"></div>
+                </div>`;
+            container.innerHTML = Array.from({ length: 10 }).map(sponsorSkeleton).join('');
             noSponsorsEl.classList.add('hidden');
             
             try {

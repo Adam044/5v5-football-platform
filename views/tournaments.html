@@ -8,6 +8,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Font Awesome CDN -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="/styles.css" />
     
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap');
@@ -309,13 +310,18 @@
         async function fetchAndRenderTournaments() {
             const upcomingContainer = document.getElementById('upcoming-tournaments-container');
             const pastContainer = document.getElementById('past-tournaments-container');
-            upcomingContainer.innerHTML = `
-                <div class="col-span-full flex items-center justify-center py-12">
-                    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-                    <span class="mr-3 text-gray-600 text-lg">جاري تحميل البطولات...</span>
-                </div>
-            `;
-            pastContainer.innerHTML = '';
+            // Skeleton placeholders for smoother loading
+            const tournamentSkeleton = () => `
+                <div class="bg-white rounded-2xl shadow border border-gray-100 w-full max-w-sm mx-auto overflow-hidden">
+                    <div class="skeleton-block h-44 w-full"></div>
+                    <div class="p-6">
+                        <div class="skeleton-line h-6 w-2/3 mx-auto mb-4"></div>
+                        <div class="skeleton-line h-4 w-3/4 mx-auto"></div>
+                        <div class="skeleton-block h-10 w-full mt-6"></div>
+                    </div>
+                </div>`;
+            upcomingContainer.innerHTML = Array.from({ length: 6 }).map(tournamentSkeleton).join('');
+            pastContainer.innerHTML = Array.from({ length: 3 }).map(tournamentSkeleton).join('');
 
             try {
  const response = await fetch('/api/tournaments');

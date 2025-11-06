@@ -1,4 +1,6 @@
 const express = require('express');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 const path = require('path');
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
@@ -71,10 +73,137 @@ async function deleteImageFromStorage(imageUrl) {
     }
 }
 const app = express();
+// Security: hide implementation details and support secure cookies behind proxies
+app.disable('x-powered-by');
+app.set('trust proxy', 1);
+app.use(helmet());
+// Minimal CSP compatible with inline scripts (to be hardened later)
+app.use(helmet.contentSecurityPolicy({
+  useDefaults: true,
+  directives: {
+    "default-src": ["'self'"],
+    // Allow inline for existing dashboard script, plus Tailwind CDN
+    "script-src": [
+      "'self'",
+      "'unsafe-inline'",
+      "https://cdn.tailwindcss.com"
+    ],
+    // Permit inline event handlers (e.g., onclick) until refactor removes them
+    "script-src-attr": [
+      "'unsafe-inline'"
+    ],
+    // Allow external styles from Font Awesome CDN and Google Fonts
+    "style-src": [
+      "'self'",
+      "'unsafe-inline'",
+      "https://cdnjs.cloudflare.com",
+      "https://fonts.googleapis.com"
+    ],
+    // Explicit style-src-elem for browsers that differentiate element sources
+    "style-src-elem": [
+      "'self'",
+      "'unsafe-inline'",
+      "https://cdnjs.cloudflare.com",
+      "https://fonts.googleapis.com"
+    ],
+    // Images from self, data URLs, and https (Supabase public URLs)
+    "img-src": ["'self'", "data:", "https:"] ,
+    // Fonts from Google and Font Awesome CDN
+    "font-src": [
+      "'self'",
+      "https://fonts.gstatic.com",
+      "https://cdnjs.cloudflare.com"
+    ],
+    // API calls and external endpoints (keep https wildcard for simplicity)
+    "connect-src": ["'self'", "https:"]
+  }
+}));
 
 // --- Configuration ---
 const port = process.env.PORT || 3002;
 const saltRounds = 10;
+
+// --- Auth Token Utilities (JWT-like using HMAC SHA256) ---
+const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-me';
+const TOKEN_TTL_SECONDS = 60 * 60 * 24 * 7; // 7 days
+
+function base64urlEncode(obj) {
+  const json = typeof obj === 'string' ? obj : JSON.stringify(obj);
+  return Buffer.from(json)
+    .toString('base64')
+    .replace(/=/g, '')
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_');
+}
+
+function base64urlDecode(str) {
+  const b64 = str.replace(/-/g, '+').replace(/_/g, '/');
+  return Buffer.from(b64, 'base64').toString();
+}
+
+function signToken(payload, ttlSec = TOKEN_TTL_SECONDS) {
+  const header = { alg: 'HS256', typ: 'JWT' };
+  const exp = Math.floor(Date.now() / 1000) + ttlSec;
+  const fullPayload = { ...payload, exp };
+  const data = `${base64urlEncode(header)}.${base64urlEncode(fullPayload)}`;
+  const signature = crypto
+    .createHmac('sha256', JWT_SECRET)
+    .update(data)
+    .digest('base64')
+    .replace(/=/g, '')
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_');
+  return `${data}.${signature}`;
+}
+
+function verifyToken(token) {
+  try {
+    const [h, p, s] = token.split('.');
+    if (!h || !p || !s) return null;
+    const data = `${h}.${p}`;
+    const expected = crypto
+      .createHmac('sha256', JWT_SECRET)
+      .update(data)
+      .digest('base64')
+      .replace(/=/g, '')
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_');
+    if (s !== expected) return null;
+    const payloadStr = base64urlDecode(p);
+    const payload = JSON.parse(payloadStr);
+    if (payload.exp && payload.exp < Math.floor(Date.now() / 1000)) return null;
+    return payload;
+  } catch (e) {
+    return null;
+  }
+}
+
+function getCookie(req, name) {
+  const cookieHeader = req.headers.cookie || '';
+  const cookies = cookieHeader.split(';').map(c => c.trim());
+  for (const c of cookies) {
+    const idx = c.indexOf('=');
+    if (idx === -1) continue;
+    const key = c.substring(0, idx);
+    const val = c.substring(idx + 1);
+    if (key === name) return val;
+  }
+  return null;
+}
+
+function requireAuth(req, res, next) {
+  const token = getCookie(req, 'auth_token');
+  if (!token) {
+    return res.status(401).json({ error: 'Unauthorized. Missing token.' });
+  }
+  const payload = verifyToken(token);
+  if (!payload) {
+    return res.status(401).json({ error: 'Unauthorized. Invalid or expired token.' });
+  }
+  const isAdminFlag = payload.isAdmin === true || payload.is_admin === true || payload.is_admin === 1 || payload.is_admin === '1' || payload.isAdmin === 1;
+  req.user = { id: payload.id, name: payload.name, email: payload.email, is_admin: isAdminFlag };
+  next();
+}
 
 // =========================================================
 // CORS: Simplified using standard middleware
@@ -105,6 +234,34 @@ app.use(cors(corsOptions));
 app.options('/api/signup', cors(corsOptions));
 app.options('/api/login', cors(corsOptions));
 // =========================================================
+
+// =========================================================
+// Rate Limiting
+// =========================================================
+const apiLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 300,
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+app.use('/api/', apiLimiter);
+
+const loginLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 10,
+    message: { error: 'Too many login attempts. Please try again later.' },
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+
+// Signup limiter to mitigate automated account creation
+const signupLimiter = rateLimit({
+    windowMs: 60 * 60 * 1000, // 1 hour window
+    max: 30, // limit each IP to 30 signups per hour
+    message: { error: 'Too many signup attempts. Please try again later.' },
+    standardHeaders: true,
+    legacyHeaders: false,
+});
 
 // Increase the JSON body size limit to handle image uploads
 app.use(express.json({ limit: '50mb' }));
@@ -340,70 +497,15 @@ app.get('/join/:code', (req, res) => {
 
 // --- Middleware ---
 
-// Security middleware to check for admin
+// Security middleware to check for admin using verified token
 const checkAdmin = async (req, res, next) => {
-    const queryParams = req.query || {};
-    const body = req.body || {};
-    const headers = req.headers || {};
-    
-    // User ID can come from query, body, or custom header
-    const userId = queryParams.userId || body.userId || headers['x-user-id'];
-    
-    console.log('🔍 CheckAdmin middleware - userId:', userId);
-    console.log('🔍 CheckAdmin middleware - headers:', JSON.stringify(headers, null, 2));
-    
-    if (!userId) {
-        console.log('❌ CheckAdmin: No userId provided');
-        return res.status(401).json({ error: 'Unauthorized. User ID is required.' });
+  // Ensure user is authenticated first
+  requireAuth(req, res, () => {
+    if (!req.user || !req.user.is_admin) {
+      return res.status(403).json({ error: 'Forbidden. Admin access required.' });
     }
-
-    // Use $1 for PostgreSQL parameterized queries
-    const sql = `SELECT is_admin FROM users WHERE id = $1`;
-    try {
-        console.log('🔍 CheckAdmin: Executing query for userId:', userId);
-        const { rows } = await pool.query(sql, [userId]);
-        const row = rows[0];
-
-        if (!row) {
-            console.log('❌ CheckAdmin: User not found for userId:', userId);
-            return res.status(401).json({ error: 'Unauthorized. User not found.' });
-        }
-        
-        console.log('🔍 CheckAdmin: User found, is_admin value:', row.is_admin, 'type:', typeof row.is_admin);
-        
-        // Handle different data types for is_admin (boolean, integer, string)
-        const isAdmin = row.is_admin === 1 || row.is_admin === true || row.is_admin === '1';
-        
-        console.log('🔍 CheckAdmin: isAdmin result:', isAdmin);
-        
-        if (!isAdmin) {
-            console.log('❌ CheckAdmin: User is not admin');
-            return res.status(403).json({ error: 'Forbidden. You do not have administrator access.' });
-        }
-        
-        console.log('✅ CheckAdmin: User is admin, proceeding to next middleware');
-        next();
-    } catch (err) {
-        console.error('❌ Database error in checkAdmin:', err);
-        
-        // Provide more specific error messages based on error type
-        if (err.code === 'ENOTFOUND' || err.code === 'ECONNREFUSED' || err.code === 'ETIMEDOUT') {
-            return res.status(503).json({ 
-                error: 'Database connection temporarily unavailable. Please try again in a moment.',
-                code: 'CONNECTION_ERROR'
-            });
-        } else if (err.message && err.message.includes('Database connection failed after')) {
-            return res.status(503).json({ 
-                error: 'Database service is currently experiencing issues. Please try again later.',
-                code: 'CONNECTION_RETRY_FAILED'
-            });
-        } else {
-            return res.status(500).json({ 
-                error: 'Database error during authentication check.',
-                code: 'DATABASE_ERROR'
-            });
-        }
-    }
+    next();
+  });
 };
 
 
@@ -432,22 +534,28 @@ app.get('/api/fields', async (req, res) => {
 // API endpoint to get a single field's details
 app.get('/api/fields/:fieldId', async (req, res) => {
     const { fieldId } = req.params;
+    const id = parseInt(String(fieldId), 10);
+    if (!Number.isInteger(id) || id <= 0) {
+        return res.status(400).json({ error: 'Invalid field id.' });
+    }
     const sql = `SELECT * FROM fields WHERE id = $1`;
     try {
-        const { rows } = await pool.query(sql, [fieldId]);
+        const { rows } = await pool.query(sql, [id]);
         const row = rows[0];
-        
+
         if (!row) {
             return res.status(404).json({ error: 'Field not found' });
         }
         if (row.image_url) {
             row.image = row.image_url;
         } else if (row.image) {
+            // PostgreSQL BYTEA to base64 when column exists
             row.image = Buffer.from(row.image).toString('base64');
         }
         res.json({ field: row });
     } catch (err) {
-        return res.status(500).json({ error: err.message });
+        console.error('Error fetching field by id:', err);
+        return res.status(500).json({ error: 'Failed to fetch field.' });
     }
 });
 
@@ -469,12 +577,67 @@ app.get('/api/availability/:fieldId', async (req, res) => {
     }
 });
 
+// ---------------------------------------------
+// Password strength helper for signup
+// ---------------------------------------------
+function assessPasswordStrength(password, { email = '', name = '', phone = '' } = {}) {
+    if (typeof password !== 'string') {
+        return { ok: false, error: 'كلمة المرور غير صالحة.' };
+    }
+    const pwd = password.trim();
+    const issues = [];
+
+    // Basic composition checks
+    if (pwd.length < 8) issues.push('الحد الأدنى للطول هو 8 أحرف.');
+    if (!/[A-Z]/.test(pwd)) issues.push('يجب أن تحتوي على حرف كبير واحد على الأقل.');
+    if (!/[0-9]/.test(pwd)) issues.push('يجب أن تحتوي على رقم واحد على الأقل.');
+
+    // Common/weak passwords list (short sample)
+    const commonList = ['password','123456','qwerty','111111','12345678','iloveyou','admin','letmein','football','soccer'];
+    const lower = pwd.toLowerCase();
+    if (commonList.some(c => lower === c || lower.includes(c))) {
+        issues.push('كلمة المرور شائعة جداً وغير آمنة.');
+    }
+
+    // Personal info checks: email local part, name tokens, phone digits slices
+    const emailLocal = (email || '').split('@')[0]?.toLowerCase() || '';
+    if (emailLocal && lower.includes(emailLocal) && emailLocal.length >= 3) {
+        issues.push('يجب ألا تحتوي كلمة المرور على بريدك الإلكتروني.');
+    }
+    const nameTokens = (name || '').toLowerCase().split(/\s+/).filter(t => t.length >= 3);
+    if (nameTokens.some(t => lower.includes(t))) {
+        issues.push('يجب ألا تحتوي كلمة المرور على اسمك.');
+    }
+    const digits = String(phone || '').replace(/\D/g, '');
+    if (digits.length >= 6) {
+        // Check for any 4+ digit slice present in password
+        for (let i = 0; i + 4 <= digits.length; i++) {
+            const slice = digits.slice(i, i + 4);
+            if (slice && lower.includes(slice)) {
+                issues.push('يجب ألا تحتوي كلمة المرور على رقم هاتفك.');
+                break;
+            }
+        }
+    }
+
+    if (issues.length > 0) {
+        return { ok: false, error: 'كلمة المرور ضعيفة: ' + issues.join(' ') };
+    }
+    return { ok: true };
+}
+
 // API endpoint for user sign-up
 app.post('/api/signup', async (req, res) => {
     const { name, email, phone, birthdate, gender, password } = req.body;
 
     if (!name || !email || !phone || !birthdate || !gender || !password) {
         return res.status(400).json({ error: 'يرجى توفير جميع الحقول المطلوبة.' });
+    }
+
+    // Enforce strong password policy
+    const strength = assessPasswordStrength(password, { email, name, phone });
+    if (!strength.ok) {
+        return res.status(400).json({ error: strength.error });
     }
 
     try {
@@ -505,7 +668,39 @@ app.post('/api/signup', async (req, res) => {
 });
 
 // API endpoint for user login
-app.post('/api/login', async (req, res) => {
+// --- CSRF Token utilities ---
+function issueCsrfToken(req, res) {
+    const token = crypto.randomBytes(16).toString('hex');
+    const isProd = process.env.NODE_ENV === 'production';
+    // Double-submit cookie (readable by JS)
+    res.cookie('csrf_token', token, {
+        httpOnly: false,
+        secure: isProd,
+        sameSite: 'lax',
+        path: '/',
+        maxAge: 60 * 60 * 1000 // 1 hour
+    });
+    return token;
+}
+
+function requireCsrf(req, res, next) {
+    const method = req.method.toUpperCase();
+    if (method === 'GET' || method === 'HEAD' || method === 'OPTIONS') return next();
+    const headerToken = req.get('X-CSRF-Token') || '';
+    const cookieToken = getCookie(req, 'csrf_token') || '';
+    if (!headerToken || !cookieToken || headerToken !== cookieToken) {
+        return res.status(403).json({ error: 'Invalid CSRF token.' });
+    }
+    next();
+}
+
+// Provide CSRF token for client-side to use
+app.get('/api/csrf-token', (req, res) => {
+    const token = issueCsrfToken(req, res);
+    res.json({ csrfToken: token });
+});
+
+app.post('/api/login', loginLimiter, requireCsrf, async (req, res) => {
     const { email, password } = req.body;
 
     if (!email || !password) {
@@ -524,6 +719,23 @@ app.post('/api/login', async (req, res) => {
         const match = await bcrypt.compare(password, user.password);
 
         if (match) {
+            // Issue secure auth token cookie
+            const token = signToken({
+                id: user.id,
+                name: user.name,
+                email: user.email,
+                isAdmin: user.is_admin === 1
+            });
+            const isProd = process.env.NODE_ENV === 'production';
+            // Use res.cookie (no need for cookie-parser to set cookies)
+            res.cookie('auth_token', token, {
+                httpOnly: true,
+                secure: isProd,
+                sameSite: 'strict',
+                maxAge: TOKEN_TTL_SECONDS * 1000,
+                path: '/'
+            });
+
             res.json({ 
                 message: 'تم تسجيل الدخول بنجاح.', 
                 userId: user.id, 
@@ -540,11 +752,61 @@ app.post('/api/login', async (req, res) => {
     }
 });
 
+// Auth: get current user from token
+app.get('/api/me', requireAuth, async (req, res) => {
+    const user = {
+        id: req.user.id,
+        name: req.user.name,
+        email: req.user.email,
+        isAdmin: !!req.user.is_admin
+    };
+    res.json({ user });
+});
+
+// Auth: logout (clear cookie)
+app.post('/api/logout', requireCsrf, (req, res) => {
+    const isProd = process.env.NODE_ENV === 'production';
+    res.clearCookie('auth_token', { httpOnly: true, sameSite: 'strict', secure: isProd, path: '/' });
+    res.clearCookie('csrf_token', { httpOnly: false, sameSite: 'strict', secure: isProd, path: '/' });
+    res.json({ message: 'تم تسجيل الخروج بنجاح.' });
+});
+
+// =========================================================
+// CSRF Protection: same-origin policy for mutating requests
+// =========================================================
+function csrfSameOrigin(req, res, next) {
+    const method = req.method.toUpperCase();
+    // Only enforce for state-changing requests
+    if (method === 'POST' || method === 'PUT' || method === 'PATCH' || method === 'DELETE') {
+        const host = req.get('host');
+        const baseOrigin = `${req.protocol}://${host}`;
+        const origin = req.headers.origin;
+        const referer = req.headers.referer;
+        if (origin && origin !== baseOrigin) {
+            return res.status(403).json({ error: 'Invalid origin for this request.' });
+        }
+        if (!origin && referer && !String(referer).startsWith(baseOrigin)) {
+            return res.status(403).json({ error: 'Invalid referer for this request.' });
+        }
+    }
+    return next();
+}
+app.use(csrfSameOrigin);
+
+// Enforce CSRF on all admin routes (non-GET requests only)
+app.use('/api/admin', requireCsrf);
+
 // API endpoint to get user reservations
-app.get('/api/user/reservations/:userId', async (req, res) => {
+// User reservations: only self or admin can view
+app.get('/api/user/reservations/:userId', requireAuth, async (req, res) => {
     const { userId } = req.params;
+    const requesterId = String(req.user?.id || '');
+    const isAdmin = !!req.user?.is_admin;
     if (!userId) {
         return res.status(400).json({ error: 'User ID is required.' });
+    }
+    if (!isAdmin && String(userId) !== requesterId) {
+        return res.status(403).json({ error: 'Forbidden. You can only view your own reservations.' });
     }
     const sql = `
         SELECT
@@ -571,8 +833,17 @@ app.get('/api/user/reservations/:userId', async (req, res) => {
 });
 
 // API endpoint to get a user's profile information
-app.get('/api/user/:userId', async (req, res) => {
+// User profile: only self or admin can view
+app.get('/api/user/:userId', requireAuth, async (req, res) => {
     const { userId } = req.params;
+    const requesterId = String(req.user?.id || '');
+    const isAdmin = !!req.user?.is_admin;
+    if (!userId) {
+        return res.status(400).json({ error: 'User ID is required.' });
+    }
+    if (!isAdmin && String(userId) !== requesterId) {
+        return res.status(403).json({ error: 'Forbidden. You can only view your own profile.' });
+    }
     const sql = `SELECT id, name, email, phone_number, birthdate, gender, is_admin FROM users WHERE id = $1`;
     try {
         const { rows } = await pool.query(sql, [userId]);
@@ -589,10 +860,16 @@ app.get('/api/user/:userId', async (req, res) => {
 });
 
 // API endpoint to get a user's matchmaking requests (created and joined)
-app.get('/api/user/:userId/matchmaking-requests', async (req, res) => {
+// User matchmaking requests: only self or admin can view
+app.get('/api/user/:userId/matchmaking-requests', requireAuth, async (req, res) => {
     const { userId } = req.params;
+    const requesterId = String(req.user?.id || '');
+    const isAdmin = !!req.user?.is_admin;
     if (!userId) {
         return res.status(400).json({ error: 'User ID is required.' });
+    }
+    if (!isAdmin && String(userId) !== requesterId) {
+        return res.status(403).json({ error: 'Forbidden. You can only view your own matchmaking data.' });
     }
 
     const createdSql = `
@@ -686,8 +963,10 @@ app.get('/api/users/upcoming-birthdays', async (req, res) => {
 });
 
 // API for direct reservations (only for 'full_field' bookings)
-app.post('/api/reserve', async (req, res) => {
-    const { userId, slotId } = req.body;
+// Direct reservation: requires auth and uses token user
+app.post('/api/reserve', requireAuth, async (req, res) => {
+    const { slotId } = req.body;
+    const userId = req.user?.id;
     if (!userId || !slotId) {
         return res.status(400).json({ error: 'All reservation details are required.' });
     }
@@ -943,50 +1222,71 @@ app.put('/api/admin/fields/:fieldId', checkAdmin, async (req, res) => {
     if (!name || !location || !pricePerHour) {
         return res.status(400).json({ error: 'All fields are required to update.' });
     }
-    
+
     try {
-        // First, get the current field to check for existing image_url
+        // Get current image_url to decide whether to replace it
         const getCurrentField = await pool.query(`SELECT image_url FROM fields WHERE id = $1`, [fieldId]);
         if (getCurrentField.rowCount === 0) {
             return res.status(404).json({ error: 'Field not found.' });
         }
-        
-        const currentField = getCurrentField.rows[0];
-        
-        const base64Data = image.split(',')[1] || image;
-        const imageBuffer = Buffer.from(base64Data, 'base64');
-        
-        // Optimize image with sharp
-        const optimizedBuffer = await sharp(imageBuffer)
-            .rotate()
-            .resize({ width: 800, fit: 'inside', withoutEnlargement: true })
-            .jpeg({ quality: 75 })
-            .toBuffer();
+        const currentImageUrl = getCurrentField.rows[0].image_url || null;
 
-        // Try to upload to Supabase Storage first
-        let imageUrl = null;
-        try {
-            const fileName = `field_${Date.now()}_${Math.random().toString(36).substring(7)}.jpg`;
-            imageUrl = await uploadImageToStorage(optimizedBuffer, fileName, 'fields');
-            
-            // If upload successful and there was an old image_url, delete the old one
-            if (currentField.image_url) {
+        let newImageUrl;
+        // Only process if client provided a data URL image; if it's an http(s) URL or undefined, we leave image_url unchanged
+        if (image && typeof image === 'string') {
+            const match = image.match(/^data:image\/([a-zA-Z0-9.+-]+);base64,/);
+            if (match) {
+                const mimeType = (match[1] || '').toLowerCase();
+                const allowed = ['jpeg', 'jpg', 'png', 'webp'];
+                if (!allowed.includes(mimeType)) {
+                    return res.status(400).json({ error: 'Unsupported image format. Allowed: JPEG, PNG, WEBP.' });
+                }
                 try {
-                    await deleteImageFromStorage(currentField.image_url);
-                } catch (deleteError) {
-                    console.warn('Failed to delete old image from Supabase Storage:', deleteError);
+                    const base64Data = image.replace(/^data:image\/[a-zA-Z0-9.+-]+;base64,/, '');
+                    if (!base64Data || base64Data.length < 16) {
+                        return res.status(400).json({ error: 'Invalid image data.' });
+                    }
+                    const imageBuffer = Buffer.from(base64Data, 'base64');
+                    // Normalize to WEBP for consistency
+                    const optimizedBuffer = await sharp(imageBuffer)
+                        .rotate()
+                        .resize({ width: 800, fit: 'inside', withoutEnlargement: true })
+                        .webp({ quality: 80, effort: 6 })
+                        .toBuffer();
+
+                    const fileName = `field_${Date.now()}_${Math.random().toString(36).substring(7)}.webp`;
+                    newImageUrl = await uploadImageToStorage(optimizedBuffer, fileName, 'fields');
+
+                    // If upload successful and there was an old image_url, delete the old one
+                    if (currentImageUrl) {
+                        try {
+                            await deleteImageFromStorage(currentImageUrl);
+                        } catch (deleteError) {
+                            console.warn('Failed to delete old image from Supabase Storage:', deleteError);
+                        }
+                    }
+                } catch (uploadError) {
+                    console.warn('Failed to process/upload new field image, keeping existing image_url:', uploadError);
+                    // Do not fail the whole update; keep existing image
+                    newImageUrl = undefined;
                 }
             }
-        } catch (uploadError) {
-            console.warn('Failed to upload to Supabase Storage, falling back to database storage:', uploadError);
         }
 
-        const sql = imageUrl 
-            ? `UPDATE fields SET name = $1, description = $2, location = $3, image_url = $4, image = NULL, price_per_hour = $5 WHERE id = $6`
-            : `UPDATE fields SET name = $1, description = $2, location = $3, image = $4, price_per_hour = $5 WHERE id = $6`;
-        const updateParams = imageUrl ? [name, description, location, imageUrl, pricePerHour, fieldId] : [name, description, location, optimizedBuffer, pricePerHour, fieldId];
+        // Build SQL dynamically to avoid referencing non-existent columns
+        const fields = ['name = $1', 'description = $2', 'location = $3', 'price_per_hour = $4'];
+        const params = [name, description, location, pricePerHour];
+        let idx = params.length;
         
-        const result = await pool.query(sql, updateParams);
+        if (typeof newImageUrl !== 'undefined') {
+            fields.push(`image_url = $${++idx}`);
+            params.push(newImageUrl);
+        }
+
+        params.push(fieldId);
+        const sql = `UPDATE fields SET ${fields.join(', ')} WHERE id = $${++idx}`;
+
+        await pool.query(sql, params);
         res.json({ message: 'Field updated successfully.' });
     } catch (err) {
         return res.status(500).json({ error: 'Failed to update field: ' + err.message });
@@ -1589,8 +1889,11 @@ app.get('/api/team-signup/:invitationCode', async (req, res) => {
 });
 
 // Join tournament team
-app.post('/api/team-signup/join', async (req, res) => {
-    const { invitationCode, userId, userName } = req.body;
+// Join tournament team (requires auth)
+app.post('/api/team-signup/join', requireAuth, async (req, res) => {
+    const { invitationCode } = req.body;
+    const userId = req.user?.id;
+    const userName = req.user?.name;
     
     if (!invitationCode || !userId || !userName) {
         return res.status(400).json({ error: 'Missing required fields' });
@@ -1624,7 +1927,7 @@ app.post('/api/team-signup/join', async (req, res) => {
             return res.status(400).json({ error: 'Team is full' });
         }
         
-        // 3. Verify user exists
+        // 3. Verify user exists from authenticated ID
         const userSql = `SELECT id, name FROM users WHERE id = $1`;
         const { rows: userRows } = await client.query(userSql, [userId]);
         const user = userRows[0];
@@ -3143,11 +3446,12 @@ app.put('/api/admin/giveaways/:id', checkAdmin, async (req, res) => {
 });
 
 // User: Join a giveaway
-app.post('/api/giveaways/:id/join', async (req, res) => {
+// Join giveaway (requires auth)
+app.post('/api/giveaways/:id/join', requireAuth, async (req, res) => {
     const { id } = req.params;
-    const { userId } = req.body || {};
+    const userId = req.user?.id;
     if (!userId) {
-        return res.status(400).json({ error: 'User ID is required.' });
+        return res.status(401).json({ error: 'Unauthorized.' });
     }
     try {
         // Verify user exists

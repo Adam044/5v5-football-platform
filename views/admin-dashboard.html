@@ -1108,10 +1108,10 @@
 
     <!-- Logout Button -->
     <div class="mt-6 mb-8 flex justify-center">
-        <button type="button" onclick="logout()" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-all duration-300 shadow-md text-sm font-medium">
-            <i class="fa-solid fa-arrow-right-from-bracket ml-2"></i>
-            تسجيل الخروج
-        </button>
+                    <button type="button" onclick="handleLogout()" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-all duration-300 shadow-md text-sm font-medium">
+                        <i class="fa-solid fa-arrow-right-from-bracket ml-2"></i>
+                        تسجيل الخروج
+                    </button>
     </div>
 
     <footer class="bg-gray-900 text-gray-200 py-10 mt-auto">
@@ -1135,33 +1135,19 @@
     <script>
         // --- Admin Access Check on page load ---
         async function checkAdminAccess() {
-            const userId = localStorage.getItem('userId');
-            if (!userId) {
-                showMessageBox('غير مصرح', 'يجب تسجيل الدخول للوصول إلى هذه الصفحة.', 'error');
-                setTimeout(() => window.location.href = 'auth.html', 1500);
-                return;
-            }
             try {
-                console.log('🔍 Making admin access request with userId:', userId);
-                const response = await fetch(`/api/admin/fields`, {
-                    headers: {
-                        'X-User-Id': userId,
-                        'Content-Type': 'application/json'
-                    }
-                });
-                console.log('🔍 Response status:', response.status);
-                console.log('🔍 Response headers:', [...response.headers.entries()]);
-                
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    console.log('🔍 Error response body:', errorText);
-                    
-                    if (response.status === 401 || response.status === 403) {
-                        showMessageBox('غير مصرح', 'ليس لديك صلاحيات للوصول إلى لوحة تحكم الإدارة.', 'error');
-                        setTimeout(() => window.location.href = 'index.html', 1500);
-                        return;
-                    }
-                    throw new Error(`Failed to verify admin access: ${response.status} - ${errorText}`);
+                const meResp = await fetch('/api/me', { credentials: 'include' });
+                if (!meResp.ok) {
+                    showMessageBox('غير مصرح', 'يجب تسجيل الدخول للوصول إلى هذه الصفحة.', 'error');
+                    setTimeout(() => window.location.href = 'auth.html', 1500);
+                    return;
+                }
+                const meData = await meResp.json();
+                const user = meData.user;
+                if (!user || !user.isAdmin) {
+                    showMessageBox('غير مصرح', 'ليس لديك صلاحيات للوصول إلى لوحة تحكم الإدارة.', 'error');
+                    setTimeout(() => window.location.href = 'index.html', 1500);
+                    return;
                 }
                 fetchData();
             } catch (error) {
@@ -1170,6 +1156,39 @@
             }
         }
         
+        // --- CSRF helpers and secure fetch ---
+        const nativeFetch = window.fetch.bind(window);
+        function getCookieValue(name) {
+            const match = document.cookie.match(new RegExp('(^|; )' + name.replace(/([.$?*|{}()\[\]\\\/\+^])/g, '\\$1') + '=([^;]*)'));
+            return match ? decodeURIComponent(match[2]) : '';
+        }
+
+        async function ensureCsrfToken() {
+            try {
+                const existing = getCookieValue('csrf_token');
+                if (existing) return existing;
+                const res = await nativeFetch('/api/csrf-token', { credentials: 'include' });
+                const data = await res.json().catch(() => ({}));
+                return data.csrfToken || getCookieValue('csrf_token');
+            } catch (e) {
+                return getCookieValue('csrf_token');
+            }
+        }
+
+        async function secureFetch(url, options = {}) {
+            const opts = { credentials: 'include', ...(options || {}) };
+            const method = String(opts.method || 'GET').toUpperCase();
+            if (method !== 'GET' && method !== 'HEAD' && method !== 'OPTIONS') {
+                const csrfToken = await ensureCsrfToken();
+                opts.headers = { ...(opts.headers || {}), 'X-CSRF-Token': csrfToken || '' };
+            }
+            return nativeFetch(url, opts);
+        }
+
+        // Override page fetch to enforce CSRF automatically on mutating admin calls
+        window.secureFetch = secureFetch;
+        window.fetch = secureFetch;
+
         // --- Helper functions ---
         function getStatusBadge(status) {
             const statusMap = {
@@ -1299,30 +1318,75 @@
             tab.addEventListener('click', () => setActiveTab(tab.dataset.tab));
         });
 
+        // --- Skeleton helpers ---
+        function insertSkeletonTableBody(tbodyId, rows = 5, cols = 6) {
+            const tbody = document.getElementById(tbodyId);
+            if (!tbody) return;
+            const rowsHtml = Array.from({ length: rows }).map(() => {
+                const tds = Array.from({ length: cols })
+                    .map(() => `<td class="px-4 py-3"><div class="skeleton skeleton-line h-4 w-24"></div></td>`)
+                    .join('');
+                return `<tr class="border-b border-gray-200">${tds}</tr>`;
+            }).join('');
+            tbody.innerHTML = rowsHtml;
+        }
+
+        function insertSkeletonCards(containerId, count = 6) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            container.innerHTML = Array.from({ length: count }).map(() => `
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                    <div class="skeleton skeleton-block h-40 w-full mb-4"></div>
+                    <div class="skeleton skeleton-line h-5 w-2/3 mb-2"></div>
+                    <div class="skeleton skeleton-line h-4 w-1/2"></div>
+                </div>
+            `).join('');
+        }
+
+        function insertSkeletonTable(containerId, rows = 5, cols = 5) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            const bodyRows = Array.from({ length: rows }).map(() => {
+                const tds = Array.from({ length: cols })
+                    .map(() => `<td class="px-4 py-3"><div class="skeleton skeleton-line h-4 w-24"></div></td>`)
+                    .join('');
+                return `<tr>${tds}</tr>`;
+            }).join('');
+            container.innerHTML = `
+                <table class="w-full table-auto border-collapse">
+                    <tbody>${bodyRows}</tbody>
+                </table>
+            `;
+        }
+
         // --- Fetch and Render Data ---
 async function fetchData() {
-    const userId = localStorage.getItem('userId');
-    const headers = {
-        'Content-Type': 'application/json',
-        'X-User-Id': userId
-    };
     try {
         // Show loading overlay
         const overlay = document.getElementById('loading-overlay');
         if (overlay) overlay.classList.add('show');
 
+        // Show skeletons while data loads
+        insertSkeletonTableBody('reservations-table-body', 6, 7);
+        insertSkeletonCards('fields-card-container', 6);
+        insertSkeletonCards('availability-slots-container', 6);
+        insertSkeletonCards('tournaments-list', 6);
+        ['teams-looking-requests','team-vs-team-requests','players-looking-requests','done-requests']
+          .forEach(id => insertSkeletonTable(id, 5, 5));
+
         // Fetch fields and populate dropdowns
-        const fieldsResponse = await fetch('/api/admin/fields', { headers });
+        const fieldsResponse = await fetch('/api/admin/fields', { credentials: 'include' });
         if (!fieldsResponse.ok) throw new Error('Failed to fetch fields');
         const fieldsData = await fieldsResponse.json();
-        renderFields(fieldsData.fields);
-        populateFieldDropdowns(fieldsData.fields);
+        window.adminFields = Array.isArray(fieldsData.fields) ? fieldsData.fields : [];
+        renderFields(window.adminFields);
+        populateFieldDropdowns(window.adminFields);
                 
                 // Fetch all data for the tabs
                 const [reservationsData, categorizedMatchmakingData, tournamentsData] = await Promise.all([
-                    fetch('/api/admin/reservations', { headers }).then(res => res.json()),
-                    fetch('/api/admin/matchmaking/categorized', { headers }).then(res => res.json()), // NEW ENDPOINT
-                    fetch('/api/admin/tournaments', { headers }).then(res => res.json()),
+                    fetch('/api/admin/reservations', { credentials: 'include' }).then(res => res.json()),
+                    fetch('/api/admin/matchmaking/categorized', { credentials: 'include' }).then(res => res.json()),
+                    fetch('/api/admin/tournaments', { credentials: 'include' }).then(res => res.json()),
                 ]);
 
                 renderReservations(reservationsData.reservations);
@@ -1516,7 +1580,7 @@ async function fetchData() {
             // Fetch extended details
             try {
                 const resp = await fetch(`/api/admin/matchmaking-requests/${requestId}/details`, {
-                    headers: { 'X-User-Id': localStorage.getItem('userId') }
+                    credentials: 'include'
                 });
                 if (!resp.ok) throw new Error('Failed to load details');
                 const data = await resp.json();
@@ -1590,9 +1654,9 @@ async function fetchData() {
                 const response = await fetch(`/api/admin/matchmaking-requests/${requestId}/done`, {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
-                        'X-User-Id': localStorage.getItem('userId')
+                        'Content-Type': 'application/json'
                     },
+                    credentials: 'include',
                     body: JSON.stringify({})
                 });
                 if (response.ok) {
@@ -1801,10 +1865,8 @@ async function fetchData() {
                 
                 const response = await fetch('/api/admin/fields', {
                     method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'X-User-Id': localStorage.getItem('userId')
-                    },
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
                     body: JSON.stringify({ name, description, location, pricePerHour, image: imageData })
                 });
 
@@ -1823,10 +1885,24 @@ async function fetchData() {
         }
         
         async function openEditFieldModal(fieldId) {
-            const userId = localStorage.getItem('userId');
             try {
-                const response = await fetch(`/api/fields/${fieldId}?userId=${userId}`);
-                if (!response.ok) throw new Error('Failed to fetch field data');
+                console.debug('openEditFieldModal: fieldId =', fieldId);
+                const response = await fetch(`/api/fields/${fieldId}`);
+                if (!response.ok) {
+                    console.warn('Fetch field by id failed with status:', response.status);
+                    // Fallback to last loaded admin fields
+                    const fallback = (window.adminFields || []).find(f => String(f.id) === String(fieldId));
+                    if (!fallback) throw new Error('Failed to fetch field data');
+                    document.getElementById('edit-field-id').value = fieldId;
+                    document.getElementById('edit-field-name').value = fallback.name || '';
+                    document.getElementById('edit-field-description').value = fallback.description || '';
+                    document.getElementById('edit-field-location').value = fallback.location || '';
+                    document.getElementById('edit-field-price').value = fallback.price_per_hour || '';
+                    const imagePreview = document.getElementById('edit-field-image-preview');
+                    imagePreview.src = fallback.image_url || `https://placehold.co/600x400/22c55e/ffffff?text=${(fallback.name || '').replace(/\s/g, '+')}`;
+                    document.getElementById('edit-field-modal').classList.remove('hidden');
+                    return;
+                }
                 const field = await response.json();
                 
                 document.getElementById('edit-field-id').value = fieldId;
@@ -1857,23 +1933,17 @@ async function fetchData() {
             const pricePerHour = document.getElementById('edit-field-price').value;
             const imageFile = document.getElementById('edit-field-image-file').files[0];
             
-            let imageData = null;
+            const body = { name, description, location, pricePerHour };
             if (imageFile) {
-                imageData = await fileToBase64(imageFile);
-            } else {
-                const response = await fetch(`/api/fields/${fieldId}?userId=${localStorage.getItem('userId')}`);
-                const field = await response.json();
-                imageData = field.field.image;
+                body.image = await fileToBase64(imageFile);
             }
 
             try {
                 const response = await fetch(`/api/admin/fields/${fieldId}`, {
                     method: 'PUT',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'X-User-Id': localStorage.getItem('userId')
-                    },
-                    body: JSON.stringify({ name, description, location, pricePerHour, image: imageData })
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify(body)
                 });
                 
                 if (response.ok) {
@@ -1899,10 +1969,7 @@ async function fetchData() {
                      try {
                          const response = await fetch(`/api/admin/fields/${fieldId}`, {
                              method: 'DELETE',
-                             headers: { 
-                                 'Content-Type': 'application/json',
-                                 'X-User-Id': localStorage.getItem('userId')
-                             }
+                             credentials: 'include'
                          });
 
                          if (response.ok) {
@@ -1951,9 +2018,7 @@ async function fetchData() {
                 url += params.toString();
                 
                 const response = await fetch(url, {
-                    headers: {
-                        'X-User-Id': localStorage.getItem('userId')
-                    }
+                    credentials: 'include'
                 });
                 const data = await response.json();
                 
@@ -2057,9 +2122,9 @@ async function fetchData() {
                 const response = await fetch('/api/admin/availability', {
                     method: 'POST',
                     headers: { 
-                        'Content-Type': 'application/json',
-                        'X-User-Id': localStorage.getItem('userId')
+                        'Content-Type': 'application/json'
                     },
+                    credentials: 'include',
                     body: JSON.stringify({ fieldId, date, slots })
                 });
 
@@ -2082,9 +2147,7 @@ async function fetchData() {
             document.getElementById('add-tournament-modal').classList.remove('hidden');
             try {
                 const response = await fetch('/api/admin/fields', {
-                    headers: {
-                        'X-User-Id': localStorage.getItem('userId')
-                    }
+                    credentials: 'include'
                 });
                 if (!response.ok) {
                     throw new Error('Failed to fetch fields');
@@ -2105,7 +2168,7 @@ async function fetchData() {
             
             if (fieldId) {
                  try {
-                    const response = await fetch(`/api/fields/${fieldId}?userId=${localStorage.getItem('userId')}`);
+                    const response = await fetch(`/api/fields/${fieldId}`);
                     if (!response.ok) throw new Error('Failed to fetch field data');
                     const field = await response.json();
                     if (field.field.image_url) {
@@ -2157,9 +2220,9 @@ async function fetchData() {
                 const response = await fetch('/api/admin/tournaments', {
                     method: 'POST',
                     headers: { 
-                        'Content-Type': 'application/json',
-                        'X-User-Id': localStorage.getItem('userId')
+                        'Content-Type': 'application/json'
                     },
+                    credentials: 'include',
                     body: JSON.stringify({
                         name,
                         description,
@@ -2194,9 +2257,9 @@ async function fetchData() {
                          const response = await fetch(`/api/admin/tournaments/${tournamentId}`, {
                              method: 'DELETE',
                              headers: { 
-                                 'Content-Type': 'application/json',
-                                 'X-User-Id': localStorage.getItem('userId')
+                                 'Content-Type': 'application/json'
                              },
+                             credentials: 'include',
                              body: JSON.stringify({})
                          });
 
@@ -2220,9 +2283,7 @@ async function fetchData() {
         async function loadAnalytics() {
             try {
                 const response = await fetch(`/api/admin/analytics`, {
-                    headers: {
-                        'X-User-Id': localStorage.getItem('userId')
-                    }
+                    credentials: 'include'
                 });
                 if (!response.ok) throw new Error('Failed to fetch analytics');
                 const data = await response.json();
@@ -2257,9 +2318,9 @@ async function fetchData() {
                 const response = await fetch(`/api/admin/matchmaking-requests/${requestId}/approve`, {
                     method: 'POST',
                     headers: { 
-                        'Content-Type': 'application/json',
-                        'X-User-Id': localStorage.getItem('userId')
+                        'Content-Type': 'application/json'
                     },
+                    credentials: 'include',
                     body: JSON.stringify({})
                 });
                 
@@ -2286,9 +2347,9 @@ async function fetchData() {
                         const response = await fetch(`/api/admin/matchmaking-requests/${requestId}/reject`, {
                             method: 'POST',
                             headers: { 
-                                'Content-Type': 'application/json',
-                                'X-User-Id': localStorage.getItem('userId')
+                                'Content-Type': 'application/json'
                             },
+                            credentials: 'include',
                             body: JSON.stringify({})
                         });
                         
@@ -2318,9 +2379,9 @@ async function fetchData() {
                         const response = await fetch(`/api/admin/reservations/${reservationId}/cancel`, {
                             method: 'PUT',
                             headers: { 
-                                'Content-Type': 'application/json',
-                                'X-User-Id': localStorage.getItem('userId')
+                                'Content-Type': 'application/json'
                             },
+                            credentials: 'include',
                             body: JSON.stringify({})
                         });
                         
@@ -2355,7 +2416,7 @@ async function fetchData() {
             
             try {
                 const response = await fetch(url, {
-                    headers: { 'X-User-Id': localStorage.getItem('userId') }
+                    credentials: 'include'
                 });
                 if (!response.ok) throw new Error('Failed to fetch availability');
                 const data = await response.json();
@@ -2419,9 +2480,9 @@ async function fetchData() {
                         const response = await fetch(`/api/admin/availability/${slotId}`, {
                             method: 'DELETE',
                             headers: { 
-                                'Content-Type': 'application/json',
-                                'X-User-Id': localStorage.getItem('userId')
+                                'Content-Type': 'application/json'
                             },
+                            credentials: 'include',
                             body: JSON.stringify({})
                         });
                         
@@ -2466,9 +2527,9 @@ async function fetchData() {
                 const response = await fetch(`/api/admin/availability/${slotId}`, {
                     method: 'PUT',
                     headers: { 
-                        'Content-Type': 'application/json',
-                        'X-User-Id': localStorage.getItem('userId')
+                        'Content-Type': 'application/json'
                     },
+                    credentials: 'include',
                     body: JSON.stringify({ 
                         start_time: startTime, 
                         end_time: endTime, 
@@ -2495,9 +2556,7 @@ async function fetchData() {
         async function fetchTournaments() {
             try {
                 const response = await fetch('/api/admin/tournaments', {
-                    headers: {
-                        'X-User-Id': localStorage.getItem('userId')
-                    }
+                    credentials: 'include'
                 });
                 if (!response.ok) throw new Error('Failed to fetch tournaments');
                 
@@ -2559,9 +2618,7 @@ async function fetchData() {
                 
                 // Fetch tournament teams
                 const response = await fetch(`/api/admin/tournaments/${tournamentId}/teams`, {
-                    headers: {
-                        'X-User-Id': localStorage.getItem('userId')
-                    }
+                    credentials: 'include'
                 });
                 if (!response.ok) throw new Error('Failed to fetch tournament teams');
                 
@@ -2704,9 +2761,9 @@ async function fetchData() {
                 const response = await fetch(`/api/admin/teams/${teamId}`, {
                     method: 'DELETE',
                     headers: {
-                        'Content-Type': 'application/json',
-                        'X-User-Id': localStorage.getItem('userId')
-                    }
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include'
                 });
                 
                 if (!response.ok) throw new Error('Failed to delete team');
@@ -2858,7 +2915,8 @@ const sexText = user.gender === 'male' ? 'ذكر' : user.gender === 'female' ? '
                 const imageData = await fileToBase64(file);
                 const res = await fetch('/api/admin/gallery', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'X-User-Id': userId },
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
                     body: JSON.stringify({ image: imageData, title: titleInput.value })
                 });
                 const data = await res.json();
@@ -2882,7 +2940,7 @@ const sexText = user.gender === 'male' ? 'ذكر' : user.gender === 'female' ? '
             try {
                 const res = await fetch(`/api/admin/gallery/${id}`, {
                     method: 'DELETE',
-                    headers: { 'X-User-Id': userId }
+                    credentials: 'include'
                 });
                 if (res.ok) {
                     fetchAdminGallery();
@@ -2970,9 +3028,9 @@ const sexText = user.gender === 'male' ? 'ذكر' : user.gender === 'female' ? '
                 const res = await fetch('/api/admin/categories', {
                     method: 'POST',
                     headers: { 
-                        'Content-Type': 'application/json',
-                        'X-User-Id': userId 
+                        'Content-Type': 'application/json'
                     },
+                    credentials: 'include',
                     body: JSON.stringify({ 
                         name: name, 
                         description: descInput.value.trim() 
@@ -3004,7 +3062,7 @@ const sexText = user.gender === 'male' ? 'ذكر' : user.gender === 'female' ? '
             try {
                 const res = await fetch(`/api/admin/categories/${id}`, {
                     method: 'DELETE',
-                    headers: { 'X-User-Id': userId }
+                    credentials: 'include'
                 });
                 
                 const data = await res.json();
@@ -3048,7 +3106,8 @@ const sexText = user.gender === 'male' ? 'ذكر' : user.gender === 'female' ? '
                 
                 const res = await fetch('/api/admin/gallery', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'X-User-Id': userId },
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
                     body: JSON.stringify(requestBody)
                 });
                 const data = await res.json();
@@ -3125,9 +3184,9 @@ const sexText = user.gender === 'male' ? 'ذكر' : user.gender === 'female' ? '
                 const res = await fetch(`/api/admin/gallery/${currentEditingImageId}`, {
                     method: 'PUT',
                     headers: {
-                        'Content-Type': 'application/json',
-                        'X-User-Id': userId
+                        'Content-Type': 'application/json'
                     },
+                    credentials: 'include',
                     body: JSON.stringify({
                         title: title,
                         category_id: categoryId
@@ -3218,7 +3277,8 @@ const sexText = user.gender === 'male' ? 'ذكر' : user.gender === 'female' ? '
                 const imageData = await fileToBase64(file);
                 const res = await fetch('/api/admin/sponsors', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'X-User-Id': userId },
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
                     body: JSON.stringify({ name: name, image: imageData })
                 });
                 const data = await res.json();
@@ -3264,7 +3324,7 @@ const sexText = user.gender === 'male' ? 'ذكر' : user.gender === 'female' ? '
             try {
                 const res = await fetch(`/api/admin/sponsors/${id}`, {
                     method: 'DELETE',
-                    headers: { 'X-User-Id': userId }
+                    credentials: 'include'
                 });
                 if (res.ok) {
                     closeDeleteSponsorModal();
@@ -3368,7 +3428,8 @@ const sexText = user.gender === 'male' ? 'ذكر' : user.gender === 'female' ? '
             try {
                 const res = await fetch(`/api/admin/giveaways/${id}`, {
                     method: 'PUT',
-                    headers: { 'Content-Type': 'application/json', 'X-User-Id': userId },
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
                     body: JSON.stringify(body)
                 });
                 const data = await res.json();
@@ -3403,7 +3464,7 @@ const sexText = user.gender === 'male' ? 'ذكر' : user.gender === 'female' ? '
             try {
                 const res = await fetch(`/api/admin/giveaways/${id}`, {
                     method: 'DELETE',
-                    headers: { 'X-User-Id': userId }
+                    credentials: 'include'
                 });
                 if (res.ok) {
                     closeDeleteGiveawayModal();
@@ -3449,7 +3510,8 @@ const sexText = user.gender === 'male' ? 'ذكر' : user.gender === 'female' ? '
                 }
                 const res = await fetch('/api/admin/giveaways', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'X-User-Id': userId },
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
                     body: JSON.stringify({ name, description, image: imageData, deadline: new Date(deadlineVal).toISOString() })
                 });
                 const data = await res.json();
@@ -3485,12 +3547,7 @@ const sexText = user.gender === 'male' ? 'ذكر' : user.gender === 'female' ? '
             if (saveBtn) saveBtn.addEventListener('click', saveGiveawayEdit);
         });
 
-        // Logout function
-        function logout() {
-            localStorage.removeItem('userId');
-            localStorage.removeItem('userEmail');
-            window.location.href = 'index.html';
-        }
+        // Use global handleLogout from header.js for consistent CSRF-secure logout
     </script>
 
     <!-- Edit Giveaway Modal -->

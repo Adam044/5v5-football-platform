@@ -99,7 +99,29 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-function handleLogout() {
+async function handleLogout() {
+    function getCookieValue(name) {
+        const match = document.cookie.match(new RegExp('(^|; )' + name.replace(/([.$?*|{}()\[\]\\\/\+^])/g, '\\$1') + '=([^;]*)'));
+        return match ? decodeURIComponent(match[2]) : '';
+    }
+    async function ensureCsrfToken() {
+        try {
+            const existing = getCookieValue('csrf_token');
+            if (existing) return existing;
+            const res = await fetch('/api/csrf-token', { credentials: 'include' });
+            const data = await res.json().catch(() => ({}));
+            return data.csrfToken || getCookieValue('csrf_token');
+        } catch (e) {
+            return getCookieValue('csrf_token');
+        }
+    }
+
+    try {
+        const csrfToken = await ensureCsrfToken();
+        await fetch('/api/logout', { method: 'POST', credentials: 'include', headers: { 'X-CSRF-Token': csrfToken || '' } });
+    } catch (e) {
+        console.warn('Logout request failed, proceeding to clear client state:', e);
+    }
     localStorage.removeItem('userId');
     localStorage.removeItem('userEmail');
     localStorage.removeItem('userName');

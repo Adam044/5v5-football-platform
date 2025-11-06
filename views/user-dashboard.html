@@ -376,11 +376,8 @@
 
     <script src="header.js"></script>
     <script>
-        // Redirect to login if not authenticated
-        const userId = localStorage.getItem('userId');
-        if (!userId) {
-            window.location.href = 'auth.html';
-        }
+        // Current user derived from cookie-based auth
+        let currentUserId = null;
         
         // --- Helper functions ---
         function showMessageBox(title, content, type = 'error') {
@@ -429,7 +426,7 @@
         // --- Fetch and Render Data ---
         async function fetchUserData() {
             try {
- const response = await fetch(`/api/user/${userId}`);
+                const response = await fetch(`/api/user/${currentUserId}` , { credentials: 'include' });
                 const data = await response.json();
                 if (response.ok) {
                     const user = data.user;
@@ -450,7 +447,7 @@ document.getElementById('gender').value = user.gender === 'male' ? 'ذكر' : us
 
         async function fetchUserReservations() {
             try {
- const response = await fetch(`/api/user/reservations/${userId}`);
+                const response = await fetch(`/api/user/reservations/${currentUserId}`, { credentials: 'include' });
                 const data = await response.json();
                 if (response.ok) {
                     renderReservationsTable(data.reservations);
@@ -568,11 +565,7 @@ document.getElementById('gender').value = user.gender === 'male' ? 'ذكر' : us
         // Profile editing functions
 
 
-        function handleLogout() {
-            localStorage.removeItem('userId');
-            localStorage.removeItem('userEmail');
-            window.location.href = 'index.html';
-        }
+        // Use global handleLogout from header.js for consistent CSRF-secure logout
 
         // Utility functions
         function scrollToReservations() {
@@ -591,32 +584,44 @@ document.getElementById('gender').value = user.gender === 'male' ? 'ذكر' : us
 
         // Loading states
         function showLoadingState() {
-            const loadingHTML = `
-                <div class="flex items-center justify-center py-12">
-                    <div class="relative w-16 h-16">
-                        <div class="absolute inset-0 rounded-full border-4 border-blue-200"></div>
-                        <div class="absolute inset-0 rounded-full border-4 border-blue-600 border-t-transparent animate-spin"></div>
-                        <img src="/images/logo.jpg" alt="5v5" class="absolute inset-0 w-10 h-10 m-auto animate-spin-slow" style="filter: drop-shadow(0 0 6px rgba(59,130,246,0.6));">
-                    </div>
-                    <span class="mr-3 text-gray-600 text-lg">جاري التحميل...</span>
+            // Table skeleton (desktop view)
+            const tableRows = Array.from({ length: 5 }).map(() => {
+                const tds = Array.from({ length: 6 })
+                  .map(() => `<td class="py-3 px-6"><div class="skeleton skeleton-line h-4 w-24"></div></td>`)
+                  .join('');
+                return `<tr class="border-b border-gray-200">${tds}</tr>`;
+            }).join('');
+            const tableSkeleton = tableRows;
+            const tableBody = document.getElementById('reservations-table-body');
+            if (tableBody) tableBody.innerHTML = tableSkeleton;
+
+            // Card skeletons (mobile view)
+            const cardSkeleton = Array.from({ length: 4 }).map(() => `
+                <div class="bg-white rounded-lg shadow-sm p-4 border border-gray-200">
+                    <div class="skeleton skeleton-block h-24 w-full mb-3"></div>
+                    <div class="skeleton skeleton-line h-4 w-2/3 mb-2"></div>
+                    <div class="skeleton skeleton-line h-4 w-1/2"></div>
                 </div>
-            `;
-            document.getElementById('reservations-table-body').innerHTML = loadingHTML;
-            document.getElementById('reservations-card-container').innerHTML = loadingHTML;
-            const mmLoading = `
-                <div class="flex items-center justify-center py-6">
-                    <div class="relative w-12 h-12">
-                        <div class="absolute inset-0 rounded-full border-4 border-blue-200"></div>
-                        <div class="absolute inset-0 rounded-full border-4 border-blue-600 border-t-transparent animate-spin"></div>
-                        <img src="/images/logo.jpg" alt="5v5" class="absolute inset-0 w-7 h-7 m-auto animate-spin-slow" style="filter: drop-shadow(0 0 6px rgba(59,130,246,0.6));">
+            `).join('');
+            const cardContainer = document.getElementById('reservations-card-container');
+            if (cardContainer) cardContainer.innerHTML = cardSkeleton;
+
+            // Matchmaking lists skeleton
+            const listSkeleton = Array.from({ length: 3 }).map(() => `
+                <div class="bg-white rounded-lg shadow-sm p-4 border border-gray-200 mb-2">
+                    <div class="flex items-center gap-3">
+                        <div class="skeleton skeleton-circle w-10 h-10"></div>
+                        <div class="flex-1">
+                            <div class="skeleton skeleton-line h-4 w-1/2 mb-2"></div>
+                            <div class="skeleton skeleton-line h-3 w-1/3"></div>
+                        </div>
                     </div>
-                    <span class="mr-2 text-gray-600">جاري تحميل طلبات التوفيق...</span>
                 </div>
-            `;
+            `).join('');
             const createdList = document.getElementById('created-list');
             const joinedList = document.getElementById('joined-list');
-            if (createdList) createdList.innerHTML = mmLoading;
-            if (joinedList) joinedList.innerHTML = mmLoading;
+            if (createdList) createdList.innerHTML = listSkeleton;
+            if (joinedList) joinedList.innerHTML = listSkeleton;
         }
 
         // Slow spin animation for logo
@@ -714,8 +719,7 @@ document.getElementById('gender').value = user.gender === 'male' ? 'ذكر' : us
         // --- Matchmaking: fetch + render ---
         async function fetchUserMatchmaking() {
             try {
-                const userId = localStorage.getItem('userId');
-                const res = await fetch(`/api/user/${userId}/matchmaking-requests`);
+                const res = await fetch(`/api/user/${currentUserId}/matchmaking-requests`, { credentials: 'include' });
                 if (!res.ok) throw new Error('Failed to fetch matchmaking');
                 const data = await res.json();
                 renderMatchmakingLists(data);
@@ -822,14 +826,11 @@ document.getElementById('gender').value = user.gender === 'male' ? 'ذكر' : us
         let currentFilter = 'all';
 
         async function fetchUserTournamentTeams() {
-            const userId = localStorage.getItem('userId');
-            if (!userId) return;
-
+            if (!currentUserId) return;
             try {
-                const response = await fetch(`/api/user/${userId}/tournament-teams`);
+                const response = await fetch(`/api/user/${currentUserId}/tournament-teams`, { credentials: 'include' });
                 const data = await response.json();
-                
-                if (data.success) {
+                if (response.ok && data.success) {
                     allTournamentTeams = data.teams;
                     renderTournamentTeams(allTournamentTeams);
                 } else {
@@ -858,7 +859,7 @@ document.getElementById('gender').value = user.gender === 'male' ? 'ذكر' : us
             
             // Filter teams
             let filteredTeams = allTournamentTeams;
-            const userId = parseInt(localStorage.getItem('userId'));
+            const userId = Number(currentUserId);
             
             if (filter === 'created') {
                 filteredTeams = allTournamentTeams.filter(team => team.captain_id === userId);
@@ -921,7 +922,7 @@ document.getElementById('gender').value = user.gender === 'male' ? 'ذكر' : us
                 const config = statusConfig[team.status] || statusConfig['forming'];
                 const tournamentDate = new Date(team.tournament.tournament_date).toLocaleDateString('en-US');
                 const isUpcoming = new Date(team.tournament.tournament_date) >= new Date();
-                const userId = parseInt(localStorage.getItem('userId'));
+                const userId = Number(currentUserId);
                 const isCreator = team.captain_id === userId;
 
                 return `
@@ -1027,13 +1028,31 @@ document.getElementById('gender').value = user.gender === 'male' ? 'ذكر' : us
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            showLoadingState();
-            fetchUserDataWithNotifications();
-            fetchUserReservationsWithNotifications();
-            fetchUserMatchmaking();
-            fetchUserTournamentTeams();
             initMatchmakingTabs();
-            showWelcomeNotification();
+            (async () => {
+                try {
+                    const meResp = await fetch('/api/me', { credentials: 'include' });
+                    if (!meResp.ok) {
+                        window.location.href = 'auth.html?view=sign-in&returnUrl=' + encodeURIComponent('user-dashboard.html');
+                        return;
+                    }
+                    const meData = await meResp.json();
+                    currentUserId = meData?.user?.id;
+                    if (!currentUserId) {
+                        window.location.href = 'auth.html?view=sign-in&returnUrl=' + encodeURIComponent('user-dashboard.html');
+                        return;
+                    }
+                    showLoadingState();
+                    await fetchUserDataWithNotifications();
+                    await fetchUserReservationsWithNotifications();
+                    await fetchUserMatchmaking();
+                    await fetchUserTournamentTeams();
+                    showWelcomeNotification();
+                } catch (e) {
+                    console.error('Failed to init dashboard:', e);
+                    showMessageBox('خطأ', 'تعذر تحميل لوحة التحكم.', 'error');
+                }
+            })();
         });
     </script>
 </body>

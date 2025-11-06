@@ -6,6 +6,7 @@
     <title>معرض الصور - منصة كرة القدم</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/styles.css" />
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap');
         
@@ -211,10 +212,22 @@
 
         // Show loading state
         function showLoading() {
-            document.getElementById('loading-spinner').classList.remove('hidden');
-            document.getElementById('gallery-grid').classList.add('hidden');
-            document.getElementById('no-results').classList.add('hidden');
+            const spinner = document.getElementById('loading-spinner');
+            const grid = document.getElementById('gallery-grid');
+            const noResults = document.getElementById('no-results');
+            spinner.classList.add('hidden');
+            noResults.classList.add('hidden');
             document.getElementById('load-more-container').classList.add('hidden');
+            // Insert skeleton placeholders into the grid
+            const skeletonCard = () => `
+                <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                    <div class="skeleton-block h-48 w-full"></div>
+                    <div class="p-4">
+                        <div class="skeleton-line h-4 w-2/3 mx-auto"></div>
+                    </div>
+                </div>`;
+            grid.innerHTML = Array.from({ length: 12 }).map(skeletonCard).join('');
+            grid.classList.remove('hidden');
         }
 
         // Show no results state
