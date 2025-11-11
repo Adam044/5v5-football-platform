@@ -739,7 +739,7 @@ app.post('/api/login', loginLimiter, requireCsrf, async (req, res) => {
             res.cookie('auth_token', token, {
                 httpOnly: true,
                 secure: isProd,
-                sameSite: 'strict',
+                sameSite: 'lax',
                 maxAge: TOKEN_TTL_SECONDS * 1000,
                 path: '/'
             });
@@ -774,7 +774,7 @@ app.get('/api/me', requireAuth, async (req, res) => {
 // Auth: logout (clear cookie)
 app.post('/api/logout', requireCsrf, (req, res) => {
     const isProd = process.env.NODE_ENV === 'production';
-    res.clearCookie('auth_token', { httpOnly: true, sameSite: 'strict', secure: isProd, path: '/' });
+            res.clearCookie('auth_token', { httpOnly: true, sameSite: 'lax', secure: isProd, path: '/' });
     res.clearCookie('csrf_token', { httpOnly: false, sameSite: 'strict', secure: isProd, path: '/' });
     res.json({ message: 'تم تسجيل الخروج بنجاح.' });
 });
