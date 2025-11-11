@@ -86,7 +86,15 @@ app.use(helmet.contentSecurityPolicy({
     "script-src": [
       "'self'",
       "'unsafe-inline'",
-      "https://cdn.tailwindcss.com"
+      "https://cdn.tailwindcss.com",
+      "https://cdn.jsdelivr.net"
+    ],
+    // Explicit script-src-elem for external script elements (QR code library)
+    "script-src-elem": [
+      "'self'",
+      "'unsafe-inline'",
+      "https://cdn.tailwindcss.com",
+      "https://cdn.jsdelivr.net"
     ],
     // Permit inline event handlers (e.g., onclick) until refactor removes them
     "script-src-attr": [
