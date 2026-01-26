@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     </button>
                     
                     <a href="index.html" class="hidden lg:flex items-center gap-2 hover:text-green-800 transition-colors duration-300">
-                        <img src="images/logo.jpg" alt="5v5 Logo" class="h-10 w-auto rounded-full shadow-lg"/>
+                        <img src="/images/logo.jpg" alt="5v5 Logo" class="h-10 w-auto rounded-full shadow-lg"/>
                     </a>
 
                     <nav class="hidden lg:flex space-x-6 space-x-reverse">
