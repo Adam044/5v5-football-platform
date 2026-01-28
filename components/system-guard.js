@@ -40,93 +40,137 @@
         document.body.style.overflow = 'hidden';
 
         const overlay = document.createElement('div');
-        overlay.className = 'fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-95 backdrop-blur-sm';
+        overlay.className = 'fixed inset-0 z-[9999] flex items-center justify-center bg-[#0a0a0a] bg-opacity-95 backdrop-blur-sm';
         
         let content = '';
         
+        // Common Contact Section
+        const contactSection = `
+            <div class="mt-8 pt-6 border-t border-gray-800/50 flex flex-col items-center">
+                <button id="owner-contact-btn" class="group flex items-center gap-3 bg-gray-900/50 px-5 py-2.5 rounded-full border border-gray-800 hover:border-gray-600 hover:bg-gray-800 transition-all duration-300 cursor-pointer">
+                    <div class="relative">
+                         <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                         <div class="absolute inset-0 w-2 h-2 rounded-full bg-green-500 blur-sm animate-pulse"></div>
+                    </div>
+                    <span class="text-sm font-medium text-gray-300 group-hover:text-white transition-colors">Contact Platform Owner: Adam Hawash</span>
+                </button>
+            </div>
+        `;
+
         if (type === 'cyber') {
-            overlay.style.backgroundColor = '#000';
+            // Protocol 3: Security Restriction (Realistic 403)
             content = `
-                <div class="font-mono text-green-500 text-center p-6 md:p-8 border-2 border-green-600 relative max-w-xl w-11/12 md:w-full mx-4 shadow-[0_0_50px_rgba(0,255,0,0.2)]">
-                    <div class="absolute top-0 left-0 w-full h-1 bg-green-500 animate-pulse"></div>
-                    <div class="absolute bottom-0 left-0 w-full h-1 bg-green-500 animate-pulse"></div>
-                    
-                    <div class="mb-6 flex justify-center">
-                         <img src="/images/logo.jpg" class="h-16 w-16 md:h-20 md:w-20 rounded-full border-2 border-green-500 grayscale opacity-80 animate-pulse shadow-[0_0_15px_rgba(0,255,0,0.5)]">
+                <div class="font-sans text-gray-300 text-center p-8 md:p-12 max-w-lg w-full mx-4 relative">
+                    <div class="mb-8 relative inline-block">
+                        <div class="absolute inset-0 bg-red-500/20 blur-xl rounded-full"></div>
+                        <i class="fa-solid fa-shield-halved text-6xl text-red-500 relative z-10"></i>
                     </div>
 
-                    <h1 class="text-4xl md:text-6xl font-bold mb-6 md:mb-8 tracking-tighter" style="text-shadow: 2px 2px 0px #003300;">BREACH DETECTED</h1>
+                    <h1 class="text-3xl font-bold mb-4 text-white tracking-tight">Access Restricted</h1>
                     
-                    <div class="border-t border-b border-green-800 py-4 mb-6 md:mb-8 bg-green-900/10">
-                        <p class="text-lg md:text-xl mb-2">SECURITY PROTOCOL: <span class="text-red-500 font-bold animate-pulse">ACTIVE</span></p>
-                        <p class="text-xs tracking-widest opacity-70">REF: 77-21-AX-99 // SYSTEM ADMIN</p>
-                    </div>
-                    
-                    <p class="text-base md:text-lg mb-8 text-green-400 font-bold">${customMessage || 'UNAUTHORIZED ACCESS ATTEMPT. CONNECTION TERMINATED.'}</p>
-                    
-                    <div class="border border-green-800 p-3 mb-6 bg-black">
-                        <p class="text-xs text-green-600 uppercase mb-1">Platform Owner Contact</p>
-                        <p class="text-sm md:text-base font-bold text-green-400">ADAM HAWASH</p>
+                    <div class="bg-red-500/5 border border-red-500/20 rounded-lg p-4 mb-8">
+                        <p class="text-red-400 text-sm font-medium mb-1">Error Code: 403 Forbidden</p>
+                        <p class="text-gray-400 text-sm leading-relaxed">
+                            ${customMessage || 'Your session has been flagged by our security systems. Access to this resource is currently suspended.'}
+                        </p>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-4 text-[10px] md:text-xs opacity-50 font-mono">
-                        <div>ENCRYPTION: AES-256</div>
-                        <div>STATUS: TERMINATED</div>
-                    </div>
+                    <p class="text-xs text-gray-600 font-mono mb-8">SESSION_ID: ${Math.random().toString(36).substr(2, 9).toUpperCase()}</p>
+                    
+                    ${contactSection}
                 </div>
             `;
         } else if (type === 'unavailable') {
+            // Protocol 2: Administrative Pause (Realistic System Halt)
              content = `
-                <div class="font-mono bg-black text-green-500 p-8 md:p-12 border border-green-900 rounded-none shadow-2xl text-center max-w-lg w-11/12 md:w-full relative overflow-hidden mx-4">
-                    <div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTEgMWgydjJIMUMxeiIgZmlsbD0iIzAwMzMwMCIgZmlsbC1ydWxlPSJldmVub2RkIi8+PC9zdmc+')] opacity-20"></div>
-                    <div class="relative z-10">
-                        <div class="mb-6 flex justify-center items-center gap-4">
-                            <i class="fa-solid fa-microchip text-4xl md:text-5xl text-green-700 animate-pulse"></i>
-                            <img src="/images/logo.jpg" class="h-12 w-12 rounded-full border border-green-800 opacity-70">
-                        </div>
-                        
-                        <h2 class="text-2xl md:text-3xl font-bold mb-4 tracking-wider text-green-400">PROTOCOL OVERRIDE</h2>
-                        <p class="text-green-300/90 text-base md:text-lg mb-8 leading-relaxed">${customMessage || 'Administrative Override in Progress. Stand by.'}</p>
-                        
-                        <div class="bg-green-900/20 p-4 border border-green-900/50 mb-6 backdrop-blur-sm">
-                            <p class="text-xs text-green-600 mb-1 uppercase tracking-wider">Direct Communication Line</p>
-                            <p class="text-lg font-bold text-green-400">Adam Hawash</p>
-                            <p class="text-xs text-green-700 mt-1">Platform Owner</p>
-                        </div>
-
-                        <div class="border-t border-green-900 pt-4 mt-4 flex justify-between items-center text-xs text-green-800 font-mono">
-                            <span>SYS.INTEGRITY: 98%</span>
-                            <span>Authorized Personnel Only</span>
+                <div class="font-sans text-gray-300 text-center p-8 md:p-12 max-w-lg w-full mx-4">
+                    <div class="mb-8">
+                        <div class="w-16 h-16 mx-auto bg-gray-800 rounded-2xl flex items-center justify-center border border-gray-700 shadow-xl">
+                            <i class="fa-solid fa-pause text-3xl text-yellow-500"></i>
                         </div>
                     </div>
+                    
+                    <h2 class="text-2xl font-bold mb-3 text-white">System Paused</h2>
+                    <p class="text-gray-400 text-base mb-8 leading-relaxed">
+                        ${customMessage || 'Operations have been temporarily halted by administration for a scheduled review.'}
+                    </p>
+                    
+                    <div class="flex justify-center gap-2 mb-8">
+                        <span class="h-1.5 w-1.5 rounded-full bg-yellow-500"></span>
+                        <span class="h-1.5 w-1.5 rounded-full bg-yellow-500 opacity-50"></span>
+                        <span class="h-1.5 w-1.5 rounded-full bg-yellow-500 opacity-25"></span>
+                    </div>
+
+                    ${contactSection}
                 </div>
             `;
         } else {
-            // Standard / Page Locked (Signal Lost)
+            // Protocol 1: Maintenance (Standard)
             content = `
-                <div class="font-mono bg-black text-gray-300 p-8 md:p-10 border-l-4 border-gray-700 shadow-2xl text-center max-w-md w-11/12 md:w-full relative mx-4">
-                    <div class="mb-8 flex flex-col items-center gap-4">
-                        <img src="/images/logo.jpg" class="h-16 w-16 rounded-full grayscale opacity-50 border border-gray-800">
-                        <div class="h-px w-20 bg-gray-800"></div>
-                        <i class="fa-solid fa-signal text-4xl md:text-5xl text-gray-600"></i>
+                <div class="font-sans text-gray-300 text-center p-8 md:p-12 max-w-lg w-full mx-4">
+                    <div class="mb-8">
+                         <div class="w-16 h-16 mx-auto bg-blue-500/10 rounded-full flex items-center justify-center border border-blue-500/20">
+                            <i class="fa-solid fa-screwdriver-wrench text-3xl text-blue-400"></i>
+                        </div>
                     </div>
                     
-                    <h2 class="text-xl md:text-2xl font-bold text-gray-100 mb-4 tracking-[0.2em] uppercase">Signal Lost</h2>
-                    <p class="text-gray-500 mb-8 text-sm md:text-base">${customMessage || 'This frequency is currently silent.'}</p>
-                    
-                    <div class="bg-gray-900 p-4 rounded border border-gray-800 mb-6">
-                        <p class="text-xs text-gray-600 mb-1">Platform Administrator</p>
-                        <p class="text-sm font-bold text-gray-400">Adam Hawash</p>
-                    </div>
+                    <h2 class="text-2xl font-bold mb-3 text-white">Under Maintenance</h2>
+                    <p class="text-gray-400 text-sm md:text-base mb-8 leading-relaxed max-w-sm mx-auto">
+                        ${customMessage || 'We are currently updating this section to improve your experience. Please check back shortly.'}
+                    </p>
 
-                    <div class="text-[10px] text-gray-700 font-mono tracking-widest">
-                        NO CARRIER DETECTED // END TRANSMISSION
+                    <div class="w-full bg-gray-800/50 h-1.5 rounded-full overflow-hidden mb-8 max-w-xs mx-auto">
+                        <div class="h-full bg-blue-500 w-2/3 rounded-full animate-[shimmer_2s_infinite] relative overflow-hidden">
+                             <div class="absolute inset-0 bg-white/20 -skew-x-12 transform -translate-x-full animate-[shine_1.5s_infinite]"></div>
+                        </div>
                     </div>
+                    
+                    ${contactSection}
                 </div>
+                <style>
+                    @keyframes shine { 100% { transform: translateX(200%) skewX(-12deg); } }
+                </style>
             `;
         }
 
         overlay.innerHTML = content;
         document.body.appendChild(overlay);
+
+        // Add Click Handler for Contact Button
+        const contactBtn = document.getElementById('owner-contact-btn');
+        if (contactBtn) {
+            contactBtn.addEventListener('click', () => {
+                const toast = document.createElement('div');
+                toast.className = 'fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-gray-900 border border-red-900/50 text-gray-300 px-6 py-4 rounded-lg shadow-2xl z-[10000] flex items-center gap-4 min-w-[300px] animate-[fadeIn_0.3s_ease-out]';
+                toast.innerHTML = `
+                    <div class="bg-red-900/20 p-2 rounded-full">
+                        <i class="fa-solid fa-user-slash text-red-500"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-sm font-bold text-white mb-0.5">Contact Unavailable</h4>
+                        <p class="text-xs text-gray-400">Direct line to Adam Hawash is currently offline.</p>
+                    </div>
+                `;
+                
+                document.body.appendChild(toast);
+
+                // Remove toast after 3 seconds
+                setTimeout(() => {
+                    toast.style.opacity = '0';
+                    toast.style.transition = 'opacity 0.5s ease';
+                    setTimeout(() => toast.remove(), 500);
+                }, 3000);
+            });
+        }
     }
+    
+    // Add FadeIn Keyframe
+    const styleSheet = document.createElement("style");
+    styleSheet.innerText = `
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translate(-50%, -45%); }
+            to { opacity: 1; transform: translate(-50%, -50%); }
+        }
+    `;
+    document.head.appendChild(styleSheet);
 })();
