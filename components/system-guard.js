@@ -61,6 +61,10 @@
             // Protocol 3: Security Restriction (Realistic 403)
             content = `
                 <div class="font-sans text-gray-300 text-center p-8 md:p-12 max-w-lg w-full mx-4 relative">
+                    <div class="mb-6">
+                        <img src="/images/logo.jpg" class="h-16 w-16 mx-auto rounded-full border-2 border-red-900/50 shadow-lg grayscale opacity-80">
+                    </div>
+                    
                     <div class="mb-8 relative inline-block">
                         <div class="absolute inset-0 bg-red-500/20 blur-xl rounded-full"></div>
                         <i class="fa-solid fa-shield-halved text-6xl text-red-500 relative z-10"></i>
@@ -85,6 +89,10 @@
              content = `
                 <div class="font-sans text-gray-300 text-center p-8 md:p-12 max-w-lg w-full mx-4">
                     <div class="mb-8">
+                        <img src="/images/logo.jpg" class="h-16 w-16 mx-auto rounded-full border-2 border-yellow-900/50 shadow-lg grayscale opacity-80">
+                    </div>
+
+                    <div class="mb-8">
                         <div class="w-16 h-16 mx-auto bg-gray-800 rounded-2xl flex items-center justify-center border border-gray-700 shadow-xl">
                             <i class="fa-solid fa-pause text-3xl text-yellow-500"></i>
                         </div>
@@ -108,6 +116,10 @@
             // Protocol 1: Maintenance (Standard)
             content = `
                 <div class="font-sans text-gray-300 text-center p-8 md:p-12 max-w-lg w-full mx-4">
+                    <div class="mb-8">
+                        <img src="/images/logo.jpg" class="h-16 w-16 mx-auto rounded-full border-2 border-blue-900/50 shadow-lg grayscale opacity-80">
+                    </div>
+
                     <div class="mb-8">
                          <div class="w-16 h-16 mx-auto bg-blue-500/10 rounded-full flex items-center justify-center border border-blue-500/20">
                             <i class="fa-solid fa-screwdriver-wrench text-3xl text-blue-400"></i>
