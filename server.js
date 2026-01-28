@@ -283,6 +283,25 @@ app.use(express.static(path.join(__dirname, 'components')));
 app.use('/images', express.static(path.join(__dirname, 'components/images')));
 // Add explicit route for components/images to handle direct access
 app.use('/components/images', express.static(path.join(__dirname, 'components/images')));
+// Owner Panel static files - Stealth Mode
+const ownerPanelPath = path.join(__dirname, 'owner_panel');
+
+// 1. Allow Login Page Publicly
+app.get('/owner_panel/login.html', (req, res) => {
+    res.sendFile(path.join(ownerPanelPath, 'login.html'));
+});
+
+// 2. Protect everything else (Stealth: 404 if not authorized)
+app.use('/owner_panel', (req, res, next) => {
+    const token = getCookie(req, 'owner_token');
+    // Stealth: Return 404 Not Found instead of 403 Forbidden to hide existence
+    if (!token) return res.status(404).send('Not Found');
+    
+    const payload = verifyToken(token);
+    if (!payload || !payload.isOwner) return res.status(404).send('Not Found');
+    
+    next();
+}, express.static(ownerPanelPath));
 
 // Friendly routes to serve specific HTML views
 // Join page alias: allows links like /join/<code> to render team-join
@@ -492,6 +511,13 @@ app.get('/join/:code', (req, res) => {
                 UNIQUE (team_id, user_id)
             );
 
+            -- SYSTEM_SETTINGS Table
+            CREATE TABLE IF NOT EXISTS system_settings (
+                key TEXT PRIMARY KEY,
+                value JSONB,
+                updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+            );
+
             -- Cleanup of redundant legacy tables (if they exist)
             DROP TABLE IF EXISTS tournament_participations;
             DROP TABLE IF EXISTS team_session_members; -- Replacing with tournament_team_members
@@ -516,6 +542,94 @@ const checkAdmin = async (req, res, next) => {
     next();
   });
 };
+
+// Public endpoint for system status (used by system-guard.js)
+app.get('/api/public/system-status', async (req, res) => {
+    try {
+        const globalLockRes = await pool.query("SELECT value FROM system_settings WHERE key = 'global_lock'");
+        const pageLocksRes = await pool.query("SELECT value FROM system_settings WHERE key = 'page_locks'");
+        
+        res.json({
+            global_lock: globalLockRes.rows[0]?.value || { is_locked: false, message: '', type: 'none' },
+            page_locks: pageLocksRes.rows[0]?.value || {}
+        });
+    } catch (err) {
+        console.error('Error fetching public system status:', err);
+        // Fail open
+        res.json({
+            global_lock: { is_locked: false },
+            page_locks: {}
+        });
+    }
+});
+
+// --- Owner Middleware & API Endpoints ---
+
+// Security middleware to check for owner using owner_token cookie
+const checkOwner = (req, res, next) => {
+    const token = getCookie(req, 'owner_token');
+    if (!token) {
+         return res.status(401).json({ error: 'Unauthorized: Owner access required' });
+    }
+    const payload = verifyToken(token);
+    if (!payload || !payload.isOwner) {
+         return res.status(403).json({ error: 'Forbidden: Owner access required' });
+    }
+    req.owner = payload;
+    next();
+};
+
+app.post('/api/owner/login', (req, res) => {
+    const { username, password } = req.body;
+    if (!username || !password) {
+        return res.status(400).json({ error: 'Username and password required' });
+    }
+    // Simple env check
+    if (username === process.env.OWNER_USERNAME && password === process.env.OWNER_PASSWORD) {
+         const token = signToken({ username, isOwner: true });
+         // Set cookie httpOnly
+         res.cookie('owner_token', token, {
+             httpOnly: true,
+             secure: process.env.NODE_ENV === 'production',
+             sameSite: 'strict',
+             maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+         });
+         return res.json({ success: true, message: 'Owner logged in' });
+    }
+    return res.status(401).json({ error: 'Invalid owner credentials' });
+});
+
+app.get('/api/owner/system-status', checkOwner, async (req, res) => {
+    try {
+        const globalLockRes = await pool.query("SELECT value FROM system_settings WHERE key = 'global_lock'");
+        const pageLocksRes = await pool.query("SELECT value FROM system_settings WHERE key = 'page_locks'");
+        
+        res.json({
+            global_lock: globalLockRes.rows[0]?.value || { is_locked: false, message: '', type: 'none' },
+            page_locks: pageLocksRes.rows[0]?.value || {}
+        });
+    } catch (err) {
+        console.error('Error fetching system status:', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.post('/api/owner/update-lock', checkOwner, async (req, res) => {
+    const { key, value } = req.body; // key: 'global_lock' or 'page_locks'
+    if (!['global_lock', 'page_locks'].includes(key)) {
+        return res.status(400).json({ error: 'Invalid lock key' });
+    }
+    try {
+        await pool.query(
+            "INSERT INTO system_settings (key, value, updated_at) VALUES ($1, $2, NOW()) ON CONFLICT (key) DO UPDATE SET value = $2, updated_at = NOW()",
+            [key, value]
+        );
+        res.json({ success: true, message: 'Lock updated' });
+    } catch (err) {
+         console.error('Error updating lock:', err);
+         res.status(500).json({ error: err.message });
+    }
+});
 
 
 // --- User API Endpoints ---

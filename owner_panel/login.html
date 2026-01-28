@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SYSTEM ACCESS // OWNER</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Share Tech Mono', monospace;
+            background-color: #050505;
+            color: #0f0;
+            overflow: hidden;
+        }
+        .cyber-border {
+            border: 1px solid #0f0;
+            box-shadow: 0 0 10px #0f0;
+        }
+        .cyber-input {
+            background: rgba(0, 20, 0, 0.8);
+            border: 1px solid #004400;
+            color: #0f0;
+            outline: none;
+            transition: all 0.3s;
+        }
+        .cyber-input:focus {
+            border-color: #0f0;
+            box-shadow: 0 0 5px #0f0;
+        }
+        .scanline {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, transparent 50%, rgba(0, 255, 0, 0.02) 50%);
+            background-size: 100% 4px;
+            pointer-events: none;
+            z-index: 50;
+        }
+        .glitch-text {
+            animation: glitch 1s linear infinite;
+        }
+        @keyframes glitch {
+            2%, 64% { transform: translate(2px,0) skew(0deg); }
+            4%, 60% { transform: translate(-2px,0) skew(0deg); }
+            62% { transform: translate(0,0) skew(5deg); }
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center h-screen relative">
+    <div class="scanline"></div>
+    
+    <!-- Decorative Serial Numbers -->
+    <div class="absolute top-4 left-4 text-xs text-green-900 select-none">SYS.ID: 58-29-92</div>
+    <div class="absolute bottom-4 right-4 text-xs text-green-900 select-none">V.2.0.4.ALPHA</div>
+    <div class="absolute top-4 right-4 text-xs text-green-900 select-none">SECURE_CONNECTION: TRUE</div>
+
+    <div class="w-full max-w-md p-8 border border-green-900 bg-black bg-opacity-90 relative z-10">
+        <div class="absolute -top-3 -left-3 w-6 h-6 border-t-2 border-l-2 border-green-500"></div>
+        <div class="absolute -top-3 -right-3 w-6 h-6 border-t-2 border-r-2 border-green-500"></div>
+        <div class="absolute -bottom-3 -left-3 w-6 h-6 border-b-2 border-l-2 border-green-500"></div>
+        <div class="absolute -bottom-3 -right-3 w-6 h-6 border-b-2 border-r-2 border-green-500"></div>
+
+        <h1 class="text-3xl text-center mb-8 tracking-widest text-green-500 font-bold">ACCESS CONTROL</h1>
+        
+        <form id="login-form" class="space-y-6">
+            <div>
+                <label class="block text-xs text-green-700 mb-1">IDENTIFIER</label>
+                <input type="text" id="username" class="w-full p-3 cyber-input" placeholder="ENTER USERNAME" required>
+            </div>
+            
+            <div>
+                <label class="block text-xs text-green-700 mb-1">ACCESS_KEY</label>
+                <input type="password" id="password" class="w-full p-3 cyber-input" placeholder="ENTER KEY" required>
+            </div>
+
+            <button type="submit" class="w-full py-3 bg-green-900 text-green-100 hover:bg-green-700 hover:text-white transition-colors border border-green-600 uppercase tracking-widest font-bold mt-4">
+                Initialize Session
+            </button>
+        </form>
+        
+        <div id="status-msg" class="text-center mt-4 text-sm h-6 text-red-500"></div>
+    </div>
+
+    <script>
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const status = document.getElementById('status-msg');
+            
+            status.innerText = 'AUTHENTICATING...';
+            status.classList.remove('text-red-500');
+            status.classList.add('text-yellow-500');
+
+            try {
+                const res = await fetch('/api/owner/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                
+                const data = await res.json();
+                
+                if (data.success) {
+                    status.innerText = 'ACCESS GRANTED. REDIRECTING...';
+                    status.classList.remove('text-yellow-500', 'text-red-500');
+                    status.classList.add('text-green-500');
+                    setTimeout(() => window.location.href = '/owner_panel/index.html', 1000);
+                } else {
+                    status.innerText = 'ACCESS DENIED: ' + (data.error || 'INVALID CREDENTIALS');
+                    status.classList.remove('text-yellow-500');
+                    status.classList.add('text-red-500');
+                }
+            } catch (err) {
+                status.innerText = 'SYSTEM ERROR: CONNECTION FAILED';
+                status.classList.remove('text-yellow-500');
+                status.classList.add('text-red-500');
+            }
+        });
+    </script>
+</body>
+</html>

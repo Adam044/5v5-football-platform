@@ -2,6 +2,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const globalHeaderDiv = document.getElementById('global-header');
 
     if (globalHeaderDiv) {
+        // Load System Guard
+        const systemGuardScript = document.createElement('script');
+        systemGuardScript.src = '/components/system-guard.js';
+        document.body.appendChild(systemGuardScript);
+
         const loggedInUserId = localStorage.getItem('userId');
         const isAdmin = (localStorage.getItem('isAdmin') === 'true' || localStorage.getItem('isAdmin') === '1');
 
