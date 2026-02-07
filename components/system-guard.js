@@ -153,7 +153,7 @@
         if (contactBtn) {
             contactBtn.addEventListener('click', () => {
                 const toast = document.createElement('div');
-                toast.className = 'fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-gray-900 border border-red-900/50 text-gray-300 px-6 py-4 rounded-lg shadow-2xl z-[10000] flex items-center gap-4 min-w-[300px] animate-[fadeIn_0.3s_ease-out]';
+                toast.className = 'fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-gray-900 border border-red-900/50 text-gray-300 px-6 py-4 rounded-lg shadow-2xl z-[10000] flex items-center gap-4 min-w-[300px] animate-[systemGuardFadeIn_0.3s_ease-out]';
                 toast.innerHTML = `
                     <div class="bg-red-900/20 p-2 rounded-full">
                         <i class="fa-solid fa-user-slash text-red-500"></i>
@@ -179,7 +179,7 @@
     // Add FadeIn Keyframe
     const styleSheet = document.createElement("style");
     styleSheet.innerText = `
-        @keyframes fadeIn {
+        @keyframes systemGuardFadeIn {
             from { opacity: 0; transform: translate(-50%, -45%); }
             to { opacity: 1; transform: translate(-50%, -50%); }
         }
