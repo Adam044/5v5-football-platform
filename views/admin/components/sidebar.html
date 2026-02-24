@@ -1,0 +1,56 @@
+<aside id="admin-sidebar" class="admin-sidebar no-scrollbar">
+    <div class="sidebar-logo">
+        <img src="/images/logo.jpg" alt="Logo">
+        <div>
+            <h4 class="font-black text-xl text-slate-900 leading-tight">لوحة تحكم <span
+                    class="text-emerald-600">5v5</span></h4>
+            <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Control Panel</p>
+        </div>
+    </div>
+
+    <div class="flex-grow overflow-y-auto no-scrollbar py-4 space-y-1">
+        <p class="nav-section-title">نظرة عامة</p>
+        <button class="tab-button active" data-tab="overview-tab" onclick="switchTab('overview-tab', event)">
+            <i class="fa-solid fa-chart-pie text-emerald-500"></i> نظرة عامة على النظام
+        </button>
+
+        <p class="nav-section-title">إدارة العمليات</p>
+        <button class="tab-button" data-tab="matchmaking-requests-tab"
+            onclick="switchTab('matchmaking-requests-tab', event)">
+            <i class="fa-solid fa-handshake-angle text-blue-500"></i> طلبات المطابقة
+        </button>
+        <button class="tab-button" data-tab="reservations-tab" onclick="switchTab('reservations-tab', event)">
+            <i class="fa-solid fa-book-open-reader text-emerald-500"></i> الحجوزات
+        </button>
+        <button class="tab-button" data-tab="availability-tab" onclick="switchTab('availability-tab', event)">
+            <i class="fa-solid fa-calendar-days text-purple-500"></i> إدارة المواعيد
+        </button>
+
+        <p class="nav-section-title">المحتوى والملاعب</p>
+        <button class="tab-button" data-tab="fields-tab" onclick="switchTab('fields-tab', event)">
+            <i class="fa-solid fa-futbol text-green-500"></i> إدارة الملاعب
+        </button>
+        <button class="tab-button" data-tab="tournaments-tab" onclick="switchTab('tournaments-tab', event)">
+            <i class="fa-solid fa-trophy text-amber-500"></i> إدارة البطولات
+        </button>
+        <button class="tab-button" data-tab="players-tab" onclick="switchTab('players-tab', event)">
+            <i class="fa-solid fa-users text-indigo-500"></i> اللاعبين
+        </button>
+
+        <p class="nav-section-title">التسويق والمتجر</p>
+        <button class="tab-button" data-tab="fashion-tab" onclick="switchTab('fashion-tab', event)">
+            <i class="fa-solid fa-shirt text-rose-500"></i> المتجر
+        </button>
+        <button class="tab-button" data-tab="giveaways-tab" onclick="switchTab('giveaways-tab', event)">
+            <i class="fa-solid fa-gift text-pink-500"></i> المسابقات
+        </button>
+    </div>
+
+    <div class="pt-6 mt-6 border-t border-slate-100">
+        <button onclick="handleLogout()"
+            class="flex items-center gap-3 px-6 py-3 w-full rounded-xl text-rose-600 font-bold hover:bg-rose-50 transition-all">
+            <i class="fa-solid fa-arrow-right-from-bracket rotate-180"></i>
+            تسجيل الخروج
+        </button>
+    </div>
+</aside>

@@ -15,12 +15,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     <!-- Social/Links or Tagline could go here -->
                     
                     <!-- Copyright text -->
-                    <p class="mb-2 text-lg font-light text-gray-400">© 2025 جميع الحقوق محفوظة لمنصة 5ع5.</p>
+                    <p class="mb-2 text-lg font-light text-gray-400">© 2026 جميع الحقوق محفوظة لمنصة 5ع5.</p>
                     
-                    <!-- Terms of Use link -->
-                    <div class="mb-6">
+                    <!-- Legal links -->
+                    <div class="mb-6 flex justify-center gap-6">
                         <a href="terms-of-use.html" class="text-sm text-gray-500 hover:text-green-400 transition-colors duration-300 underline-offset-4 hover:underline">
                             شروط الاستخدام
+                        </a>
+                        <a href="privacy-policy.html" class="text-sm text-gray-500 hover:text-green-400 transition-colors duration-300 underline-offset-4 hover:underline">
+                            سياسة الخصوصية
                         </a>
                     </div>
 
@@ -42,7 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             </footer>
         `;
-        
+
         globalFooterDiv.innerHTML = footerHTML;
     }
 });

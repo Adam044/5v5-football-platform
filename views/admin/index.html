@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة التحكم | منصة 5v5</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://site-assets.fontawesome.com/releases/v6.5.1/css/all.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&family=Cairo:wght@200..1000&display=swap"
+        rel="stylesheet">
+    <!-- Custom Sidebar & Header Styles -->
+    <link rel="stylesheet" href="/admin/dashboard.css">
+    <!-- Global Cleaner Loader -->
+    <script src="/components/loader.js"></script>
+</head>
+
+<body class="bg-slate-50 font-['Cairo'] antialiased">
+    <div id="modals-placeholder"></div>
+    <div id="sidebar-placeholder"></div>
+    <div id="sidebar-overlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+    <main class="admin-main">
+        <div id="header-placeholder"></div>
+
+        <div class="content-wrapper p-4 sm:p-8">
+            <div id="overview-tab-placeholder"></div>
+            <div id="matchmaking-tab-placeholder"></div>
+            <div id="reservations-tab-placeholder"></div>
+            <div id="fields-tab-placeholder"></div>
+            <div id="availability-tab-placeholder"></div>
+            <div id="tournaments-tab-placeholder"></div>
+            <div id="players-tab-placeholder"></div>
+            <div id="fashion-tab-placeholder"></div>
+            <div id="giveaways-tab-placeholder"></div>
+            <div id="gallery-tab-placeholder"></div>
+            <div id="sponsors-tab-placeholder"></div>
+            <div id="birthday-gifts-tab-placeholder"></div>
+        </div>
+    </main>
+
+
+    <script src="/components/header.js"></script>
+
+    <!-- Core App Scripts -->
+    <script src="/admin/dashboard.js"></script>
+    <script>
+        // Use a simple loader to inject components
+        async function loadComponent(id, path) {
+            try {
+                const response = await fetch(path);
+                const html = await response.text();
+                document.getElementById(id).innerHTML = html;
+            } catch (error) {
+                console.error(`Failed to load component: ${path}`, error);
+            }
+        }
+
+        async function initDashboard() {
+            // Load base components
+            await Promise.all([
+                loadComponent('modals-placeholder', '/admin/components/modals.html'),
+                loadComponent('sidebar-placeholder', '/admin/components/sidebar.html'),
+                loadComponent('header-placeholder', '/admin/components/header.html'),
+                loadComponent('overview-tab-placeholder', '/admin/components/overview-tab.html'),
+                loadComponent('matchmaking-tab-placeholder', '/admin/components/matchmaking-tab.html'),
+                loadComponent('reservations-tab-placeholder', '/admin/components/reservations-tab.html'),
+                loadComponent('fields-tab-placeholder', '/admin/components/fields-tab.html'),
+                loadComponent('availability-tab-placeholder', '/admin/components/availability-tab.html'),
+                loadComponent('tournaments-tab-placeholder', '/admin/components/tournaments-tab.html'),
+                loadComponent('players-tab-placeholder', '/admin/components/players-tab.html'),
+                loadComponent('fashion-tab-placeholder', '/admin/components/fashion-tab.html'),
+                loadComponent('giveaways-tab-placeholder', '/admin/components/giveaways-tab.html'),
+                loadComponent('gallery-tab-placeholder', '/admin/components/gallery-tab.html'),
+                loadComponent('sponsors-tab-placeholder', '/admin/components/sponsors-tab.html'),
+                loadComponent('birthday-gifts-tab-placeholder', '/admin/components/birthday-gifts-tab.html')
+            ]);
+
+            // Initialize dashboard logic from dashboard.js
+            if (typeof initDashboardEvents === 'function') {
+                initDashboardEvents();
+            }
+            if (typeof checkAdminAccess === 'function') {
+                checkAdminAccess();
+            }
+        }
+
+        window.onload = initDashboard;
+    </script>
+</body>
+
+</html>

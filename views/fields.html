@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الملاعب | 5ع5</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="/components/styles.css" />
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap');
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: #f0f4f8;
+        }
+
+        /* ===== Field card ===== */
+        .field-card {
+            background: white;
+            border-radius: 1.25rem;
+            border: 1.5px solid #e5e7eb;
+            overflow: hidden;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            display: block;
+            text-decoration: none;
+        }
+
+        .field-card:hover {
+            box-shadow: 0 14px 45px rgba(16, 185, 129, 0.15);
+            border-color: #10b981;
+            transform: translateY(-5px);
+        }
+
+        .field-card img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+
+        .field-card:hover img {
+            transform: scale(1.06);
+        }
+
+        /* ===== Skeleton ===== */
+        .skel {
+            background: linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%);
+            background-size: 200% 100%;
+            animation: skel 1.4s ease infinite;
+            border-radius: 0.5rem;
+        }
+
+        @keyframes skel {
+            0% {
+                background-position: 200% 0;
+            }
+
+            100% {
+                background-position: -200% 0;
+            }
+        }
+
+        /* Search */
+        .search-input:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+        }
+
+        .fade-up {
+            opacity: 0;
+            animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+    </style>
+</head>
+
+<body class="min-h-screen flex flex-col">
+
+    <div id="global-header"></div>
+
+
+    <!-- ===== PAGE HEADER ===== -->
+    <div class="bg-white border-b border-gray-100 shadow-sm">
+        <div class="container mx-auto px-4 md:px-6 py-8 max-w-7xl">
+            <!-- Breadcrumb -->
+            <div class="flex items-center gap-2 text-sm text-gray-400 mb-5">
+                <a href="index.html" class="hover:text-green-600 transition-colors">الرئيسية</a>
+                <i class="fa-solid fa-chevron-left text-xs"></i>
+                <span class="text-gray-700 font-semibold">الملاعب</span>
+            </div>
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-5">
+                <div>
+                    <h1 class="text-3xl font-black text-gray-900 flex items-center gap-3">
+                        <span class="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                            <i class="fa-solid fa-futbol text-green-600"></i>
+                        </span>
+                        الملاعب
+                    </h1>
+                    <p class="text-gray-500 text-sm mt-1 mr-13">تصفّح جميع ملاعبنا، شاهد الصور، واحجز مباشرة</p>
+                </div>
+                <!-- Search -->
+                <div class="relative w-full md:w-80">
+                    <i
+                        class="fa-solid fa-magnifying-glass absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none text-sm"></i>
+                    <input type="text" id="search-input" placeholder="ابحث عن ملعب..."
+                        class="search-input w-full bg-gray-50 text-gray-800 font-semibold pr-11 pl-4 py-3 rounded-xl text-sm border border-gray-200 transition-all duration-200">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== FIELDS SECTION ===== -->
+    <section class="flex-grow container mx-auto px-4 md:px-6 py-14 max-w-7xl">
+
+        <!-- Loading skeletons -->
+        <div id="loading-state" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            ${Array.from({length:8}).map(() => `
+            <div class="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+                <div class="skel h-48 w-full rounded-none"></div>
+                <div class="p-5 space-y-3">
+                    <div class="skel h-5 w-2/3"></div>
+                    <div class="skel h-4 w-1/2"></div>
+                    <div class="skel h-10 w-full rounded-xl mt-4"></div>
+                </div>
+            </div>`).join('')}
+        </div>
+
+        <!-- Fields grid -->
+        <div id="fields-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 hidden"></div>
+
+        <!-- Empty state -->
+        <div id="no-fields" class="hidden text-center py-20">
+            <div class="inline-flex items-center justify-center w-24 h-24 bg-gray-100 rounded-full mb-6">
+                <i class="fa-solid fa-futbol text-4xl text-gray-300"></i>
+            </div>
+            <h3 class="text-2xl font-bold text-gray-700 mb-3">لا توجد ملاعب</h3>
+            <p class="text-gray-500 mb-6">لم يتم العثور على أي ملعب يطابق بحثك</p>
+            <button onclick="clearSearch()"
+                class="inline-flex items-center gap-2 bg-green-600 text-white px-7 py-3 rounded-xl hover:bg-green-700 transition-colors font-bold">
+                <i class="fa-solid fa-rotate-right"></i> عرض الكل
+            </button>
+        </div>
+
+        <!-- Count badge -->
+        <div id="count-badge" class="hidden flex items-center gap-2 mb-8 text-gray-500 text-sm font-semibold">
+            <i class="fa-solid fa-layer-group text-green-500"></i>
+            <span id="count-text"></span>
+        </div>
+
+    </section>
+
+    <div id="global-footer"></div>
+
+    <script src="/components/header.js"></script>
+    <script src="/components/footer.js"></script>
+    <script src="/components/loader.js"></script>
+    <script>
+        let allFields = [];
+
+        function buildCard(f) {
+            const img = f.image_url || `https://placehold.co/400x250/10b981/ffffff?text=${encodeURIComponent(f.name)}`;
+            const stars = f.average_rating
+                ? `<div class="flex items-center gap-1 text-yellow-400 text-xs mt-1">
+                        ${Array.from({ length: 5 }).map((_, i) =>
+                    `<i class="fa-${i < Math.round(f.average_rating) ? 'solid' : 'regular'} fa-star"></i>`
+                ).join('')}
+                       <span class="text-gray-400 font-semibold mr-1">${parseFloat(f.average_rating).toFixed(1)}</span>
+                   </div>`
+                : '';
+
+            return `<a href="field.html?id=${f.id}" class="btn-click field-card fade-up">
+                <div class="overflow-hidden relative">
+                    <img src="${img}" alt="${f.name}" loading="lazy" class="img-fade-in"
+                         onload="this.classList.add('loaded')"
+                         onerror="this.src='https://placehold.co/400x250/10b981/ffffff?text=${encodeURIComponent(f.name)}'">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent flex items-end p-4 opacity-0 hover:opacity-100 transition-opacity duration-300">
+                        <span class="text-white font-bold text-sm flex items-center gap-1.5">
+                            <i class="fa-solid fa-eye text-xs"></i> عرض التفاصيل
+                        </span>
+                    </div>
+                </div>
+                <div class="p-5">
+                    <h3 class="font-extrabold text-gray-900 text-lg leading-snug flex items-start gap-2">
+                        <i class="fa-solid fa-futbol text-green-500 mt-0.5 flex-shrink-0 text-base"></i>
+                        ${f.name}
+                    </h3>
+                    ${stars}
+                    ${f.location ? `<p class="text-gray-400 text-xs flex items-center gap-1.5 mt-2"><i class="fa-solid fa-location-dot text-red-400"></i>${f.location}</p>` : ''}
+                    <div class="mt-4 bg-gradient-to-r from-green-600 to-emerald-500 text-white text-center py-2.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 hover:from-green-700 transition-all duration-300">
+                        <i class="fa-solid fa-calendar-plus text-xs"></i> احجز الآن
+                    </div>
+                </div>
+            </a>`;
+        }
+
+        function renderFields(fields) {
+            const grid = document.getElementById('fields-grid');
+            const noFields = document.getElementById('no-fields');
+            const badge = document.getElementById('count-badge');
+            const countText = document.getElementById('count-text');
+
+            if (!fields.length) {
+                grid.classList.add('hidden');
+                noFields.classList.remove('hidden');
+                badge.classList.add('hidden');
+                return;
+            }
+            noFields.classList.add('hidden');
+            grid.classList.remove('hidden');
+            badge.classList.remove('hidden');
+            countText.textContent = `${fields.length.toLocaleString('en')} ملعب`;
+            grid.innerHTML = fields.map((f, idx) => {
+                const html = buildCard(f);
+                // Apply staggered delay using style attribute
+                const delay = (idx % 8) * 100;
+                return html.replace('class="btn-click field-card fade-up"', `class="btn-click field-card fade-up" style="animation-delay: ${delay}ms"`);
+            }).join('');
+        }
+
+        function clearSearch() {
+            document.getElementById('search-input').value = '';
+            renderFields(allFields);
+        }
+
+        async function loadFields() {
+            try {
+                const res = await fetch('/api/fields');
+                const data = await res.json();
+                allFields = data.fields || [];
+
+                document.getElementById('loading-state').classList.add('hidden');
+
+                // Show count badge before first render
+                document.getElementById('count-badge').classList.remove('hidden');
+                renderFields(allFields);
+
+                // Search
+                document.getElementById('search-input').addEventListener('input', e => {
+                    const q = e.target.value.trim().toLowerCase();
+                    if (!q) { renderFields(allFields); return; }
+                    const filtered = allFields.filter(f =>
+                        f.name.toLowerCase().includes(q) ||
+                        (f.location || '').toLowerCase().includes(q)
+                    );
+                    renderFields(filtered);
+                });
+
+            } catch {
+                document.getElementById('loading-state').classList.add('hidden');
+                document.getElementById('no-fields').classList.remove('hidden');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadFields);
+    </script>
+</body>
+
+</html>

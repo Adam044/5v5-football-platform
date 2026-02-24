@@ -1,4 +1,4 @@
-(async function() {
+(async function () {
     // 1. Immunity Check
     if (window.location.pathname.includes('/owner_panel/')) {
         return;
@@ -8,7 +8,7 @@
     try {
         const res = await fetch('/api/public/system-status');
         const data = await res.json();
-        
+
         const globalLock = data.global_lock;
         const pageLocks = data.page_locks;
 
@@ -21,7 +21,7 @@
         else if (path.includes('fields.html')) pageId = 'fields';
         else if (path.includes('tournaments.html')) pageId = 'tournaments';
         else if (path.includes('profile.html')) pageId = 'profile';
-        else if (path.includes('admin-dashboard.html')) pageId = 'admin-dashboard';
+        else if (path.includes('admin-dashboard.html') || path === '/admin' || path.includes('/admin/')) pageId = 'admin-dashboard';
 
         // 4. Logic
         if (globalLock && globalLock.is_locked) {
@@ -41,9 +41,9 @@
 
         const overlay = document.createElement('div');
         overlay.className = 'fixed inset-0 z-[9999] flex items-center justify-center bg-[#0a0a0a] bg-opacity-95 backdrop-blur-sm';
-        
+
         let content = '';
-        
+
         // Common Contact Section
         const contactSection = `
             <div class="mt-8 pt-6 border-t border-gray-800/50 flex flex-col items-center">
@@ -86,7 +86,7 @@
             `;
         } else if (type === 'unavailable') {
             // Protocol 2: Administrative Pause (Realistic System Halt)
-             content = `
+            content = `
                 <div class="font-sans text-gray-300 text-center p-8 md:p-12 max-w-lg w-full mx-4">
                     <div class="mb-8">
                         <img src="/images/logo.jpg" class="h-16 w-16 mx-auto rounded-full border-2 border-yellow-900/50 shadow-lg grayscale opacity-80">
@@ -163,7 +163,7 @@
                         <p class="text-xs text-gray-400">Direct line to Adam Hawash is currently offline.</p>
                     </div>
                 `;
-                
+
                 document.body.appendChild(toast);
 
                 // Remove toast after 3 seconds
@@ -175,7 +175,7 @@
             });
         }
     }
-    
+
     // Add FadeIn Keyframe
     const styleSheet = document.createElement("style");
     styleSheet.innerText = `

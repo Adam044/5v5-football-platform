@@ -1,48 +1,49 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>معرض الصور - منصة كرة القدم</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="/styles.css" />
+    <link rel="stylesheet" href="/components/styles.css" />
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap');
-        
+
         * {
             font-family: 'Cairo', sans-serif;
         }
-        
+
         .gallery-card {
             transition: all 0.3s ease;
             overflow: hidden;
         }
-        
+
         .gallery-card:hover {
             transform: translateY(-5px);
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
         }
-        
+
         .gallery-image {
             transition: transform 0.3s ease;
         }
-        
+
         .gallery-card:hover .gallery-image {
             transform: scale(1.05);
         }
-        
+
         .filter-btn {
             transition: all 0.3s ease;
         }
-        
+
         .filter-btn.active {
             background: linear-gradient(135deg, #10b981, #059669);
             color: white;
             transform: translateY(-2px);
             box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
         }
-        
+
         .loading-spinner {
             border: 3px solid #f3f4f6;
             border-top: 3px solid #10b981;
@@ -51,32 +52,45 @@
             height: 40px;
             animation: spin 1s linear infinite;
         }
-        
+
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
         }
-        
+
         .fade-in {
             animation: fadeIn 0.5s ease-in;
         }
-        
+
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
-        
+
         .modal-overlay {
             backdrop-filter: blur(5px);
             background: rgba(0, 0, 0, 0.8);
         }
-        
+
         .modal-content {
             max-width: 90vw;
             max-height: 90vh;
         }
     </style>
 </head>
+
 <body class="bg-gray-50 min-h-screen">
     <!-- Header -->
     <div id="global-header"></div>
@@ -98,7 +112,9 @@
             <div class="mb-8">
                 <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">تصفية حسب الفئة</h2>
                 <div id="category-filters" class="flex flex-wrap justify-center gap-3">
-                    <button class="filter-btn active px-6 py-3 rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300 font-semibold" data-category="">
+                    <button
+                        class="filter-btn active px-6 py-3 rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300 font-semibold"
+                        data-category="">
                         جميع الصور
                     </button>
                     <!-- Categories will be loaded here -->
@@ -108,8 +124,8 @@
             <!-- Search Bar -->
             <div class="mb-8 max-w-md mx-auto">
                 <div class="relative">
-                    <input type="text" id="search-input" placeholder="البحث في الصور..." 
-                           class="w-full px-4 py-3 pr-12 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                    <input type="text" id="search-input" placeholder="البحث في الصور..."
+                        class="w-full px-4 py-3 pr-12 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-transparent">
                     <i class="fa-solid fa-search absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
                 </div>
             </div>
@@ -133,7 +149,8 @@
 
             <!-- Load More Button -->
             <div id="load-more-container" class="hidden flex justify-center mt-12">
-                <button id="load-more-btn" class="bg-green-600 text-white px-8 py-3 rounded-lg hover:bg-green-700 transition-all duration-200 font-semibold flex items-center gap-2">
+                <button id="load-more-btn"
+                    class="bg-green-600 text-white px-8 py-3 rounded-lg hover:bg-green-700 transition-all duration-200 font-semibold flex items-center gap-2">
                     <i class="fa-solid fa-plus"></i>
                     تحميل المزيد
                 </button>
@@ -145,7 +162,8 @@
     <div id="image-modal" class="hidden fixed inset-0 z-50 modal-overlay flex items-center justify-center p-4">
         <div class="modal-content bg-white rounded-lg overflow-hidden">
             <div class="relative">
-                <button id="close-modal" class="absolute top-4 left-4 z-10 bg-black bg-opacity-50 text-white rounded-full w-10 h-10 flex items-center justify-center hover:bg-opacity-70 transition-colors">
+                <button id="close-modal"
+                    class="absolute top-4 left-4 z-10 bg-black bg-opacity-50 text-white rounded-full w-10 h-10 flex items-center justify-center hover:bg-opacity-70 transition-colors">
                     <i class="fa-solid fa-times"></i>
                 </button>
                 <img id="modal-image" src="" alt="" class="w-full h-auto max-h-[80vh] object-contain">
@@ -161,8 +179,8 @@
     <div id="global-footer"></div>
 
     <!-- Scripts -->
-    <script src="header.js"></script>
-    <script src="footer.js"></script>
+    <script src="/components/header.js"></script>
+    <script src="/components/footer.js"></script>
     <script>
         // Global variables
         let allImages = [];
@@ -254,10 +272,10 @@
             try {
                 const response = await fetch('/api/categories');
                 const data = await response.json();
-                
+
                 if (response.ok && data.categories) {
                     const filtersContainer = document.getElementById('category-filters');
-                    
+
                     data.categories.forEach(category => {
                         const button = document.createElement('button');
                         button.className = 'filter-btn px-6 py-3 rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300 font-semibold';
@@ -277,7 +295,7 @@
             // Update active button
             document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
             button.classList.add('active');
-            
+
             currentCategory = categoryId;
             currentPage = 1;
             loadGallery(1); // Reload with new category filter
@@ -289,20 +307,20 @@
                 if (!append) {
                     showLoading();
                 }
-                
+
                 // Build query parameters
                 const params = new URLSearchParams({
                     page: page,
                     limit: imagesPerPage
                 });
-                
+
                 if (currentCategory && currentCategory !== '') {
                     params.append('category', currentCategory);
                 }
-                
+
                 const response = await fetch(`/api/gallery?${params}`);
                 const data = await response.json();
-                
+
                 if (response.ok && data.images) {
                     if (append) {
                         // Append new images to existing ones
@@ -311,14 +329,14 @@
                         // Replace images (new search/filter)
                         allImages = data.images;
                     }
-                    
+
                     // Update pagination info
                     if (data.pagination) {
                         currentPage = data.pagination.currentPage;
                         hasMorePages = data.pagination.hasNextPage;
                         updateLoadMoreButton();
                     }
-                    
+
                     filterAndDisplayImages();
                 } else {
                     if (!append) {
@@ -337,7 +355,7 @@
         function updateLoadMoreButton() {
             const loadMoreContainer = document.getElementById('load-more-container');
             const loadMoreBtn = document.getElementById('load-more-btn');
-            
+
             if (hasMorePages) {
                 loadMoreContainer.classList.remove('hidden');
                 loadMoreBtn.disabled = false;
@@ -353,14 +371,14 @@
         // Load more images
         function loadMoreImages() {
             const loadMoreBtn = document.getElementById('load-more-btn');
-            
+
             // Show loading state
             loadMoreBtn.disabled = true;
             loadMoreBtn.innerHTML = `
                 <i class="fa-solid fa-spinner fa-spin"></i>
                 جاري التحميل...
             `;
-            
+
             // Load next page and append to current images
             loadGallery(currentPage + 1, true);
         }
@@ -369,14 +387,14 @@
         function filterAndDisplayImages() {
             // Filter images based on search (category filtering is done server-side)
             let imagesToDisplay = allImages;
-            
+
             if (currentSearch) {
                 imagesToDisplay = allImages.filter(image => {
                     return (image.title && image.title.toLowerCase().includes(currentSearch)) ||
-                           (image.category_name && image.category_name.toLowerCase().includes(currentSearch));
+                        (image.category_name && image.category_name.toLowerCase().includes(currentSearch));
                 });
             }
-            
+
             displayImages(imagesToDisplay);
         }
 
@@ -412,12 +430,12 @@
         function createImageCard(image) {
             const card = document.createElement('div');
             card.className = 'gallery-card bg-white rounded-lg shadow-md overflow-hidden cursor-pointer';
-            
+
             const imageUrl = image.image_url || `https://placehold.co/400x300/10b981/ffffff?text=${encodeURIComponent(image.title || 'صورة')}`;
-            
+
             // Only show category tag if we're viewing "All Images" (no category filter)
             const showCategoryTag = !currentCategory || currentCategory === '';
-            
+
             card.innerHTML = `
                 <div class="relative overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100">
                     <img src="${imageUrl}" alt="${image.title || 'صورة'}" 
@@ -431,7 +449,7 @@
                     ${image.title ? `<h3 class="font-semibold text-gray-800 mb-2 line-clamp-2 text-center">${image.title}</h3>` : ''}
                 </div>
             `;
-            
+
             card.addEventListener('click', () => openModal(image));
             return card;
         }
@@ -444,7 +462,7 @@
             const modalCategory = document.getElementById('modal-category');
 
             const imageUrl = image.image_url || `https://placehold.co/800x600/10b981/ffffff?text=${encodeURIComponent(image.title || 'صورة')}`;
-            
+
             modalImage.src = imageUrl;
             modalImage.alt = image.title || 'صورة';
             modalTitle.textContent = image.title || 'بدون عنوان';
@@ -463,4 +481,5 @@
 
     </script>
 </body>
+
 </html>

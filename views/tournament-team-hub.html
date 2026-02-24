@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,12 +10,13 @@
     <!-- Font Awesome CDN -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
-    
+
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap');
-        
+
         :root {
-            --primary-color: #9333ea; /* Purple for tournaments */
+            --primary-color: #9333ea;
+            /* Purple for tournaments */
             --secondary-color: #f97316;
             --background-color: #f0f4f8;
             --text-color: #2c3e50;
@@ -31,7 +33,7 @@
             justify-content: flex-start;
             padding: 2rem;
         }
-        
+
         .card {
             background-color: white;
             border-radius: 1.5rem;
@@ -43,7 +45,8 @@
         }
 
         .tournament-info-box {
-            background-color: #f3e8ff; /* Light Purple */
+            background-color: #f3e8ff;
+            /* Light Purple */
             border-radius: 1rem;
             padding: 1.5rem;
             border-left: 4px solid var(--primary-color);
@@ -57,7 +60,7 @@
             border: 2px solid var(--primary-color);
             transition: all 0.3s ease;
         }
-        
+
         .player-card {
             background-color: #f0f4f8;
             border-radius: 0.75rem;
@@ -69,11 +72,13 @@
             border: 1px solid #e2e8f0;
             transition: all 0.2s;
         }
+
         .player-card.captain {
-            background-color: #fef9c3; /* Light Yellow */
+            background-color: #fef9c3;
+            /* Light Yellow */
             border-color: var(--secondary-color);
         }
-        
+
         .progress-bar-container {
             height: 12px;
             background-color: #e2e8f0;
@@ -81,12 +86,13 @@
             overflow: hidden;
             margin-top: 1rem;
         }
+
         .progress-bar-fill {
             height: 100%;
             background-color: var(--primary-color);
             transition: width 0.3s ease;
         }
-        
+
         .status-badge {
             display: inline-flex;
             align-items: center;
@@ -98,10 +104,12 @@
             text-transform: uppercase;
             letter-spacing: 0.05em;
         }
+
         .status-forming {
             background-color: #fef3c7;
             color: #92400e;
         }
+
         .status-ready {
             background-color: #d1fae5;
             color: #065f46;
@@ -117,29 +125,33 @@
             transition: all 0.3s ease;
             box-shadow: 0 4px 15px rgba(147, 51, 234, 0.3);
         }
+
         .btn-primary:hover {
             transform: translateY(-2px);
             box-shadow: 0 8px 25px rgba(147, 51, 234, 0.4);
         }
+
         .pulse {
             animation: pulse 1s infinite cubic-bezier(0.66, 0, 0, 1);
         }
+
         @keyframes pulse {
             to {
                 box-shadow: 0 0 0 10px rgba(147, 51, 234, 0);
             }
         }
-        
     </style>
 </head>
+
 <body>
 
     <main class="card">
         <!-- Logo Section -->
         <div class="flex items-center justify-center mb-6">
-            <img src="/images/logo.jpg" alt="5ع5 Logo" class="w-20 h-20 rounded-full object-cover shadow-md border-4 border-purple-600">
+            <img src="/images/logo.jpg" alt="5ع5 Logo"
+                class="w-20 h-20 rounded-full object-cover shadow-md border-4 border-purple-600">
         </div>
-        
+
         <h1 class="text-3xl font-extrabold text-gray-900 mb-6 flex items-center justify-center gap-3">
             <i class="fa-solid fa-trophy text-yellow-500"></i>
             مركز تسجيل الفرق للبطولة
@@ -147,11 +159,12 @@
 
         <!-- Navigation Actions -->
         <div class="flex items-center justify-center mb-6">
-            <a href="index.html" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition flex items-center">
+            <a href="index.html"
+                class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition flex items-center">
                 <i class="fa-solid fa-house ml-2"></i> العودة للصفحة الرئيسية
             </a>
         </div>
-        
+
         <!-- Loading State -->
         <div id="loading-state" class="py-12">
             <div class="animate-spin rounded-full h-16 w-16 border-b-2 border-purple-600 mx-auto mb-4"></div>
@@ -160,12 +173,12 @@
 
         <!-- Main Content -->
         <div id="main-content" class="hidden">
-            
+
             <!-- Tournament Info Section -->
             <div id="tournament-info" class="tournament-info-box mb-8">
                 <!-- Tournament details will be populated here -->
             </div>
-            
+
             <!-- Team Name Input (Visible if user needs to create the team) -->
             <div id="team-creation-form" class="hidden mb-8 p-6 border border-gray-200 rounded-xl bg-gray-50">
                 <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center gap-2 justify-center">
@@ -173,22 +186,15 @@
                     ابدأ فريقك
                 </h2>
                 <p class="text-gray-600 mb-4">أنت قائد الفريق. أدخل اسم فريقك لبدء عملية التسجيل.</p>
-                <input
-                    type="text"
-                    id="team-name-input"
+                <input type="text" id="team-name-input"
                     class="p-3 border border-gray-300 rounded-lg w-full text-right focus:ring-purple-500 focus:border-purple-500 transition-all duration-200"
-                    placeholder="اسم الفريق (مثال: النسور الخضراء)"
-                    required
-                />
-                <button
-                    onclick="createTournamentTeam()"
-                    id="create-team-btn"
-                    class="btn-primary w-full py-3 text-lg mt-4"
-                >
+                    placeholder="اسم الفريق (مثال: النسور الخضراء)" required />
+                <button onclick="createTournamentTeam()" id="create-team-btn"
+                    class="btn-primary w-full py-3 text-lg mt-4">
                     <i class="fa-solid fa-user-plus ml-2"></i> إنشاء الفريق
                 </button>
             </div>
-            
+
             <!-- Team Hub Section (Visible once team exists) -->
             <div id="team-hub" class="hidden">
                 <div id="team-status-header" class="text-xl font-semibold text-gray-700 mb-6 text-right">
@@ -207,21 +213,26 @@
                         <i class="fa-solid fa-share-nodes text-orange-500"></i>
                         شارك الدعوة
                     </h3>
-                    <p class="text-gray-600 mb-6 text-center">شارك الرابط أو رمز QR مع أصدقائك للانضمام لفريقك في البطولة.</p>
-                    
+                    <p class="text-gray-600 mb-6 text-center">شارك الرابط أو رمز QR مع أصدقائك للانضمام لفريقك في
+                        البطولة.</p>
+
                     <div class="flex flex-col md:flex-row gap-4 max-w-xl mx-auto">
                         <div class="bg-white p-4 rounded-xl shadow-md border border-gray-200 flex-1">
                             <label class="block text-gray-700 font-semibold mb-2 text-right text-sm">رابط الدعوة</label>
                             <div class="flex gap-2 items-stretch">
-                                <input id="invitation-link" type="text" readonly class="flex-grow p-2 rounded bg-gray-50 text-sm border border-gray-300 text-right font-mono min-w-0" value="">
-                                <button onclick="copyLink()" class="btn bg-blue-500 text-white flex-shrink-0 px-4 py-2 text-sm rounded-xl hover:bg-blue-600 transition-colors">
+                                <input id="invitation-link" type="text" readonly
+                                    class="flex-grow p-2 rounded bg-gray-50 text-sm border border-gray-300 text-right font-mono min-w-0"
+                                    value="">
+                                <button onclick="copyLink()"
+                                    class="btn bg-blue-500 text-white flex-shrink-0 px-4 py-2 text-sm rounded-xl hover:bg-blue-600 transition-colors">
                                     <i class="fa-solid fa-copy"></i> نسخ
                                 </button>
                             </div>
                         </div>
 
                         <!-- QR Code Toggle Button -->
-                        <button onclick="toggleQrModal()" class="btn-primary flex-shrink-0 py-3 px-6 text-lg mt-2 pulse hover:shadow-xl">
+                        <button onclick="toggleQrModal()"
+                            class="btn-primary flex-shrink-0 py-3 px-6 text-lg mt-2 pulse hover:shadow-xl">
                             <i class="fa-solid fa-qrcode ml-2"></i> رمز QR
                         </button>
                     </div>
@@ -234,7 +245,7 @@
                         قائمة اللاعبين (<span id="current-player-count">0</span> / 8)
                     </h3>
                     <p id="team-ready-message" class="text-center text-sm font-medium mb-4"></p>
-                    
+
                     <div class="progress-bar-container mb-6">
                         <div id="team-progress" class="progress-bar-fill" style="width: 0%;"></div>
                     </div>
@@ -243,23 +254,25 @@
                         <!-- Players will be added here -->
                     </div>
                 </div>
-                
+
                 <!-- Final Registration Button (Visible only to Captain) -->
                 <div id="registration-button-section" class="mt-8 hidden">
-                    <button id="register-team-btn" onclick="confirmTournamentRegistration()" class="btn-primary w-full py-4 text-xl" disabled>
+                    <button id="register-team-btn" onclick="confirmTournamentRegistration()"
+                        class="btn-primary w-full py-4 text-xl" disabled>
                         <i class="fa-solid fa-shield-halved ml-2"></i>
                         تأكيد التسجيل النهائي في البطولة
                     </button>
                     <p id="registration-message" class="text-red-500 text-sm mt-3 font-semibold"></p>
                 </div>
             </div>
-            
+
             <!-- Join Button for Members -->
-             <div id="join-team-section" class="mt-8 hidden">
+            <div id="join-team-section" class="mt-8 hidden">
                 <div class="p-6 bg-yellow-50 rounded-xl border-2 border-yellow-300 text-center">
                     <h3 class="text-xl font-bold text-yellow-800 mb-4">تمت دعوتك!</h3>
                     <p class="text-gray-700 mb-6">انضم إلى الفريق الآن لتأكيد مكانك في البطولة.</p>
-                    <button id="join-team-member-btn" onclick="joinTournamentTeam()" class="btn-primary bg-yellow-600 hover:bg-yellow-700 w-full py-3 text-lg">
+                    <button id="join-team-member-btn" onclick="joinTournamentTeam()"
+                        class="btn-primary bg-yellow-600 hover:bg-yellow-700 w-full py-3 text-lg">
                         <i class="fa-solid fa-user-plus ml-2"></i> انضم للفريق
                     </button>
                 </div>
@@ -269,8 +282,10 @@
 
     <!-- QR Code Modal -->
     <div id="qr-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50">
-        <div class="bg-white rounded-2xl shadow-3xl w-full max-w-sm relative p-8 qr-modal-content border-b-4 border-purple-600">
-            <button onclick="toggleQrModal()" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 transition-colors duration-300 rounded-full bg-gray-100 p-2 hover:bg-gray-200">
+        <div
+            class="bg-white rounded-2xl shadow-3xl w-full max-w-sm relative p-8 qr-modal-content border-b-4 border-purple-600">
+            <button onclick="toggleQrModal()"
+                class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 transition-colors duration-300 rounded-full bg-gray-100 p-2 hover:bg-gray-200">
                 <i class="fa-solid fa-xmark"></i>
             </button>
             <h3 class="text-3xl font-bold mb-6 text-center text-gray-900">
@@ -288,10 +303,12 @@
     <!-- Message Box (replaces alert) -->
     <div id="message-box" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50">
         <div class="bg-white rounded-2xl shadow-3xl p-8 w-full max-w-sm relative text-center border-t-4 border-red-500">
-            <h4 id="message-box-title" class="text-2xl font-bold mb-4 text-gray-900 flex items-center justify-center gap-2"></h4>
+            <h4 id="message-box-title"
+                class="text-2xl font-bold mb-4 text-gray-900 flex items-center justify-center gap-2"></h4>
             <p id="message-box-content" class="text-gray-700 mb-6 text-lg"></p>
             <div id="message-box-actions" class="flex items-center justify-center gap-3">
-                <button onclick="closeMessageBox()" class="bg-red-600 text-white px-7 py-3 rounded-xl hover:bg-red-700 transition-all duration-300 shadow-md text-lg">حسناً</button>
+                <button onclick="closeMessageBox()"
+                    class="bg-red-600 text-white px-7 py-3 rounded-xl hover:bg-red-700 transition-all duration-300 shadow-md text-lg">حسناً</button>
             </div>
         </div>
     </div>
@@ -300,7 +317,7 @@
         const urlParams = new URLSearchParams(window.location.search);
         let tournamentId = urlParams.get('tournamentId');
         let invitationCode = urlParams.get('invitationCode') || urlParams.get('code');
-        
+
         // Only use pathname if it's not the HTML file itself
         if (!invitationCode) {
             const pathSegment = window.location.pathname.split('/').pop();
@@ -308,7 +325,7 @@
                 invitationCode = pathSegment;
             }
         }
-        
+
         let tournamentData = null;
         let teamData = null;
         let teamPlayers = [];
@@ -316,10 +333,10 @@
         let isCaptain = false;
         let isMember = false;
         let pollingInterval;
-        
+
         const MIN_PLAYERS = 6;
         const MAX_PLAYERS = 8;
-        
+
         const loggedInUserId = localStorage.getItem('userId');
         const loggedInUserName = localStorage.getItem('userName');
         const loggedInUserEmail = localStorage.getItem('userEmail');
@@ -331,14 +348,14 @@
             const msgTitle = document.getElementById('message-box-title');
             const msgContent = document.getElementById('message-box-content');
             const actionsContainer = document.getElementById('message-box-actions');
-            
+
             msgTitle.innerHTML = '';
             const box = msgBox.querySelector('.bg-white');
             box.classList.remove('border-t-4', 'border-red-500', 'border-green-600', 'border-yellow-500', 'border-blue-500');
 
             let icon = '', color = 'red', buttonText = 'حسناً';
             let buttonClass = 'bg-red-600';
-            switch(type) {
+            switch (type) {
                 case 'success':
                     icon = `<i class="fa-solid fa-circle-check text-green-600 ml-2"></i>`;
                     color = 'green';
@@ -365,7 +382,7 @@
             actionsContainer.innerHTML = `
                 <button onclick="closeMessageBox()" class="text-white px-7 py-3 rounded-xl hover:opacity-90 transition-all duration-300 shadow-md text-lg ${buttonClass}">${buttonText}</button>
             `;
-            
+
             msgBox.classList.remove('hidden');
         }
 
@@ -379,7 +396,7 @@
             const msgTitle = document.getElementById('message-box-title');
             const msgContent = document.getElementById('message-box-content');
             const actionsContainer = document.getElementById('message-box-actions');
-            
+
             msgTitle.innerHTML = '';
             const box = msgBox.querySelector('.bg-white');
             box.classList.remove('border-t-4', 'border-red-500', 'border-green-600', 'border-yellow-500', 'border-blue-500');
@@ -408,17 +425,17 @@
                     </button>
                 </div>
             `;
-            
+
             msgBox.classList.remove('hidden');
         }
 
         // Redirect functions
         function redirectToLogin() {
-            window.location.href = 'auth.html?mode=login';
+            window.location.href = 'auth.html?view=sign-in';
         }
 
         function redirectToSignup() {
-            window.location.href = 'auth.html?mode=signup';
+            window.location.href = 'auth.html?view=sign-up';
         }
 
         function generateQRCode(text) {
@@ -452,7 +469,7 @@
                 ctx.fillText('QR Failed', size / 2, size / 2);
             }
         }
-        
+
         function toggleQrModal() {
             document.getElementById('qr-modal').classList.toggle('hidden');
         }
@@ -460,9 +477,9 @@
         function setupInvitationLink() {
             const invitationLinkInput = document.getElementById('invitation-link');
             // This is the URL structure for an invited member
-            const fullUrl = `${window.location.origin}/tournament-team-hub.html?invitationCode=${teamData.invitation_code}`; 
+            const fullUrl = `${window.location.origin}/tournament-team-hub.html?invitationCode=${teamData.invitation_code}`;
             invitationLinkInput.value = fullUrl;
-            generateQRCode(fullUrl); 
+            generateQRCode(fullUrl);
         }
 
         // --- Core Fetching & State Logic ---
@@ -472,15 +489,15 @@
             const mainContent = document.getElementById('main-content');
             loadingState.classList.remove('hidden');
             mainContent.classList.add('hidden');
-            
+
             if (invitationCode && invitationCode !== 'tournament-team-hub.html' && invitationCode.length > 5) {
-                 // Flow 1: User joining via invitation code (or creator revisiting)
-                 // Allow viewing team details even without login, but require login for joining
-                 await fetchTeamDetailsByCode(invitationCode);
+                // Flow 1: User joining via invitation code (or creator revisiting)
+                // Allow viewing team details even without login, but require login for joining
+                await fetchTeamDetailsByCode(invitationCode);
             } else if (tournamentId) {
                 // Flow 2: Creator started registration from tournaments.html - requires login
                 if (!loggedInUserId) {
-                     showMessageBox(
+                    showMessageBox(
                         'تسجيل الدخول مطلوب',
                         'لإنشاء فريق في البطولة، يرجى تسجيل الدخول أولاً.',
                         'warning'
@@ -498,7 +515,7 @@
 
         async function fetchTournamentDetails(id) {
             try {
- const response = await fetch(`/api/tournaments/${id}`);
+                const response = await fetch(`/api/tournaments/${id}`);
                 const data = await response.json();
                 if (!response.ok || !data.tournament) throw new Error(data.error || 'فشل في تحميل بيانات البطولة');
                 tournamentData = data.tournament;
@@ -510,19 +527,19 @@
         }
 
         async function fetchTeamDetailsByCode(code) {
-             try {
- const response = await fetch(`/api/team-signup/${code}`);
+            try {
+                const response = await fetch(`/api/team-signup/${code}`);
                 const data = await response.json();
-                
+
                 if (!response.ok || !data.team) throw new Error(data.error || 'رمز الدعوة غير صالح أو انتهت صلاحيته.');
-                
+
                 teamData = data.team;
                 tournamentData = data.tournament;
                 teamPlayers = data.players || [];
-                
+
                 isCaptain = teamData.captain_id === parseInt(loggedInUserId);
                 isMember = teamPlayers.some(p => p.user_id === parseInt(loggedInUserId));
-                
+
                 renderTournamentInfo();
                 renderTeamHub();
 
@@ -535,7 +552,7 @@
                 // Start polling only if the team is still forming
                 if (teamData.status === 'forming') {
                     if (!pollingInterval) {
-                         pollingInterval = setInterval(() => fetchTeamDetailsByCode(code), 5000);
+                        pollingInterval = setInterval(() => fetchTeamDetailsByCode(code), 5000);
                     }
                 } else {
                     if (pollingInterval) clearInterval(pollingInterval);
@@ -547,20 +564,20 @@
                 document.getElementById('loading-state').classList.add('hidden');
             }
         }
-        
+
         async function checkOrCreateTeam(id) {
             // Since there is no explicit endpoint to check a user's existing team for a tournament, 
             // we will proceed to show the creation form if no invitationCode was provided in the URL.
             // If the server's /api/team-signup/create endpoint handles duplicates (which it should), 
             // the user will either create a new team or be told the team already exists for this tournament.
-            
+
             if (!teamData) {
                 document.getElementById('team-creation-form').classList.remove('hidden');
             } else {
-                 // If teamData exists (e.g., from a successful redirect after creation), render the hub directly
-                 renderTeamHub();
+                // If teamData exists (e.g., from a successful redirect after creation), render the hub directly
+                renderTeamHub();
             }
-            
+
             document.getElementById('loading-state').classList.add('hidden');
             document.getElementById('main-content').classList.remove('hidden');
         }
@@ -571,18 +588,18 @@
             const teamNameInput = document.getElementById('team-name-input');
             const teamName = teamNameInput.value.trim();
             const createBtn = document.getElementById('create-team-btn');
-            
+
             if (!teamName) {
                 showMessageBox('اسم الفريق مطلوب', 'الرجاء إدخال اسم لفريقك.');
                 return;
             }
-            
+
             const originalHtml = createBtn.innerHTML;
             createBtn.disabled = true;
             createBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin ml-2"></i> جاري الإنشاء...`;
 
             try {
- const response = await fetch('/api/team-signup/create', {
+                const response = await fetch('/api/team-signup/create', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -592,23 +609,23 @@
                         creatorName: loggedInUserName
                     })
                 });
-                
+
                 const data = await response.json();
-                
+
                 if (!response.ok) {
                     throw new Error(data.error || 'فشل في إنشاء الفريق');
                 }
-                
+
                 teamData = data.team;
                 teamPlayers = [{ user_id: parseInt(loggedInUserId), user_name: loggedInUserName, is_captain: 1 }]; // Mock adding player until next poll
                 isCaptain = true;
-                
+
                 // Update URL with invitation code to handle refresh/sharing
                 history.replaceState(null, '', `?invitationCode=${teamData.invitation_code}`);
 
                 showMessageBox('تم إنشاء الفريق!', 'لقد تم إنشاء فريقك بنجاح، يمكنك الآن دعوة اللاعبين.', 'success');
                 renderTeamHub();
-                
+
             } catch (error) {
                 console.error('Error creating team:', error);
                 showMessageBox('خطأ في الإنشاء', error.message);
@@ -617,14 +634,14 @@
                 createBtn.innerHTML = originalHtml;
             }
         }
-        
+
         async function joinTournamentTeam() {
             // Check if user is logged in
             if (!loggedInUserId) {
                 showLoginModal();
                 return;
             }
-            
+
             if (teamData.status === 'registered') {
                 showMessageBox('الفريق مسجل بالفعل', 'هذا الفريق مسجل بالفعل في البطولة ولا يقبل أعضاء جدد.');
                 return;
@@ -633,14 +650,14 @@
                 showMessageBox('أنت مسجل بالفعل', 'أنت مسجل بالفعل في هذا الفريق.');
                 return;
             }
-            
+
             const joinBtn = document.getElementById('join-team-member-btn');
             const originalHtml = joinBtn.innerHTML;
             joinBtn.disabled = true;
             joinBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin ml-2"></i> جاري الانضمام...`;
-            
+
             try {
- const response = await fetch('/api/team-signup/join', {
+                const response = await fetch('/api/team-signup/join', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -649,9 +666,9 @@
                         userName: loggedInUserName
                     })
                 });
-                
+
                 const data = await response.json();
-                
+
                 if (!response.ok) {
                     // Check if it's a user authentication error
                     if (data.error && data.error.includes('User not found')) {
@@ -660,10 +677,10 @@
                     }
                     throw new Error(data.error || 'فشل في الانضمام للفريق');
                 }
-                
+
                 showMessageBox('تم الانضمام بنجاح!', 'أهلاً بك في الفريق!', 'success');
                 await fetchTeamDetailsByCode(teamData.invitation_code);
-                
+
             } catch (error) {
                 console.error('Error joining team:', error);
                 showMessageBox('خطأ في الانضمام', error.message);
@@ -675,14 +692,14 @@
 
         async function removePlayer(targetUserId) {
             if (!confirm('هل أنت متأكد من إزالة هذا اللاعب؟')) return;
-            
+
             try {
                 // If current user removes themselves, use the leave endpoint logic if the user is a member
                 // If captain removes a member, use the remove-player endpoint
-                
+
                 const isLeaving = parseInt(targetUserId) === parseInt(loggedInUserId);
-                
- const response = await fetch('/api/team-signup/remove-player', {
+
+                const response = await fetch('/api/team-signup/remove-player', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -691,15 +708,15 @@
                         targetUserId: targetUserId
                     })
                 });
-                
+
                 const data = await response.json();
-                
+
                 if (!response.ok) {
                     throw new Error(data.error || 'فشل في إزالة/مغادرة اللاعب');
                 }
-                
+
                 showMessageBox('تم الإجراء', 'تم إزالة/مغادرة اللاعب بنجاح.', 'success');
-                
+
                 if (isLeaving) {
                     // If the user leaves, clear local state and force reload to check for creation
                     teamData = null;
@@ -709,7 +726,7 @@
                 } else {
                     await fetchTeamDetailsByCode(teamData.invitation_code); // Refresh
                 }
-                
+
             } catch (error) {
                 console.error('Error removing player:', error);
                 showMessageBox('خطأ في الإزالة', error.message);
@@ -722,14 +739,14 @@
                 return;
             }
             if (!confirm('هل أنت متأكد من تأكيد التسجيل النهائي لفريقك في البطولة؟')) return;
-            
+
             const confirmBtn = document.getElementById('register-team-btn');
             const originalHtml = confirmBtn.innerHTML;
             confirmBtn.disabled = true;
             confirmBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin ml-2"></i> جاري التسجيل...`;
-            
+
             try {
- const response = await fetch('/api/team-signup/confirm', {
+                const response = await fetch('/api/team-signup/confirm', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -738,19 +755,19 @@
                         captainId: loggedInUserId
                     })
                 });
-                
+
                 const data = await response.json();
-                
+
                 if (!response.ok) {
                     throw new Error(data.error || 'فشل في تأكيد التسجيل.');
                 }
 
                 showMessageBox('تم التسجيل!', `تم تسجيل فريق ${teamData.name} بنجاح في البطولة!`, 'success');
-                
+
                 // Stop polling and refresh page to show registered status
                 if (pollingInterval) clearInterval(pollingInterval);
                 await fetchTeamDetailsByCode(teamData.invitation_code);
-                
+
             } catch (error) {
                 console.error('Error confirming tournament registration:', error);
                 showMessageBox('خطأ في التأكيد', error.message);
@@ -794,20 +811,20 @@
             document.getElementById('team-creation-form').classList.add('hidden');
             document.getElementById('team-hub').classList.remove('hidden');
             document.getElementById('current-team-name').textContent = teamData.team_name || teamData.name; // Use appropriate property
-            
+
             const isTeamRegistered = teamData.status === 'registered';
 
             // CAPTAIN VIEW: Show invitation/registration sections if captain and team is forming
             document.getElementById('invitation-section').classList.toggle('hidden', !isCaptain || isTeamRegistered);
             document.getElementById('registration-button-section').classList.toggle('hidden', !isCaptain); // Always show captain's button, disabled if status is registered
             document.getElementById('join-team-section').classList.toggle('hidden', isCaptain || isMember || isTeamRegistered);
-            
+
             // Set up invitation link if captain
             if (isCaptain) setupInvitationLink();
 
             // Update player count and progress bar
             updatePlayerCountDisplay();
-            
+
             // Render player list
             renderPlayerList();
 
@@ -817,7 +834,7 @@
 
         function updatePlayerCountDisplay() {
             const current = teamPlayers.length;
-            
+
             // Status Badge
             const statusDiv = document.getElementById('status-display');
             let statusBadgeHtml;
@@ -831,7 +848,7 @@
                                         <i class="fa-solid fa-user-check"></i> جاهز للتسجيل!
                                     </span>`;
             } else {
-                 statusBadgeHtml = `<span class="status-badge status-forming bg-yellow-100 text-yellow-800">
+                statusBadgeHtml = `<span class="status-badge status-forming bg-yellow-100 text-yellow-800">
                                         <i class="fa-solid fa-hourglass-start"></i> قيد التكوين...
                                     </span>`;
             }
@@ -842,37 +859,37 @@
             document.getElementById('current-player-count').textContent = current;
             const progressFill = document.getElementById('team-progress');
             const percentage = Math.min(100, (current / MIN_PLAYERS) * 100);
-            
+
             progressFill.style.width = `${percentage}%`;
-            
+
             let barColor = current >= MIN_PLAYERS ? 'bg-green-600' : 'bg-yellow-500';
             progressFill.className = progressFill.className.replace(/bg-(red|yellow|green|blue)-\d{3}/g, '').trim() + ` ${barColor}`;
-            
+
             // Ready Message
             const readyMessage = document.getElementById('team-ready-message');
             if (current >= MIN_PLAYERS && current <= MAX_PLAYERS) {
                 readyMessage.className = 'text-center text-green-600 text-md font-semibold mb-4';
                 readyMessage.textContent = `الفريق مستوفٍ للشروط (${current} لاعب) - يمكن للقائد تأكيد التسجيل.`;
             } else if (current > MAX_PLAYERS) {
-                 readyMessage.className = 'text-center text-red-600 text-md font-semibold mb-4';
-                 readyMessage.textContent = `تنبيه: تجاوزت الحد الأقصى! (${current} لاعب). يرجى إزالة اللاعبين الزائدين.`;
+                readyMessage.className = 'text-center text-red-600 text-md font-semibold mb-4';
+                readyMessage.textContent = `تنبيه: تجاوزت الحد الأقصى! (${current} لاعب). يرجى إزالة اللاعبين الزائدين.`;
             } else {
-                 readyMessage.className = 'text-center text-gray-500 text-md font-medium mb-4';
-                 readyMessage.textContent = `تحتاج لـ ${MIN_PLAYERS - current} لاعبين إضافيين على الأقل.`;
+                readyMessage.className = 'text-center text-gray-500 text-md font-medium mb-4';
+                readyMessage.textContent = `تحتاج لـ ${MIN_PLAYERS - current} لاعبين إضافيين على الأقل.`;
             }
         }
 
         function renderPlayerList() {
             const container = document.getElementById('player-list-container');
             if (teamPlayers.length === 0) {
-                 container.innerHTML = `<p class="text-center text-gray-500 py-8">لا يوجد لاعبون في الفريق بعد.</p>`;
-                 return;
+                container.innerHTML = `<p class="text-center text-gray-500 py-8">لا يوجد لاعبون في الفريق بعد.</p>`;
+                return;
             }
-            
+
             container.innerHTML = teamPlayers.map(player => {
                 const isCurrentCaptain = player.is_captain === 1;
                 const isCurrentUser = player.user_id === parseInt(loggedInUserId);
-                
+
                 let actionButton = '';
                 if (teamData.status === 'forming') {
                     if (isCaptain && !isCurrentCaptain) {
@@ -882,12 +899,12 @@
                                         </button>`;
                     } else if (isCurrentUser && !isCurrentCaptain) {
                         // Member can leave (using removePlayer logic for simplicity)
-                         actionButton = `<button onclick="removePlayer('${player.user_id}')" class="text-red-500 hover:text-red-700 text-lg">
+                        actionButton = `<button onclick="removePlayer('${player.user_id}')" class="text-red-500 hover:text-red-700 text-lg">
                                             <i class="fa-solid fa-sign-out-alt"></i> مغادرة
                                         </button>`;
                     }
                 }
-                
+
                 return `
                     <div class="player-card ${isCurrentCaptain ? 'captain' : ''} shadow-sm">
                         <div class="flex items-center gap-3">
@@ -906,14 +923,14 @@
         function updateRegistrationButtonState() {
             const registerBtn = document.getElementById('register-team-btn');
             const registrationMessage = document.getElementById('registration-message');
-            
+
             if (teamData.status === 'registered') {
-                 registerBtn.classList.remove('btn-primary', 'bg-red-600');
-                 registerBtn.classList.add('bg-gray-400');
-                 registerBtn.innerHTML = `<i class="fa-solid fa-check-double ml-2"></i> تم تسجيل الفريق بالفعل`;
-                 registerBtn.disabled = true;
-                 registrationMessage.textContent = '';
-                 return;
+                registerBtn.classList.remove('btn-primary', 'bg-red-600');
+                registerBtn.classList.add('bg-gray-400');
+                registerBtn.innerHTML = `<i class="fa-solid fa-check-double ml-2"></i> تم تسجيل الفريق بالفعل`;
+                registerBtn.disabled = true;
+                registrationMessage.textContent = '';
+                return;
             }
 
             const current = teamPlayers.length;
@@ -966,4 +983,5 @@
         });
     </script>
 </body>
+
 </html>

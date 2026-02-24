@@ -1,0 +1,1105 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تفاصيل الملعب - 5ع5</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="/components/styles.css" />
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap');
+
+        :root {
+            --primary: #10B981;
+            --primary-dark: #059669;
+            --secondary: #3B82F6;
+            --bg: #f0f4f8;
+            --text: #1e293b;
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+        }
+
+        /* ---------- Hero ---------- */
+        .field-hero {
+            position: relative;
+            height: 70vh;
+            min-height: 400px;
+            overflow: hidden;
+        }
+
+        .field-hero-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 8s ease;
+        }
+
+        .field-hero:hover .field-hero-img {
+            transform: scale(1.05);
+        }
+
+        .field-hero-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.85) 0%, rgba(0, 0, 0, 0.35) 50%, transparent 100%);
+        }
+
+        .field-hero-content {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            left: 0;
+            padding: 2.5rem;
+        }
+
+        /* ---------- Stars ---------- */
+        .star-btn {
+            cursor: pointer;
+            transition: transform 0.15s;
+            font-size: 1.75rem;
+            color: #d1d5db;
+        }
+
+        .star-btn:hover,
+        .star-btn.active {
+            color: #f59e0b;
+            transform: scale(1.2);
+        }
+
+        /* ---------- Review card ---------- */
+        .review-card {
+            background: white;
+            border-radius: 1rem;
+            padding: 1.25rem 1.5rem;
+            border: 1px solid #e5e7eb;
+            transition: box-shadow 0.2s;
+        }
+
+        .review-card:hover {
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.07);
+        }
+
+        /* ---------- Gallery ---------- */
+        .gallery-thumb {
+            aspect-ratio: 4/3;
+            object-fit: cover;
+            border-radius: 0.75rem;
+            cursor: pointer;
+            transition: transform 0.2s, opacity 0.2s;
+        }
+
+        .gallery-thumb:hover {
+            transform: scale(1.04);
+            opacity: 0.9;
+        }
+
+        /* ---------- Booking section ---------- */
+        .booking-card {
+            background: white;
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .slot-btn {
+            padding: 0.6rem 1rem;
+            border-radius: 0.6rem;
+            background: #f3f4f6;
+            color: #374151;
+            font-weight: 600;
+            font-size: 0.875rem;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+            cursor: pointer;
+        }
+
+        .slot-btn:hover {
+            background: #d1fae5;
+            border-color: var(--primary);
+        }
+
+        .slot-btn.selected {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary-dark);
+        }
+
+        .slot-btn:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
+
+        /* ---------- Custom alert ---------- */
+        .toast {
+            position: fixed;
+            top: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-200%);
+            opacity: 0;
+            background: white;
+            border-radius: 0.75rem;
+            padding: 0.9rem 1.75rem;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-weight: 700;
+            z-index: 9999;
+            pointer-events: none;
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .toast.success {
+            border-right: 4px solid #10B981;
+            color: #065f46;
+        }
+
+        .toast.error {
+            border-right: 4px solid #ef4444;
+            color: #991b1b;
+        }
+
+        /* ---------- Animations ---------- */
+        .fade-up {
+            opacity: 0;
+            animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+
+        .fade-up-delay-3 {
+            animation-delay: 0.3s;
+            opacity: 0;
+        }
+
+        /* ---------- Skeleton ---------- */
+        .skel {
+            background: linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%);
+            background-size: 200% 100%;
+            animation: skeleton 1.4s ease infinite;
+            border-radius: 0.5rem;
+        }
+
+        @keyframes skeleton {
+            0% {
+                background-position: 200% 0
+            }
+
+            100% {
+                background-position: -200% 0
+            }
+        }
+
+        /* Radio card */
+        .radio-card {
+            display: flex;
+            align-items: center;
+            padding: 1.1rem 1.25rem;
+            border-radius: 0.875rem;
+            background: white;
+            border: 2px solid #e5e7eb;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        }
+
+        .radio-card:hover,
+        .radio-card.selected {
+            border-color: var(--primary);
+            background: #f0fdf4;
+        }
+
+        .radio-card input[type="radio"] {
+            display: none;
+        }
+
+        /* Lightbox */
+        #lightbox {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.92);
+            z-index: 9998;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #lightbox.open {
+            display: flex;
+        }
+
+        #lightbox img {
+            max-width: 90vw;
+            max-height: 88vh;
+            border-radius: 1rem;
+            box-shadow: 0 0 60px rgba(0, 0, 0, 0.5);
+        }
+    </style>
+</head>
+
+<body class="min-h-screen flex flex-col">
+
+    <div id="global-header"></div>
+
+    <!-- ============================================================
+         HERO
+    ============================================================ -->
+    <section class="field-hero" id="hero-section">
+        <img id="hero-img" class="field-hero-img img-fade-in" src="https://placehold.co/1400x700/10b981/ffffff?text=..."
+            onload="this.classList.add('loaded')" alt="صورة الملعب">
+        <div class="field-hero-overlay"></div>
+        <div class="field-hero-content">
+
+            <!-- skeleton while loading -->
+            <div id="hero-skel" class="space-y-3">
+                <div class="skel h-10 w-72 rounded-lg"></div>
+                <div class="skel h-5 w-48 rounded-lg"></div>
+            </div>
+            <div id="hero-info" class="hidden">
+                <h1 id="hero-name"
+                    class="text-4xl md:text-5xl font-extrabold text-white mb-3 leading-tight drop-shadow-lg"></h1>
+                <div class="flex flex-wrap items-center gap-4 text-white/90 text-sm">
+                    <span id="hero-location" class="flex items-center gap-1.5">
+                        <i class="fa-solid fa-location-dot text-red-400"></i>
+                    </span>
+                    <span id="hero-rating-badge"
+                        class="flex items-center gap-1.5 bg-yellow-400/20 backdrop-blur border border-yellow-400/30 px-3 py-1 rounded-full text-yellow-200">
+                        <i class="fa-solid fa-star text-yellow-400 text-xs"></i>
+                        <span id="hero-avg-rating">--</span>
+                        <span id="hero-total-ratings" class="opacity-70"></span>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content Grid -->
+    <main class="flex-grow container mx-auto px-4 md:px-6 py-10 max-w-7xl">
+        <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
+
+            <!-- LEFT: Details, Gallery, Ratings -->
+            <div class="xl:col-span-2 space-y-8">
+
+                <!-- Field Info Card -->
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-7 fade-up">
+                    <h2 class="text-xl font-bold text-gray-800 mb-5 flex items-center gap-2">
+                        <i class="fa-solid fa-circle-info text-blue-500"></i> تفاصيل الملعب
+                    </h2>
+                    <div id="field-details-loading" class="space-y-3">
+                        <div class="skel h-5 w-full"></div>
+                        <div class="skel h-5 w-4/5"></div>
+                        <div class="skel h-5 w-3/5"></div>
+                    </div>
+                    <div id="field-details-content" class="hidden space-y-4">
+                        <p id="field-description" class="text-gray-600 leading-relaxed text-base"></p>
+                        <div class="grid grid-cols-1 gap-4 mt-4">
+                            <div class="bg-green-50 rounded-xl p-4 flex items-center gap-3">
+                                <div
+                                    class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                                    <i class="fa-solid fa-location-dot text-green-600"></i>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-gray-500 mb-0.5">الموقع</p>
+                                    <p id="field-location-detail" class="text-gray-800 font-semibold text-sm"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ratings & Reviews Section -->
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-7 fade-up fade-up-delay-1">
+                    <h2 class="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+                        <i class="fa-solid fa-star text-yellow-400"></i> التقييمات والمراجعات
+                    </h2>
+
+                    <!-- Aggregate Rating Display -->
+                    <div id="rating-summary" class="flex items-center gap-6 mb-8 pb-6 border-b border-gray-100">
+                        <div class="text-center">
+                            <div id="avg-rating-big" class="text-6xl font-extrabold text-gray-900 leading-none">--</div>
+                            <div id="stars-display"
+                                class="flex items-center justify-center gap-0.5 my-2 text-xl text-gray-300">
+                                <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+                                <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+                                <i class="fa-solid fa-star"></i>
+                            </div>
+                            <div id="total-ratings-text" class="text-sm text-gray-500">0 تقييم</div>
+                        </div>
+                        <div class="flex-grow" id="rating-bars">
+                            <!-- bar chart placeholder -->
+                        </div>
+                    </div>
+
+                    <!-- Ratings summary. Button always visible — auth handled by click modal -->
+                    <div id="review-form-section" class="mb-7 pb-7 border-b border-gray-100">
+                        <button id="open-review-modal-btn" onclick="openReviewModal()"
+                            class="w-full flex items-center justify-center gap-2 bg-white border-2 border-yellow-400 text-yellow-600 font-bold py-3 px-6 rounded-xl hover:bg-yellow-50 transition-all duration-200 text-sm">
+                            <i class="fa-solid fa-star"></i> أضف تقييمك
+                        </button>
+                    </div>
+
+                    <!-- Reviews List -->
+                    <div id="reviews-loading" class="space-y-3">
+                        <div class="skel h-20 w-full rounded-xl"></div>
+                        <div class="skel h-20 w-full rounded-xl"></div>
+                    </div>
+                    <div id="reviews-list" class="hidden space-y-4"></div>
+                    <div id="no-reviews" class="hidden text-center py-8 text-gray-400">
+                        <i class="fa-regular fa-comment-dots text-4xl mb-3 block"></i>
+                        لا توجد تقييمات بعد. كن أول من يقيّم!
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT: Booking Button -->
+            <div class="xl:col-span-1">
+                <div id="booking-cta" class="fade-up fade-up-delay-2">
+                    <!-- rendered by renderBookingCTA() -->
+                    <div class="flex items-center justify-center py-8">
+                        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Lightbox -->
+    <div id="lightbox" onclick="closeLightbox()">
+        <button class="absolute top-5 right-5 text-white/70 hover:text-white text-3xl z-10" onclick="closeLightbox()">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+        <img id="lightbox-img" src="" alt="صورة مكبّرة">
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="toast"></div>
+
+    <!-- Message box -->
+    <div id="message-box" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-sm relative text-center border-t-4 border-red-500">
+            <button onclick="closeMessageBox()"
+                class="absolute top-4 right-4 text-gray-400 hover:text-gray-700 rounded-full bg-gray-100 p-2">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <h4 id="msg-title" class="text-xl font-bold mb-3 text-gray-900 flex items-center justify-center gap-2"></h4>
+            <p id="msg-content" class="text-gray-600 mb-5 text-base"></p>
+            <div id="msg-actions">
+                <button onclick="closeMessageBox()"
+                    class="bg-gray-800 text-white px-7 py-2.5 rounded-xl hover:bg-gray-700 transition-colors">حسناً</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== AUTH GATE MODAL ===== -->
+    <div id="auth-gate-modal"
+        class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm relative overflow-hidden">
+            <!-- Close -->
+            <button onclick="closeAuthGateModal()"
+                class="absolute top-4 left-4 text-gray-400 hover:text-gray-700 transition-colors z-10">
+                <i class="fa-solid fa-xmark text-xl"></i>
+            </button>
+            <!-- Content -->
+            <div class="p-8 text-center">
+                <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-5">
+                    <i class="fa-solid fa-futbol text-green-600 text-2xl"></i>
+                </div>
+                <h3 class="text-xl font-extrabold text-gray-900 mb-2">انضم إلى 5ع5</h3>
+                <p class="text-gray-500 text-sm mb-7">سجّل دخولك لتتمكن من الحجز وإضافة التقييمات</p>
+                <div class="flex flex-col gap-3">
+                    <a href="auth.html?view=sign-in"
+                        class="w-full bg-gradient-to-r from-green-600 to-emerald-500 text-white font-bold py-3 rounded-xl hover:from-green-700 transition-all duration-300 shadow flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-right-to-bracket"></i> تسجيل الدخول
+                    </a>
+                    <a href="auth.html?view=sign-up"
+                        class="w-full bg-gray-100 text-gray-700 font-bold py-3 rounded-xl hover:bg-gray-200 transition-colors flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-user-plus"></i> إنشاء حساب جديد
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== BOOKING MODAL ===== -->
+    <div id="booking-modal"
+        class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md relative overflow-hidden">
+            <div class="bg-gradient-to-r from-green-600 to-emerald-500 p-6 flex items-center justify-between">
+                <div>
+                    <h3 class="text-white font-extrabold text-xl flex items-center gap-2">
+                        <i class="fa-solid fa-calendar-plus"></i> احجز الآن
+                    </h3>
+                    <p class="text-green-100 text-sm mt-0.5">اختر الموعد المناسب وابدأ اللعب</p>
+                </div>
+                <button onclick="closeBookingModal()" class="text-white/80 hover:text-white transition-colors">
+                    <i class="fa-solid fa-xmark text-2xl"></i>
+                </button>
+            </div>
+            <!-- Step indicator -->
+            <div id="booking-steps"
+                class="flex items-center justify-around border-b border-gray-100 bg-gray-50 px-4 py-3 text-xs font-semibold">
+                <div class="step-item flex items-center gap-1.5 text-green-600" data-step="1">
+                    <div
+                        class="w-6 h-6 rounded-full bg-green-600 text-white flex items-center justify-center text-xs font-bold step-circle">
+                        1</div>
+                    نوع الحجز
+                </div>
+                <div class="w-8 h-px bg-gray-300"></div>
+                <div class="step-item flex items-center gap-1.5 text-gray-400" data-step="2">
+                    <div
+                        class="w-6 h-6 rounded-full bg-gray-200 text-gray-500 flex items-center justify-center text-xs font-bold step-circle">
+                        2</div>
+                    الموعد
+                </div>
+            </div>
+            <div id="booking-content" class="p-6 max-h-[65vh] overflow-y-auto">
+                <!-- Filled by JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== REVIEW MODAL ===== -->
+    <div id="review-modal"
+        class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm relative">
+            <div class="flex items-center justify-between p-5 border-b border-gray-100">
+                <h3 class="font-extrabold text-gray-800 text-lg flex items-center gap-2">
+                    <i class="fa-solid fa-star text-yellow-400"></i> أضف تقييمك
+                </h3>
+                <button onclick="closeReviewModal()" class="text-gray-400 hover:text-gray-700 transition-colors">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+            <div class="p-6 space-y-5">
+                <div>
+                    <p class="text-gray-600 text-sm font-semibold mb-3">تقييمك للملعب</p>
+                    <div class="flex items-center gap-3 justify-center" dir="ltr">
+                        <button class="star-btn text-3xl" data-val="1"><i class="fa-solid fa-star"></i></button>
+                        <button class="star-btn text-3xl" data-val="2"><i class="fa-solid fa-star"></i></button>
+                        <button class="star-btn text-3xl" data-val="3"><i class="fa-solid fa-star"></i></button>
+                        <button class="star-btn text-3xl" data-val="4"><i class="fa-solid fa-star"></i></button>
+                        <button class="star-btn text-3xl" data-val="5"><i class="fa-solid fa-star"></i></button>
+                    </div>
+                </div>
+                <div>
+                    <label class="text-gray-600 text-sm font-semibold mb-1.5 block">تعليق <span
+                            class="text-gray-400 font-normal">(اختياري)</span></label>
+                    <textarea id="review-comment" rows="3"
+                        class="w-full border border-gray-200 rounded-xl p-3 resize-none text-sm focus:ring-2 focus:ring-green-400 focus:border-transparent outline-none"
+                        placeholder="شاركنا رأيك..."></textarea>
+                </div>
+                <button id="submit-review-btn" onclick="submitReview()"
+                    class="w-full bg-gradient-to-r from-green-600 to-green-500 text-white font-bold py-3 rounded-xl hover:from-green-700 transition-all duration-300 shadow flex items-center justify-center gap-2 text-sm">
+                    <i class="fa-solid fa-paper-plane"></i> إرسال التقييم
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="global-footer"></div>
+
+    <script src="/components/header.js"></script>
+    <script src="/components/footer.js"></script>
+    <script src="/components/loader.js"></script>
+    <script>
+        // ========== State ==========
+        const params = new URLSearchParams(location.search);
+        const FIELD_ID = parseInt(params.get('id'), 10);
+        let fieldData = null;
+        let selectedRating = 0;
+        let selectedReservationType = null;
+        let selectedDate = null;
+        let selectedSlotId = null;
+        let selectedSlotData = null;
+        let selectedPlayerCount = null;
+        let currentBookingStep = 1;
+        let userActiveThings = { requests: [], sessions: [] };
+
+        const loggedInUserId = localStorage.getItem('userId');
+        const loggedInUserName = localStorage.getItem('userName');
+
+        const bookingTypes = {
+            two_teams_ready: {
+                min: 12, max: null,
+                label: 'فريقان جاهزان - حجز ملعب كامل',
+                description: 'لديك فريقان كاملان (6 لاعبين فأكثر لكل فريق)',
+                flow: 'team_join_booking', min_per_team: 6, icon: 'fa-people-group'
+            },
+            team_vs_team: {
+                min: 6, max: null,
+                label: 'فريق يبحث عن فريق آخر',
+                description: 'لديك فريق (6 لاعبين فأكثر) وتبحث عن منافس',
+                flow: 'team_join_matchmaking', min_per_team: 6, icon: 'fa-people-arrows'
+            },
+            team_looking_for_players: {
+                min: 3, max: 5,
+                label: 'فريق يبحث عن لاعبين',
+                description: 'فريقك غير مكتمل ويحتاج المزيد من اللاعبين (3-5)',
+                flow: 'team_join_matchmaking', min_per_team: 3, icon: 'fa-user-plus'
+            },
+            players_looking_for_team: {
+                min: 1, max: 1,
+                label: 'لاعب يبحث عن فريق',
+                description: 'لاعب واحد يريد الانضمام لفريق موجود',
+                flow: 'matchmaking_request', icon: 'fa-user'
+            }
+        };
+
+        // ========== Toast ==========
+        function showToast(msg, type = 'success') {
+            const el = document.getElementById('toast');
+            const icon = type === 'success'
+                ? '<i class="fa-solid fa-circle-check text-green-600 text-lg"></i>'
+                : '<i class="fa-solid fa-circle-xmark text-red-500 text-lg"></i>';
+            el.innerHTML = `${icon}<span>${msg}</span>`;
+            el.className = `toast show ${type}`;
+            setTimeout(() => el.classList.remove('show'), 3200);
+        }
+
+        // ========== Message Box ==========
+        function showMessageBox(title, content, type = 'error') {
+            const icons = { error: '<i class="fa-solid fa-octagon-xmark text-red-500 ml-1"></i>', success: '<i class="fa-solid fa-circle-check text-green-600 ml-1"></i>', warning: '<i class="fa-solid fa-triangle-exclamation text-yellow-500 ml-1"></i>', info: '<i class="fa-solid fa-circle-info text-blue-500 ml-1"></i>' };
+            document.getElementById('msg-title').innerHTML = (icons[type] || '') + title;
+            document.getElementById('msg-content').textContent = content;
+            document.getElementById('message-box').classList.remove('hidden');
+            if (type === 'warning' && !loggedInUserId) {
+                document.getElementById('msg-actions').innerHTML = `
+                <a href="auth.html?view=sign-in" class="inline-flex items-center gap-2 bg-green-600 text-white px-6 py-2.5 rounded-xl hover:bg-green-700 transition-colors text-sm">
+                    <i class="fa-solid fa-right-to-bracket"></i> تسجيل الدخول
+                </a>`;
+            } else {
+                document.getElementById('msg-actions').innerHTML = `<button onclick="closeMessageBox()" class="bg-gray-800 text-white px-7 py-2.5 rounded-xl hover:bg-gray-700 transition-colors">حسناً</button>`;
+            }
+        }
+        function closeMessageBox() { document.getElementById('message-box').classList.add('hidden'); }
+
+        // ========== Lightbox ==========
+        function openLightbox(src) {
+            document.getElementById('lightbox-img').src = src;
+            document.getElementById('lightbox').classList.add('open');
+            document.body.style.overflow = 'hidden';
+        }
+        function closeLightbox() {
+            document.getElementById('lightbox').classList.remove('open');
+            document.body.style.overflow = '';
+        }
+
+        // ========== Render Stars (static) ==========
+        function renderStarsHtml(rating, max = 5) {
+            let html = '';
+            for (let i = 1; i <= max; i++) {
+                if (i <= Math.floor(rating)) html += '<i class="fa-solid fa-star text-yellow-400"></i>';
+                else if (i - rating < 1) html += '<i class="fa-solid fa-star-half-stroke text-yellow-400"></i>';
+                else html += '<i class="fa-regular fa-star text-gray-300"></i>';
+            }
+            return html;
+        }
+
+        // ========== Load Field ==========
+        async function loadField() {
+            if (!FIELD_ID || isNaN(FIELD_ID)) {
+                document.title = 'ملعب غير موجود - 5ع5';
+                return;
+            }
+            try {
+                const res = await fetch(`/api/fields/${FIELD_ID}`);
+                if (!res.ok) throw new Error('not found');
+                const data = await res.json();
+                fieldData = data.field;
+                renderFieldHero();
+                renderFieldDetails();
+                loadRatings();
+                renderBookingCTA();
+            } catch (e) {
+                document.getElementById('hero-skel').innerHTML = '<p class="text-white text-xl">تعذّر تحميل بيانات الملعب.</p>';
+            }
+        }
+
+        function renderFieldHero() {
+            const img = fieldData.image_url || `https://placehold.co/1400x700/10b981/ffffff?text=${encodeURIComponent(fieldData.name)}`;
+            document.getElementById('hero-img').src = img;
+            document.getElementById('hero-img').alt = fieldData.name;
+            document.title = `${fieldData.name} - 5ع5`;
+
+            document.getElementById('hero-skel').classList.add('hidden');
+            document.getElementById('hero-info').classList.remove('hidden');
+            document.getElementById('hero-name').textContent = fieldData.name;
+            document.getElementById('hero-location').innerHTML = `<i class="fa-solid fa-location-dot text-red-400"></i> ${fieldData.location || 'الموقع غير متوفر'}`;
+        }
+
+        function renderFieldDetails() {
+            document.getElementById('field-details-loading').classList.add('hidden');
+            document.getElementById('field-details-content').classList.remove('hidden');
+            document.getElementById('field-description').textContent = fieldData.description || 'لا يوجد وصف متاح لهذا الملعب.';
+            document.getElementById('field-location-detail').textContent = fieldData.location || 'غير متوفر';
+        }
+
+        // ========== Ratings ==========
+        async function loadRatings() {
+            try {
+                const res = await fetch(`/api/fields/${FIELD_ID}/ratings`);
+                const data = await res.json();
+                renderRatingSummary(data.average_rating, data.total_ratings, data.ratings);
+                renderReviews(data.ratings);
+            } catch {
+                document.getElementById('reviews-loading').classList.add('hidden');
+                document.getElementById('no-reviews').classList.remove('hidden');
+            }
+            // Always show both buttons — openReviewModal and openBookingModal handle auth guard internally
+            document.getElementById('open-review-modal-btn').classList.remove('hidden');
+        }
+
+        function renderRatingSummary(avg, total, ratings) {
+            // Update hero badge
+            document.getElementById('hero-avg-rating').textContent = avg > 0 ? avg.toFixed(1) : '--';
+            document.getElementById('hero-total-ratings').textContent = total > 0 ? `(${total})` : '';
+            // Update main display
+            document.getElementById('avg-rating-big').textContent = avg > 0 ? avg.toFixed(1) : '--';
+            document.getElementById('stars-display').innerHTML = avg > 0 ? renderStarsHtml(avg) : '<span class="text-gray-400 text-sm">لا تقييمات</span>';
+            document.getElementById('total-ratings-text').textContent = `${total.toLocaleString('en')} تقييم`;
+
+            // Rating bars
+            const counts = [0, 0, 0, 0, 0];
+            ratings.forEach(r => { if (r.rating >= 1 && r.rating <= 5) counts[r.rating - 1]++; });
+            document.getElementById('rating-bars').innerHTML = [5, 4, 3, 2, 1].map(star => {
+                const pct = total > 0 ? ((counts[star - 1] / total) * 100).toFixed(0) : 0;
+                return `<div class="flex items-center gap-2 mb-1.5 text-xs text-gray-600" dir="ltr">
+                <span class="w-4 text-right">${star}</span>
+                <i class="fa-solid fa-star text-yellow-400 text-xs"></i>
+                <div class="flex-1 bg-gray-100 rounded-full h-2 overflow-hidden">
+                    <div class="h-full bg-yellow-400 rounded-full transition-all duration-700" style="width:${pct}%"></div>
+                </div>
+                <span class="w-6 text-left text-gray-400">${counts[star - 1]}</span>
+            </div>`;
+            }).join('');
+        }
+
+        function renderReviews(reviews) {
+            document.getElementById('reviews-loading').classList.add('hidden');
+            const list = document.getElementById('reviews-list');
+            if (!reviews || reviews.length === 0) {
+                document.getElementById('no-reviews').classList.remove('hidden');
+                return;
+            }
+            list.classList.remove('hidden');
+            list.innerHTML = reviews.map((r, idx) => {
+                // Format date as dd/mm/yy with English numerals
+                const d = new Date(r.created_at);
+                const dd = String(d.getDate()).padStart(2, '0');
+                const mm = String(d.getMonth() + 1).padStart(2, '0');
+                const yy = String(d.getFullYear()).slice(-2);
+                const date = `${dd}/${mm}/${yy}`;
+                const isOwn = loggedInUserId && String(r.user_id) === String(loggedInUserId);
+                const deleteBtn = isOwn
+                    ? `<button onclick="deleteReview(${r.id})" title="حذف تقييمك"
+                        class="btn-click text-red-400 hover:text-red-600 transition-colors p-1 rounded-lg hover:bg-red-50" aria-label="delete">
+                        <i class="fa-solid fa-trash-can text-xs"></i>
+                      </button>`
+                    : '';
+
+                const delay = (idx % 5) * 100;
+                return `<div class="review-card fade-up" style="animation-delay: ${delay}ms">
+                <div class="flex items-start justify-between mb-2">
+                    <div class="flex items-center gap-2">
+                        <div class="w-9 h-9 rounded-full bg-gradient-to-br from-green-400 to-emerald-600 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+                            ${(r.user_name || '?')[0]}
+                        </div>
+                        <div>
+                            <p class="font-bold text-gray-800 text-sm">${r.user_name || 'مستخدم'}</p>
+                            <p class="text-gray-400 text-xs">${date}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="flex items-center gap-0.5 text-sm">${renderStarsHtml(r.rating)}</div>
+                        ${deleteBtn}
+                    </div>
+                </div>
+                ${r.comment ? `<p class="text-gray-600 text-sm leading-relaxed mt-2">${r.comment}</p>` : ''}
+            </div>`;
+            }).join('');
+        }
+
+        async function deleteReview(ratingId) {
+            if (!confirm('هل تريد حذف تقييمك؟')) return;
+            try {
+                const res = await fetch(`/api/fields/${FIELD_ID}/ratings/${ratingId}`, {
+                    method: 'DELETE',
+                    credentials: 'include'
+                });
+                if (res.ok) {
+                    showToast('تم حذف التقييم بنجاح', 'success');
+                    loadRatings();
+                } else {
+                    const d = await res.json();
+                    showToast(d.error || 'حدث خطأ', 'error');
+                }
+            } catch { showToast('تعذّر الاتصال بالخادم', 'error'); }
+        }
+
+        // Star selector
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('.star-btn').forEach(btn => {
+                btn.addEventListener('mouseover', () => highlightStars(parseInt(btn.dataset.val)));
+                btn.addEventListener('mouseout', () => highlightStars(selectedRating));
+                btn.addEventListener('click', () => {
+                    selectedRating = parseInt(btn.dataset.val);
+                    highlightStars(selectedRating);
+                });
+            });
+        });
+
+        function highlightStars(n) {
+            document.querySelectorAll('.star-btn').forEach((btn, i) => {
+                btn.classList.toggle('active', i < n);
+            });
+        }
+
+        // ========== Auth Gate Modal ==========
+        function openAuthGateModal() {
+            document.getElementById('auth-gate-modal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+        function closeAuthGateModal() {
+            document.getElementById('auth-gate-modal').classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+
+        // ========== Review Modal ==========
+        function openReviewModal() {
+            if (!loggedInUserId) { openAuthGateModal(); return; }
+            selectedRating = 0;
+            highlightStars(0);
+            document.getElementById('review-comment').value = '';
+            document.getElementById('review-modal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+            // bind star btns inside modal
+            document.querySelectorAll('.star-btn').forEach(btn => {
+                btn.onmouseover = () => highlightStars(parseInt(btn.dataset.val));
+                btn.onmouseout = () => highlightStars(selectedRating);
+                btn.onclick = () => { selectedRating = parseInt(btn.dataset.val); highlightStars(selectedRating); };
+            });
+        }
+        function closeReviewModal() {
+            document.getElementById('review-modal').classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+
+        async function submitReview() {
+            if (!loggedInUserId) { showMessageBox('يجب تسجيل الدخول', 'سجّل دخولك لإضافة تقييم.', 'warning'); return; }
+            if (!selectedRating) { showToast('يرجى اختيار عدد النجوم أولاً', 'error'); return; }
+            const comment = document.getElementById('review-comment').value.trim();
+            const btn = document.getElementById('submit-review-btn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري الإرسال...';
+            try {
+                const res = await fetch(`/api/fields/${FIELD_ID}/ratings`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ rating: selectedRating, comment })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    showToast('تم حفظ تقييمك بنجاح!', 'success');
+                    closeReviewModal();
+                    loadRatings(); // refresh
+                } else {
+                    showToast(data.error || 'حدث خطأ، حاول مجدداً', 'error');
+                }
+            } catch { showToast('تعذّر الاتصال بالخادم', 'error'); }
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> إرسال التقييم';
+        }
+
+        // ========== Booking ==========
+        function setBookingStep(step) {
+            currentBookingStep = step;
+            document.querySelectorAll('.step-item').forEach(el => {
+                const s = parseInt(el.dataset.step);
+                const circle = el.querySelector('.step-circle');
+                if (s === step) {
+                    el.classList.replace('text-gray-400', 'text-green-600');
+                    circle.className = 'w-6 h-6 rounded-full bg-green-600 text-white flex items-center justify-center text-xs font-bold step-circle';
+                } else if (s < step) {
+                    el.classList.replace('text-gray-400', 'text-green-600');
+                    circle.className = 'w-6 h-6 rounded-full bg-green-100 text-green-700 flex items-center justify-center text-xs font-bold step-circle';
+                    circle.innerHTML = '<i class="fa-solid fa-check text-xs"></i>';
+                } else {
+                    el.classList.replace('text-green-600', 'text-gray-400');
+                    circle.className = 'w-6 h-6 rounded-full bg-gray-200 text-gray-500 flex items-center justify-center text-xs font-bold step-circle';
+                    circle.textContent = s;
+                }
+            });
+        }
+
+        // ========== Booking Modal ==========
+        async function openBookingModal() {
+            if (!loggedInUserId) { openAuthGateModal(); return; }
+            document.getElementById('booking-modal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+
+            // Proactively fetch active requests to prevent duplicates
+            try {
+                const res = await fetch(`/api/active-requests/${loggedInUserId}`);
+                if (res.ok) userActiveThings = await res.json();
+            } catch (e) { console.error('Failed to fetch active requests'); }
+
+            renderBookingStep1();
+        }
+        function closeBookingModal() {
+            document.getElementById('booking-modal').classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+
+        function renderBookingCTA() {
+            const cta = document.getElementById('booking-cta');
+            cta.innerHTML = `
+                <button onclick="openBookingModal()"
+                    class="btn-click w-full bg-gradient-to-r from-green-600 to-emerald-500 text-white font-black py-4 rounded-2xl hover:from-green-700 transition-all duration-300 shadow-lg flex items-center justify-center gap-3 text-lg transform hover:scale-[1.02]">
+                    <i class="fa-solid fa-calendar-plus"></i> احجز الآن
+                </button>
+                <p class="text-center text-gray-400 text-xs mt-3">اختر الموعد المناسب وابدأ اللعب</p>`;
+        }
+
+        function renderBookingStep1() {
+            setBookingStep(1);
+            const choices = Object.entries(bookingTypes).map(([key, val]) => `
+            <label class="radio-card cursor-pointer gap-3" id="card-${key}">
+                <input type="radio" name="res_type" value="${key}" class="hidden">
+                <div class="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0 text-gray-500">
+                    <i class="fa-solid ${val.icon}"></i>
+                </div>
+                <div class="flex-grow">
+                    <p class="font-bold text-gray-800 text-sm leading-tight">${val.label}</p>
+                    <p class="text-gray-400 text-xs mt-0.5">${val.description}</p>
+                </div>
+            </label>`).join('');
+
+            document.getElementById('booking-content').innerHTML = `
+            <div class="space-y-3 mb-5">${choices}</div>
+            <div id="player-count-wrap" class="hidden mb-4">
+                <label class="block text-gray-600 text-sm font-semibold mb-1.5">عدد لاعبيك الحاليين</label>
+                <input type="number" id="player-count-input" min="3" max="5" placeholder="3-5"
+                    class="w-full border border-gray-200 rounded-xl p-2.5 text-sm outline-none focus:ring-2 focus:ring-green-400">
+            </div>
+            <button onclick="proceedToStep2()"
+                class="w-full bg-gradient-to-r from-green-600 to-emerald-500 text-white font-bold py-3 rounded-xl hover:from-green-700 transition-all duration-300 shadow flex items-center justify-center gap-2 text-sm">
+                <i class="fa-solid fa-arrow-left"></i> التالي
+            </button>
+            <div id="duplicate-warning" class="hidden mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-xl text-yellow-800 text-xs flex items-start gap-2">
+                <i class="fa-solid fa-triangle-exclamation mt-0.5"></i>
+                <span>لديك طلب أو جلسة نشطة بالفعل لهذا النوع أو الموعد.</span>
+            </div>`;
+
+            document.querySelectorAll('input[name="res_type"]').forEach(radio => {
+                radio.addEventListener('change', function () {
+                    document.querySelectorAll('.radio-card').forEach(c => c.classList.remove('selected'));
+                    this.closest('.radio-card').classList.add('selected');
+                    selectedReservationType = this.value;
+                    const wrap = document.getElementById('player-count-wrap');
+                    if (selectedReservationType === 'team_looking_for_players') wrap.classList.remove('hidden');
+                    else wrap.classList.add('hidden');
+                });
+            });
+        }
+
+        function proceedToStep2() {
+            if (!selectedReservationType) { showToast('يرجى اختيار نوع الحجز أولاً', 'error'); return; }
+            const config = bookingTypes[selectedReservationType];
+            if (selectedReservationType === 'team_looking_for_players') {
+                const cnt = parseInt(document.getElementById('player-count-input')?.value, 10);
+                if (isNaN(cnt) || cnt < config.min || cnt > config.max) {
+                    showToast(`عدد اللاعبين يجب بين ${config.min} و ${config.max}`, 'error'); return;
+                }
+                selectedPlayerCount = cnt;
+            } else {
+                selectedPlayerCount = config.min_per_team || 1;
+            }
+            renderBookingStep2();
+        }
+
+        async function renderBookingStep2() {
+            setBookingStep(2);
+            const content = document.getElementById('booking-content');
+            content.innerHTML = `<div class="flex items-center justify-center py-10"><div class="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div></div>`;
+
+            // Build date list (today + 6 days)
+            const dates = [];
+            const today = new Date();
+            for (let i = 0; i < 7; i++) {
+                const d = new Date(today);
+                d.setDate(today.getDate() + i);
+                const dayName = new Intl.DateTimeFormat('ar-EG', { weekday: 'short' }).format(d);
+                const dateStr = d.toISOString().split('T')[0];
+                const display = `${d.toLocaleDateString('ar-EG', { day: 'numeric', month: 'short' })} - ${dayName}`;
+                dates.push({ date: dateStr, display });
+            }
+
+            const dateOpts = dates.map(d => `<option value="${d.date}">${d.display}</option>`).join('');
+            const showTimePicker = selectedReservationType === 'two_teams_ready';
+
+            content.innerHTML = `
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-gray-600 text-sm font-semibold mb-1.5">اختر التاريخ</label>
+                    <select id="date-sel" class="w-full border border-gray-200 rounded-xl p-2.5 text-sm outline-none focus:ring-2 focus:ring-green-400">${dateOpts}</select>
+                </div>
+                ${showTimePicker ? `<div>
+                    <label class="block text-gray-600 text-sm font-semibold mb-1.5">اختر الوقت</label>
+                    <div id="time-slots" class="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto pr-1"></div>
+                    <p id="no-slots-msg" class="hidden text-center text-red-500 text-xs mt-2"><i class="fa-solid fa-calendar-times ml-1"></i>لا توجد مواعيد متاحة في هذه الليلة</p>
+                </div>` : `<div id="time-slots-info" class="bg-blue-50 rounded-xl p-3 text-xs text-blue-700 flex items-start gap-2">
+                    <i class="fa-solid fa-circle-info mt-0.5 flex-shrink-0"></i>
+                    <span>سيتم التواصل معك لتحديد الوقت المناسب بعد إرسال الطلب.</span>
+                </div>`}
+                <button id="confirm-book-btn" onclick="handleBookingFlow()"
+                    class="w-full bg-gradient-to-r from-green-600 to-emerald-500 text-white font-bold py-3 rounded-xl hover:from-green-700 transition-all duration-300 shadow flex items-center justify-center gap-2 text-sm ${showTimePicker ? 'opacity-50' : ''}">
+                    <i class="fa-solid fa-check"></i> ${selectedReservationType === 'players_looking_for_team' ? 'إرسال طلب انضمام' : 'متابعة'}
+                </button>
+                <div id="step2-duplicate-warning" class="hidden p-3 bg-red-50 border border-red-200 rounded-xl text-red-800 text-xs flex items-start gap-2">
+                    <i class="fa-solid fa-circle-exclamation mt-0.5"></i>
+                    <span>لديك طلب نشط بالفعل لهذا الموعد. الرجاء اختيار موعد آخر.</span>
+                </div>
+                <button onclick="renderBookingStep1()"
+                    class="w-full bg-gray-100 text-gray-600 font-semibold py-2.5 rounded-xl hover:bg-gray-200 transition-colors text-sm flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-arrow-right"></i> رجوع
+                </button>
+            </div>`;
+
+            const dateSel = document.getElementById('date-sel');
+            selectedDate = dateSel.value;
+            checkStep2Duplicates();
+
+            if (showTimePicker) {
+                fetchSlots(selectedDate);
+                dateSel.addEventListener('change', e => {
+                    selectedDate = e.target.value;
+                    selectedSlotId = null;
+                    selectedSlotData = null;
+                    document.getElementById('confirm-book-btn').classList.add('opacity-50');
+                    fetchSlots(selectedDate);
+                    checkStep2Duplicates();
+                });
+            } else {
+                dateSel.addEventListener('change', e => {
+                    selectedDate = e.target.value;
+                    checkStep2Duplicates();
+                });
+            }
+        }
+
+        function checkStep2Duplicates() {
+            const hasDuplicate = userActiveThings.requests.some(r => r.field_id == FIELD_ID && r.slot_date == selectedDate) ||
+                userActiveThings.sessions.some(s => s.field_id == FIELD_ID && s.slot_date == selectedDate);
+
+            const warning = document.getElementById('step2-duplicate-warning');
+            const btn = document.getElementById('confirm-book-btn');
+
+            if (hasDuplicate) {
+                warning.classList.remove('hidden');
+                btn.classList.add('hidden');
+            } else {
+                warning.classList.add('hidden');
+                btn.classList.remove('hidden');
+            }
+        }
+
+        async function fetchSlots(date) {
+            document.getElementById('time-slots').innerHTML = `<div class="col-span-2 text-center py-4 text-gray-400 text-xs">جاري التحميل...</div>`;
+            try {
+                const res = await fetch(`/api/availability/${FIELD_ID}?date=${date}`);
+                const data = await res.json();
+                const slotsEl = document.getElementById('time-slots');
+                const noMsg = document.getElementById('no-slots-msg');
+                if (data.availability && data.availability.length > 0) {
+                    noMsg.classList.add('hidden');
+                    slotsEl.innerHTML = data.availability.map(s => `
+                    <button class="slot-btn" data-slot="${s.id}" data-start="${s.start_time}" data-end="${s.end_time}"
+                        onclick="selectSlot(this, ${s.id}, '${s.start_time}', '${s.end_time}')">
+                        ${s.start_time} - ${s.end_time}
+                    </button>`).join('');
+                } else {
+                    slotsEl.innerHTML = '';
+                    noMsg.classList.remove('hidden');
+                }
+            } catch {
+                document.getElementById('time-slots').innerHTML = `<div class="col-span-2 text-center py-4 text-red-400 text-xs">حدث خطأ في تحميل الأوقات</div>`;
+            }
+        }
+
+        function selectSlot(btn, id, start, end) {
+            document.querySelectorAll('.slot-btn').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+            selectedSlotId = id;
+            selectedSlotData = { start_time: start, end_time: end };
+            const confirmBtn = document.getElementById('confirm-book-btn');
+            if (confirmBtn) confirmBtn.classList.remove('opacity-50');
+        }
+
+        async function handleBookingFlow() {
+            if (selectedReservationType === 'two_teams_ready' && !selectedSlotId) {
+                showToast('يرجى اختيار الوقت أولاً', 'error'); return;
+            }
+            const config = bookingTypes[selectedReservationType];
+            if (config.flow === 'matchmaking_request') {
+                submitMatchmakingRequest();
+            } else {
+                const p = new URLSearchParams({
+                    fieldId: FIELD_ID,
+                    slotDate: selectedDate,
+                    startTime: selectedSlotData?.start_time || '',
+                    endTime: selectedSlotData?.end_time || '',
+                    bookingType: selectedReservationType,
+                    initialPlayerCount: selectedPlayerCount,
+                    minTeamSize: selectedReservationType === 'two_teams_ready' ? 6 : config.min,
+                    maxTeamSize: selectedReservationType === 'team_looking_for_players' ? 5 : (config.max || '')
+                });
+                window.location.href = `team-join.html?${p.toString()}`;
+            }
+        }
+
+        async function submitMatchmakingRequest() {
+            const btn = document.getElementById('confirm-book-btn');
+            if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري الإرسال...'; }
+            try {
+                const res = await fetch('/api/matchmake', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        userId: loggedInUserId,
+                        fieldId: FIELD_ID,
+                        slotDate: selectedDate,
+                        requestType: selectedReservationType,
+                        playersNeeded: 1
+                    })
+                });
+                if (res.ok) {
+                    showToast('تم إرسال طلب انضمامك بنجاح!', 'success');
+                    setTimeout(() => renderBookingStep1(), 2000);
+                } else {
+                    const d = await res.json();
+                    showToast(d.error || 'حدث خطأ، حاول مجدداً', 'error');
+                }
+            } catch { showToast('تعذّر الاتصال بالخادم', 'error'); }
+            if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-check"></i> إرسال طلب انضمام'; }
+        }
+
+        // ========== Init ==========
+        document.addEventListener('DOMContentLoaded', loadField);
+    </script>
+</body>
+
+</html>

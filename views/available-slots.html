@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>جاهز للعب؟ - الأوقات المتاحة | 5ع5</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="/components/styles.css" />
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap');
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: #f0f4f8;
+        }
+
+
+        /* Slot Card */
+        .slot-card {
+            background: white;
+            border-radius: 1.25rem;
+            border: 1.5px solid #e5e7eb;
+            overflow: hidden;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .slot-card:hover {
+            box-shadow: 0 12px 40px rgba(16, 185, 129, 0.15);
+            border-color: #10b981;
+            transform: translateY(-4px);
+        }
+
+
+        /* Date badge */
+        .date-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: #ecfdf5;
+            color: #065f46;
+            padding: 0.3rem 0.85rem;
+            border-radius: 9999px;
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+
+        /* Filter pill */
+        .filter-pill {
+            padding: 0.45rem 1rem;
+            border-radius: 9999px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1.5px solid #e5e7eb;
+            background: white;
+            color: #4b5563;
+            transition: all 0.18s;
+        }
+
+        .filter-pill:hover,
+        .filter-pill.active {
+            border-color: #10b981;
+            background: #10b981;
+            color: white;
+        }
+
+        /* Pulse animation for "live" badge */
+        @keyframes pulse-dot {
+
+            0%,
+            100% {
+                transform: scale(1)
+            }
+
+            50% {
+                transform: scale(1.4)
+            }
+        }
+
+        .pulse-dot {
+            animation: pulse-dot 1.5s ease infinite;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px)
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0)
+            }
+        }
+
+        .fade-in {
+            animation: fadeInUp 0.4s ease forwards;
+        }
+    </style>
+</head>
+
+<body class="min-h-screen flex flex-col">
+
+    <div id="global-header"></div>
+
+
+    <!-- ===== PAGE HEADER ===== -->
+    <div class="bg-white border-b border-gray-100 shadow-sm">
+        <div class="container mx-auto px-4 md:px-6 py-8 max-w-6xl">
+            <!-- Breadcrumb -->
+            <div class="flex items-center gap-2 text-sm text-gray-400 mb-5">
+                <a href="index.html" class="hover:text-green-600 transition-colors">الرئيسية</a>
+                <i class="fa-solid fa-chevron-left text-xs"></i>
+                <span class="text-gray-700 font-semibold">الأوقات المتاحة</span>
+            </div>
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div>
+                    <h1 class="text-3xl font-black text-gray-900 flex items-center gap-3">
+                        <span class="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                            <i class="fa-solid fa-calendar-check text-green-600"></i>
+                        </span>
+                        الأوقات المتاحة
+                        <span
+                            class="inline-flex items-center gap-1.5 bg-green-100 text-green-700 text-xs font-bold px-2.5 py-1 rounded-full">
+                            <span class="w-1.5 h-1.5 rounded-full bg-green-500 pulse-dot"></span>
+                            مباشر
+                        </span>
+                    </h1>
+                    <p class="text-gray-500 text-sm mt-1">تصفّح الأوقات الحرة في جميع ملاعبنا واختر ما يناسبك</p>
+                </div>
+                <a href="index.html"
+                    class="inline-flex items-center gap-2 text-gray-500 hover:text-green-600 text-sm font-semibold transition-colors">
+                    <i class="fa-solid fa-house text-xs"></i> الرئيسية
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== SLOTS SECTION ===== -->
+    <section id="slots-section" class="flex-grow container mx-auto px-4 md:px-6 py-14 max-w-6xl">
+
+        <!-- Stats Row -->
+        <div id="stats-row" class="grid grid-cols-3 gap-4 mb-10 hidden">
+            <div class="bg-white rounded-2xl p-5 text-center shadow-sm border border-gray-100">
+                <div id="stat-total" class="text-3xl font-black text-green-600">--</div>
+                <div class="text-gray-500 text-sm mt-1">وقت متاح</div>
+            </div>
+            <div class="bg-white rounded-2xl p-5 text-center shadow-sm border border-gray-100">
+                <div id="stat-fields" class="text-3xl font-black text-blue-600">--</div>
+                <div class="text-gray-500 text-sm mt-1">ملعب</div>
+            </div>
+            <div class="bg-white rounded-2xl p-5 text-center shadow-sm border border-gray-100">
+                <div id="stat-days" class="text-3xl font-black text-purple-600">--</div>
+                <div class="text-gray-500 text-sm mt-1">يوم قادم</div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div id="filters-section" class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-8 hidden">
+            <div class="flex flex-wrap items-center gap-3">
+                <span class="text-gray-600 font-semibold text-sm flex items-center gap-1.5 ml-2">
+                    <i class="fa-solid fa-filter text-green-600"></i> تصفية:
+                </span>
+                <button class="filter-pill active" onclick="filterByField(null, this)" id="filter-all">
+                    الكل
+                </button>
+                <div id="field-filter-pills" class="flex flex-wrap gap-2">
+                    <!-- dynamic pills -->
+                </div>
+                <div class="mr-auto flex items-center gap-2">
+                    <label class="text-gray-500 text-sm">من تاريخ:</label>
+                    <input type="date" id="date-filter"
+                        class="border border-gray-200 rounded-xl px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-green-400">
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading state -->
+        <div id="loading-state" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            ${Array.from({length:6}).map(() => `
+            <div class="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+                <div class="skel h-44 w-full"></div>
+                <div class="p-5 space-y-3">
+                    <div class="skel h-5 w-2/3"></div>
+                    <div class="skel h-4 w-1/2"></div>
+                    <div class="skel h-10 w-full rounded-xl mt-4"></div>
+                </div>
+            </div>`).join('')}
+        </div>
+
+        <!-- Slots grid -->
+        <div id="slots-container" class="hidden"></div>
+
+        <!-- Empty state -->
+        <div id="no-slots" class="hidden text-center py-20">
+            <div class="inline-flex items-center justify-center w-24 h-24 bg-gray-100 rounded-full mb-6">
+                <i class="fa-solid fa-calendar-xmark text-4xl text-gray-400"></i>
+            </div>
+            <h3 class="text-2xl font-bold text-gray-700 mb-3">لا توجد أوقات متاحة</h3>
+            <p class="text-gray-500 mb-6">حاول تغيير الفلاتر أو تحقق لاحقاً</p>
+            <a href="index.html"
+                class="inline-flex items-center gap-2 bg-green-600 text-white px-7 py-3 rounded-xl hover:bg-green-700 transition-colors font-bold">
+                <i class="fa-solid fa-house"></i> العودة للرئيسية
+            </a>
+        </div>
+
+    </section>
+
+    <div id="global-footer"></div>
+    <script src="/components/header.js"></script>
+    <script src="/components/footer.js"></script>
+    <script src="/components/loader.js"></script>
+    <script>
+        let allSlots = [];
+        let activeFieldFilter = null;
+
+        function formatDate(dateStr) {
+            const d = new Date(dateStr + 'T00:00:00');
+            const today = new Date(); today.setHours(0, 0, 0, 0);
+            const tmrw = new Date(today); tmrw.setDate(today.getDate() + 1);
+            const diff = Math.round((d - today) / 86400000);
+
+            // English Date parts
+            const dd = String(d.getDate()).padStart(2, '0');
+            const mm = String(d.getMonth() + 1).padStart(2, '0');
+            const yy = String(d.getFullYear()).slice(-2);
+            const enDate = `${dd}/${mm}/${yy}`;
+
+            // Labels in Arabic but numerals in English
+            const dayNamesAr = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+            const dayName = dayNamesAr[d.getDay()];
+
+            if (diff === 0) return { label: 'اليوم', full: `اليوم - ${enDate}`, badge: 'today' };
+            if (diff === 1) return { label: 'غداً', full: `غداً - ${enDate}`, badge: 'tomorrow' };
+            return { label: dayName, full: `${dayName} - ${enDate}`, badge: 'future' };
+        }
+
+        function buildFieldPills(slots) {
+            const fieldsMap = {};
+            slots.forEach(s => { fieldsMap[s.field_id] = s.field_name; });
+            const container = document.getElementById('field-filter-pills');
+            container.innerHTML = Object.entries(fieldsMap).map(([id, name]) =>
+                `<button class="filter-pill" onclick="filterByField(${id}, this)" data-field="${id}">${name}</button>`
+            ).join('');
+            document.getElementById('filters-section').classList.remove('hidden');
+        }
+
+        function filterByField(fieldId, btn) {
+            activeFieldFilter = fieldId;
+            document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+            btn.classList.add('active');
+            renderSlots(allSlots);
+        }
+
+        function applyFilters(slots) {
+            let filtered = [...slots];
+            if (activeFieldFilter) filtered = filtered.filter(s => s.field_id == activeFieldFilter);
+            const dateVal = document.getElementById('date-filter')?.value;
+            if (dateVal) filtered = filtered.filter(s => s.slot_date >= dateVal);
+            return filtered;
+        }
+
+        function renderSlots(slots) {
+            const filtered = applyFilters(slots);
+            const container = document.getElementById('slots-container');
+            if (filtered.length === 0) {
+                container.classList.add('hidden');
+                document.getElementById('no-slots').classList.remove('hidden');
+                return;
+            }
+            document.getElementById('no-slots').classList.add('hidden');
+            container.classList.remove('hidden');
+
+            // Group by date
+            const grouped = {};
+            filtered.forEach(s => {
+                if (!grouped[s.slot_date]) grouped[s.slot_date] = [];
+                grouped[s.slot_date].push(s);
+            });
+
+            container.innerHTML = Object.entries(grouped).map(([date, group], gIdx) => {
+                const { full, badge } = formatDate(date);
+                const todayStyle = badge === 'today' ? 'bg-green-100 text-green-700' :
+                    badge === 'tomorrow' ? 'bg-blue-100 text-blue-700' :
+                        'bg-gray-100 text-gray-600';
+
+                const cards = group.map((slot, idx) => {
+                    const imgUrl = slot.field_image_url || `https://placehold.co/400x250/10b981/ffffff?text=${encodeURIComponent(slot.field_name)}`;
+                    const delay = (idx % 6) * 100 + (gIdx * 200);
+                    return `<div class="btn-click slot-card group fade-up" style="animation-delay: ${delay}ms">
+                    <div class="relative h-44 overflow-hidden">
+                        <img src="${imgUrl}" alt="${slot.field_name}"
+                            class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 img-fade-in"
+                            onload="this.classList.add('loaded')"
+                            onerror="this.src='https://placehold.co/400x250/10b981/ffffff?text=${encodeURIComponent(slot.field_name)}'">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                        <div class="absolute bottom-3 right-3 text-white">
+                            <p class="font-extrabold text-lg leading-tight drop-shadow">${slot.field_name}</p>
+                        </div>
+                    </div>
+                    <div class="p-5">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="flex items-center gap-2 bg-green-50 text-green-700 rounded-xl px-3 py-2 font-bold text-sm flex-1 justify-center">
+                                <i class="fa-regular fa-clock text-green-600"></i>
+                                ${slot.start_time} - ${slot.end_time}
+                            </div>
+                        </div>
+                        ${slot.field_location ? `<p class="text-gray-500 text-xs flex items-center gap-1.5 mb-4"><i class="fa-solid fa-location-dot text-red-400"></i>${slot.field_location}</p>` : ''}
+                        <a href="field.html?id=${slot.field_id}"
+                            class="btn-click w-full bg-gradient-to-r from-green-600 to-emerald-500 text-white font-bold py-3 px-5 rounded-xl hover:from-green-700 hover:to-emerald-600 transition-all duration-300 shadow flex items-center justify-center gap-2 text-sm">
+                            <i class="fa-solid fa-futbol"></i>
+                            احجز هذا الوقت
+                        </a>
+                    </div>
+                </div>`;
+                }).join('');
+
+                return `<div class="mb-10 fade-up" style="animation-delay: ${gIdx * 100}ms">
+                <div class="flex items-center gap-3 mb-5">
+                    <span class="date-badge ${todayStyle} glass">
+                        <i class="fa-regular fa-calendar text-xs"></i>
+                        ${full}
+                    </span>
+                    <div class="flex-1 h-px bg-gray-200"></div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">${cards}</div>
+            </div>`;
+            }).join('');
+        }
+
+        async function loadSlots() {
+            try {
+                const res = await fetch('/api/available-slots');
+                const data = await res.json();
+                allSlots = data.slots || [];
+
+                document.getElementById('loading-state').classList.add('hidden');
+
+                if (allSlots.length === 0) {
+                    document.getElementById('no-slots').classList.remove('hidden');
+                    return;
+                }
+
+                // Stats
+                const uniqueFields = new Set(allSlots.map(s => s.field_id)).size;
+                const uniqueDays = new Set(allSlots.map(s => s.slot_date)).size;
+
+                // Numbers in English
+                document.getElementById('stat-total').textContent = allSlots.length.toLocaleString('en');
+                document.getElementById('stat-fields').textContent = uniqueFields.toLocaleString('en');
+                document.getElementById('stat-days').textContent = uniqueDays.toLocaleString('en');
+                document.getElementById('stats-row').classList.remove('hidden');
+
+                buildFieldPills(allSlots);
+                renderSlots(allSlots);
+
+                // Date filter
+                document.getElementById('date-filter').addEventListener('change', () => renderSlots(allSlots));
+
+            } catch (e) {
+                document.getElementById('loading-state').classList.add('hidden');
+                document.getElementById('no-slots').classList.remove('hidden');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadSlots);
+    </script>
+</body>
+
+</html>

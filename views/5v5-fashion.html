@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>5v5 Fashion - متجر ملابس وأكسسوارات</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="/components/styles.css" />
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap');
+
+        :root {
+            --primary: #10B981;
+            --primary-dark: #059669;
+            --bg: #f8fafc;
+        }
+
+        body {
+            font-family: Cairo, sans-serif;
+            background: var(--bg);
+            color: #1e293b;
+        }
+
+        .premium-card {
+            background: white;
+            border-radius: 1.5rem;
+            border: 1px solid #e2e8f0;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .premium-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+            border-color: var(--primary);
+        }
+
+        .filter-btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 1rem;
+            background: white;
+            border: 1px solid #e2e8f0;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 600;
+        }
+
+        .filter-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+
+        .product-image-container {
+            aspect-ratio: 1/1;
+            overflow: hidden;
+            background: #f1f5f9;
+            position: relative;
+        }
+
+        .product-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.6s;
+        }
+
+        .premium-card:hover .product-image {
+            transform: scale(1.1);
+        }
+
+        .category-badge {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 0.25rem 0.75rem;
+            border-radius: 2rem;
+            font-size: 0.75rem;
+            font-weight: 800;
+            color: var(--primary-dark);
+            backdrop-filter: blur(4px);
+            z-index: 10;
+        }
+
+        .price-tag {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: #1e293b;
+        }
+
+        .view-btn {
+            background: #1e293b;
+            color: white;
+            padding: 0.6rem 1.2rem;
+            border-radius: 0.75rem;
+            font-weight: 700;
+            transition: all 0.3s;
+        }
+
+        .view-btn:hover {
+            background: var(--primary);
+            transform: scale(1.05);
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-fade-up {
+            animation: fadeInUp 0.5s ease forwards;
+        }
+
+        .search-container {
+            position: relative;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 1rem 3rem 1rem 1.5rem;
+            border-radius: 1.5rem;
+            border: 1px solid #e2e8f0;
+            background: white;
+            font-family: inherit;
+            font-size: 1rem;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+        }
+
+        .search-icon {
+            position: absolute;
+            right: 1.25rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+        }
+    </style>
+</head>
+
+<body class="min-h-screen flex flex-col">
+    <div id="global-header"></div>
+
+    <main class="flex-grow container mx-auto px-6 py-12">
+        <!-- Header -->
+        <div class="text-center mb-12">
+            <h1 class="text-4xl md:text-6xl font-black mb-4 text-gray-900">
+                5v5 <span class="text-green-500">Fashion</span>
+            </h1>
+            <p class="text-gray-500 text-lg max-w-2xl mx-auto">
+                استعرض أحدث الملابس والإكسسوارات الرياضية المصممة خصيصاً للاعبي 5ع5.
+            </p>
+        </div>
+
+        <!-- Search and Filters -->
+        <div class="mb-12">
+            <div class="search-container mb-8">
+                <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                <input type="text" id="search-input" placeholder="ابحث عن منتج..." class="search-input text-right">
+            </div>
+
+            <div class="flex flex-wrap justify-center gap-4" id="filter-container">
+                <button class="filter-btn active" data-category="all">
+                    <i class="fa-solid fa-border-all"></i>
+                    الكل
+                </button>
+                <button class="filter-btn" data-category="clothes">
+                    <i class="fa-solid fa-shirt"></i>
+                    ملابس
+                </button>
+                <button class="filter-btn" data-category="accessories">
+                    <i class="fa-solid fa-hat-cowboy"></i>
+                    أكسسوارات
+                </button>
+                <button class="filter-btn" data-category="shoes">
+                    <i class="fa-solid fa-socks"></i>
+                    أحذية
+                </button>
+            </div>
+        </div>
+
+        <!-- Products Grid -->
+        <div id="products-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+            <!-- Skeletons -->
+            <div class=" premium-card skel h-80"></div>
+            <div class=" premium-card skel h-80"></div>
+            <div class=" premium-card skel h-80"></div>
+            <div class=" premium-card skel h-80"></div>
+        </div>
+
+        <!-- No Results -->
+        <div id="no-results" class="hidden text-center py-20">
+            <i class="fa-solid fa-box-open text-6xl text-gray-300 mb-4 block"></i>
+            <p class="text-gray-500 text-lg">لم نجد أي منتجات بهذا البحث.</p>
+        </div>
+    </main>
+
+    <div id="global-footer"></div>
+
+    <script src="/components/header.js"></script>
+    <script src="/components/footer.js"></script>
+    <script src="/components/loader.js"></script>
+    <script>
+        let currentCategory = 'all';
+        let searchQuery = '';
+
+        async function loadProducts() {
+            const grid = document.getElementById('products-grid');
+            const noResults = document.getElementById('no-results');
+
+            try {
+                const url = new URL('/api/fashion/products', window.location.origin);
+                if (currentCategory !== 'all') url.searchParams.append('category', currentCategory);
+                if (searchQuery) url.searchParams.append('search', searchQuery);
+
+                const res = await fetch(url);
+                const data = await res.json();
+                const products = data.products || [];
+
+                if (products.length === 0) {
+                    grid.innerHTML = '';
+                    noResults.classList.remove('hidden');
+                    return;
+                }
+
+                noResults.classList.add('hidden');
+                grid.innerHTML = products.map((p, idx) => `
+                    <div class="premium-card animate-fade-up" style="animation-delay: ${idx * 50}ms">
+                        <div class="product-image-container">
+                            <span class="category-badge">${getCategoryName(p.category)}</span>
+                            <img src="${p.image_url || 'https://placehold.co/600x600/1e293b/white?text=No+Image'}" 
+                                 alt="${p.name}" class="product-image">
+                        </div>
+                        <div class="p-6">
+                            <h3 class="font-bold text-xl mb-2 text-gray-900 line-clamp-1">${p.name}</h3>
+                            <div class="flex items-center justify-between mt-4">
+                                <span class="price-tag">${p.price} <span class="text-sm font-normal text-gray-500">ج.م</span></span>
+                                <a href="item.html?id=${p.id}" class="view-btn">عرض</a>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (err) {
+                console.error('Error loading products:', err);
+                grid.innerHTML = '<p class="col-span-full text-center text-red-500">عذراً، حدث خطأ أثناء تحميل المنتجات.</p>';
+            }
+        }
+
+        function getCategoryName(cat) {
+            const map = {
+                'clothes': 'ملابس',
+                'accessories': 'أكسسوارات',
+                'shoes': 'أحذية'
+            };
+            return map[cat] || cat;
+        }
+
+        // Filters
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentCategory = btn.dataset.category;
+                loadProducts();
+            });
+        });
+
+        // Search
+        const searchInput = document.getElementById('search-input');
+        let searchTimeout;
+        searchInput.addEventListener('input', (e) => {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                searchQuery = e.target.value;
+                loadProducts();
+            }, 500);
+        });
+
+        document.addEventListener('DOMContentLoaded', loadProducts);
+    </script>
+</body>
+
+</html>

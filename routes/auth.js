@@ -1,0 +1,119 @@
+const express = require('express');
+const router = express.Router();
+const bcrypt = require('bcrypt');
+const pool = require('../database');
+const { signToken, TOKEN_TTL_SECONDS } = require('../utils/auth');
+const { requireAuth } = require('../middleware/auth');
+const { requireCsrf } = require('../middleware/csrf');
+const { loginLimiter, signupLimiter } = require('../middleware/rateLimit');
+const { assessPasswordStrength } = require('../utils/validation');
+
+const saltRounds = 10;
+
+// API endpoint for user sign-up
+router.post('/signup', signupLimiter, requireCsrf, async (req, res) => {
+    const { name, email, phone, birthdate, gender, password } = req.body;
+
+    if (!name || !email || !phone || !birthdate || !gender || !password) {
+        return res.status(400).json({ error: 'يرجى توفير جميع الحقول المطلوبة.' });
+    }
+
+    const strength = assessPasswordStrength(password, { email, name, phone });
+    if (!strength.ok) {
+        return res.status(400).json({ error: strength.error });
+    }
+
+    try {
+        const hashedPassword = await bcrypt.hash(password, saltRounds);
+        const isAdminValue = 0;
+
+        const sql = `
+            INSERT INTO users (name, email, phone_number, birthdate, gender, password, is_admin) 
+            VALUES ($1, $2, $3, $4, $5, $6, $7)
+            RETURNING id
+        `;
+        const params = [name, email, phone, birthdate, gender, hashedPassword, isAdminValue];
+
+        const { rows } = await pool.query(sql, params);
+        const userId = rows[0].id;
+
+        res.status(201).json({ message: 'تم إنشاء الحساب بنجاح.', userId });
+    } catch (err) {
+        console.error('Error inserting user:', err);
+        if (err.code === '23505') {
+            return res.status(409).json({ error: 'هذا البريد الإلكتروني مسجل بالفعل.' });
+        }
+        return res.status(500).json({ error: 'تعذر إنشاء الحساب.' });
+    }
+});
+
+// API endpoint for user login
+router.post('/login', loginLimiter, requireCsrf, async (req, res) => {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+        return res.status(400).json({ error: 'البريد الإلكتروني وكلمة المرور مطلوبة.' });
+    }
+
+    const sql = `SELECT id, name, email, password, is_admin FROM users WHERE email = $1`;
+    try {
+        const { rows } = await pool.query(sql, [email]);
+        const user = rows[0];
+
+        if (!user) {
+            return res.status(401).json({ error: 'البريد الإلكتروني أو كلمة المرور غير صحيحة.' });
+        }
+
+        const match = await bcrypt.compare(password, user.password);
+
+        if (match) {
+            const token = signToken({
+                id: user.id,
+                name: user.name,
+                email: user.email,
+                is_admin: user.is_admin === 1
+            });
+            const isProd = process.env.NODE_ENV === 'production';
+            res.cookie('auth_token', token, {
+                httpOnly: true,
+                secure: isProd,
+                sameSite: 'lax',
+                maxAge: TOKEN_TTL_SECONDS * 1000,
+                path: '/'
+            });
+
+            res.json({
+                message: 'تم تسجيل الدخول بنجاح.',
+                userId: user.id,
+                userName: user.name,
+                email: user.email,
+                is_admin: user.is_admin === 1
+            });
+        } else {
+            res.status(401).json({ error: 'البريد الإلكتروني أو كلمة المرور غير صحيحة.' });
+        }
+    } catch (err) {
+        console.error('Error fetching user:', err);
+        return res.status(500).json({ error: 'خطأ في الخادم. يرجى المحاولة لاحقاً.' });
+    }
+});
+
+// Auth: get current user from token
+router.get('/me', requireAuth, async (req, res) => {
+    const user = {
+        id: req.user.id,
+        name: req.user.name,
+        email: req.user.email,
+        is_admin: !!req.user.is_admin
+    };
+    res.json({ user });
+});
+
+// Auth: logout (clear cookie)
+router.post('/logout', requireCsrf, (req, res) => {
+    const isProd = process.env.NODE_ENV === 'production';
+    res.clearCookie('auth_token', { httpOnly: true, sameSite: 'lax', secure: isProd, path: '/' });
+    res.json({ success: true, message: 'تم تسجيل الخروج.' });
+});
+
+module.exports = router;

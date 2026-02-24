@@ -1,0 +1,44 @@
+<section id="tournaments-tab" class="tab-pane hidden">
+    <div class="bg-white rounded-2xl shadow-xl p-8 border-b-4 border-orange-500">
+        <h4 class="text-3xl font-bold text-gray-900 mb-8 flex items-center gap-3">
+            <i class="fa-solid fa-trophy text-orange-600"></i>
+            إدارة البطولات
+        </h4>
+
+        <!-- Tournament List -->
+        <div class="mb-8">
+            <h5 class="text-xl font-bold text-gray-800 mb-4">البطولات المتاحة</h5>
+            <div id="tournaments-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+                <!-- Tournament cards will be loaded here -->
+            </div>
+        </div>
+
+        <!-- Tournament Teams Section -->
+        <div id="tournament-teams-section" class="hidden">
+            <div class="bg-blue-50 border border-blue-200 rounded-xl p-6 mb-6">
+                <h5 class="text-xl font-bold text-blue-800 mb-2 flex items-center gap-2">
+                    <i class="fa-solid fa-users text-blue-600"></i>
+                    <span id="selected-tournament-name">فرق البطولة</span>
+                </h5>
+                <button onclick="closeTournamentTeams()" class="text-blue-600 hover:text-blue-800 font-medium">
+                    <i class="fa-solid fa-arrow-right ml-1"></i>
+                    العودة للبطولات
+                </button>
+            </div>
+
+            <div id="tournament-teams-container" class="space-y-4">
+                <!-- Tournament teams will be loaded here -->
+            </div>
+
+            <div id="no-teams-message" class="hidden text-center py-12">
+                <i class="fa-solid fa-users-slash text-6xl text-gray-300 mb-4"></i>
+                <p class="text-gray-500 text-lg">لا توجد فرق مسجلة في هذه البطولة بعد</p>
+            </div>
+        </div>
+
+        <button onclick="openAddTournamentModal()"
+            class="mt-8 bg-orange-600 text-white font-bold py-3 px-6 rounded-xl hover:bg-orange-700 transition-all duration-300 shadow-md">
+            إضافة بطولة جديدة
+        </button>
+    </div>
+</section>

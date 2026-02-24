@@ -1,13 +1,15 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
+
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>المسابقات | 5v5</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="/styles.css" />
+    <link rel="stylesheet" href="/components/styles.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 </head>
+
 <body class="bg-gray-100 text-gray-800">
     <div id="global-header"></div>
 
@@ -17,7 +19,8 @@
                 <i class="fa-solid fa-gift"></i>
                 المسابقات
             </h1>
-            <p class="text-gray-700 mt-2 text-center text-lg">اكتشف مسابقاتنا الحالية وانضم <span class="text-green-700 font-semibold">مجانًا</span>! شارك لتحصل على فرص رائعة.</p>
+            <p class="text-gray-700 mt-2 text-center text-lg">اكتشف مسابقاتنا الحالية وانضم <span
+                    class="text-green-700 font-semibold">مجانًا</span>! شارك لتحصل على فرص رائعة.</p>
         </section>
 
         <!-- Note: Users only view and join giveaways; creation is in admin dashboard. -->
@@ -38,7 +41,8 @@
         </section>
 
         <!-- Participants Modal -->
-        <div id="participants-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div id="participants-modal"
+            class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
             <div class="bg-white rounded-xl shadow-lg w-full max-w-lg p-6 relative">
                 <button id="participants-modal-close" class="absolute top-3 left-3 text-gray-500 hover:text-gray-700">
                     <i class="fa-solid fa-xmark text-xl"></i>
@@ -50,7 +54,8 @@
         </div>
 
         <!-- Auth Prompt Modal -->
-        <div id="auth-prompt-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div id="auth-prompt-modal"
+            class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
             <div class="bg-white rounded-xl shadow-lg w-full max-w-md p-6 relative text-center">
                 <button id="auth-prompt-close" class="absolute top-3 left-3 text-gray-500 hover:text-gray-700">
                     <i class="fa-solid fa-xmark text-xl"></i>
@@ -69,7 +74,8 @@
         </div>
 
         <!-- Join Success Modal -->
-        <div id="join-success-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div id="join-success-modal"
+            class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
             <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 relative text-center overflow-hidden">
                 <button id="join-success-close" class="absolute top-3 left-3 text-gray-500 hover:text-gray-700">
                     <i class="fa-solid fa-xmark text-xl"></i>
@@ -82,15 +88,16 @@
                 </div>
                 <h3 class="text-2xl font-bold mb-2">تهانينا!</h3>
                 <p class="text-gray-600 mb-6">تم انضمامك إلى المسابقة بنجاح. بالتوفيق!</p>
-                <button id="join-success-ok" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg">رائع!</button>
+                <button id="join-success-ok"
+                    class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg">رائع!</button>
             </div>
         </div>
     </main>
 
     <div id="global-footer"></div>
 
-    <script src="header.js"></script>
-    <script src="footer.js"></script>
+    <script src="/components/header.js"></script>
+    <script src="/components/footer.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             // Load giveaways
@@ -324,8 +331,7 @@
             modal.classList.remove('flex');
         }
     </script>
-    <div id="global-footer"></div>
-    <script src="header.js"></script>
-    <script src="footer.js"></script>
+
 </body>
+
 </html>

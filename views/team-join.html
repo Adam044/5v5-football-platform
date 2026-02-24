@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,9 +10,10 @@
     <!-- Font Awesome CDN -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+    <link rel="stylesheet" href="/components/styles.css" />
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap');
-        
+
         :root {
             --primary-color: #10B981;
             --secondary-color: #3B82F6;
@@ -27,10 +29,11 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: flex-start; /* Changed to flex-start for better content visibility */
+            justify-content: flex-start;
+            /* Changed to flex-start for better content visibility */
             padding: 2rem;
         }
-        
+
         .card {
             background-color: white;
             border-radius: 1.5rem;
@@ -80,9 +83,18 @@
             border: 2px solid #e5e7eb;
             transition: all 0.3s ease;
         }
-        .team-section.team-a { border-color: #3b82f6; }
-        .team-section.team-b { border-color: #10B981; }
-        .team-section.single-team { border-color: #f59e0b; }
+
+        .team-section.team-a {
+            border-color: #3b82f6;
+        }
+
+        .team-section.team-b {
+            border-color: #10B981;
+        }
+
+        .team-section.single-team {
+            border-color: #f59e0b;
+        }
 
         .player-card {
             background-color: #f0f4f8;
@@ -95,11 +107,12 @@
             border: 1px solid #e2e8f0;
             transition: all 0.2s;
         }
+
         .player-card.creator {
             background-color: #D1FAE5;
             border-color: var(--primary-color);
         }
-        
+
         .progress-bar-container {
             height: 12px;
             background-color: #e2e8f0;
@@ -107,11 +120,13 @@
             overflow: hidden;
             margin-top: 1rem;
         }
+
         .progress-bar-fill {
             height: 100%;
             background-color: var(--primary-color);
             transition: width 0.3s ease;
         }
+
         .progress-bar-label {
             font-size: 0.875rem;
             font-weight: 600;
@@ -123,24 +138,29 @@
             border-radius: 0.75rem;
             font-weight: 700;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         }
+
         .btn-primary {
             background: linear-gradient(to right, var(--primary-color), #34D399);
             color: white;
         }
+
         .btn-secondary {
             background: #e2e8f0;
             color: #4b5563;
         }
-        .btn-primary:hover, .btn-secondary:hover {
+
+        .btn-primary:hover,
+        .btn-secondary:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
         }
-        
+
         .pulse {
             animation: pulse 1s infinite cubic-bezier(0.66, 0, 0, 1);
         }
+
         @keyframes pulse {
             to {
                 box-shadow: 0 0 0 10px rgba(16, 185, 129, 0);
@@ -161,6 +181,7 @@
             justify-content: center;
             margin-bottom: 2rem;
         }
+
         .logo {
             width: 80px;
             height: 80px;
@@ -169,6 +190,7 @@
             box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
             border: 3px solid var(--primary-color);
         }
+
         .field-image {
             width: 100%;
             height: 200px;
@@ -177,6 +199,7 @@
             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
             margin-bottom: 1.5rem;
         }
+
         .hero-section {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             border-radius: 1.5rem;
@@ -187,6 +210,7 @@
             position: relative;
             overflow: hidden;
         }
+
         .hero-section::before {
             content: '';
             position: absolute;
@@ -197,6 +221,7 @@
             background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="2" fill="white" opacity="0.1"/><circle cx="20" cy="20" r="1" fill="white" opacity="0.1"/><circle cx="80" cy="30" r="1.5" fill="white" opacity="0.1"/><circle cx="30" cy="80" r="1" fill="white" opacity="0.1"/><circle cx="70" cy="70" r="1.5" fill="white" opacity="0.1"/></svg>');
             pointer-events: none;
         }
+
         .status-badge {
             display: inline-flex;
             align-items: center;
@@ -208,10 +233,12 @@
             text-transform: uppercase;
             letter-spacing: 0.05em;
         }
+
         .status-waiting {
             background-color: #fef3c7;
             color: #92400e;
         }
+
         .status-ready {
             background-color: #d1fae5;
             color: #065f46;
@@ -222,24 +249,28 @@
             transform: scale(0.95);
             transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
+
         #confirmation-modal:not(.hidden) .confirmation-modal-content {
             transform: scale(1);
         }
-        
+
         /* QR Modal specific style */
         .qr-modal-content {
             transform: scale(0.95);
             transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
+
         #qr-modal:not(.hidden) .qr-modal-content {
             transform: scale(1);
         }
-        
+
         .team-join-header {
-            color: #3b82f6; /* Use blue for the booking hub */
+            color: #3b82f6;
+            /* Use blue for the booking hub */
         }
     </style>
 </head>
+
 <body>
 
     <main class="card">
@@ -247,7 +278,7 @@
         <div class="logo-container">
             <img src="/images/logo.jpg" alt="5ع5 Logo" class="logo">
         </div>
-        
+
         <h1 class="text-3xl font-extrabold text-gray-900 mb-6 flex items-center justify-center gap-3 team-join-header">
             <i class="fa-solid fa-users text-blue-600"></i>
             مركز تجميع اللاعبين
@@ -255,11 +286,12 @@
 
         <!-- Navigation Actions -->
         <div class="flex items-center justify-center mb-6">
-            <a href="/index.html" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition flex items-center">
+            <a href="/index.html"
+                class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition flex items-center">
                 <i class="fa-solid fa-house ml-2"></i> العودة للصفحة الرئيسية
             </a>
         </div>
-        
+
         <!-- Loading State -->
         <div id="loading-state" class="py-12">
             <div class="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
@@ -276,7 +308,7 @@
             <div id="field-overview" class="field-overview mb-8">
                 <!-- Field details will be populated here -->
             </div>
-            
+
             <!-- Creator Invitation Section (Visible only to Creator) -->
             <div id="creator-section" class="hidden mb-8 border-b pb-8">
                 <h2 class="text-3xl font-bold text-gray-900 mb-6 flex items-center justify-center gap-2">
@@ -284,22 +316,26 @@
                     شارك الدعوة
                 </h2>
                 <p class="text-gray-600 mb-6">شارك الرابط أو رمز QR مع أصدقائك للانضمام للفريق.</p>
-                
+
                 <div class="flex flex-col gap-4 max-w-xl mx-auto">
                     <!-- Invitation Link Container (Compact) -->
                     <div class="bg-white p-4 rounded-xl shadow-md border border-gray-200">
                         <label class="block text-gray-700 font-semibold mb-2 text-right text-sm">رابط الدعوة</label>
                         <div class="flex gap-2 items-stretch">
-                            <input id="invitation-link" type="text" readonly class="flex-grow p-2 rounded bg-gray-50 text-sm border border-gray-300 text-right font-mono min-w-0" value="">
-                            <button onclick="copyLink()" class="btn bg-blue-500 text-white flex-shrink-0 px-4 py-2 text-sm rounded-xl hover:bg-blue-600 transition-colors">
+                            <input id="invitation-link" type="text" readonly
+                                class="flex-grow p-2 rounded bg-gray-50 text-sm border border-gray-300 text-right font-mono min-w-0"
+                                value="">
+                            <button onclick="copyLink()"
+                                class="btn bg-blue-500 text-white flex-shrink-0 px-4 py-2 text-sm rounded-xl hover:bg-blue-600 transition-colors">
                                 <i class="fa-solid fa-copy"></i> نسخ
                             </button>
                         </div>
                     </div>
 
                     <!-- QR Code Toggle Button -->
-                    <button id="toggle-qr-btn" onclick="toggleQrModal()" class="btn bg-blue-600 text-white w-full py-3 text-lg mt-2 pulse hover:bg-blue-700">
-                         <i class="fa-solid fa-qrcode ml-2"></i> عرض رمز QR
+                    <button id="toggle-qr-btn" onclick="toggleQrModal()"
+                        class="btn bg-blue-600 text-white w-full py-3 text-lg mt-2 pulse hover:bg-blue-700">
+                        <i class="fa-solid fa-qrcode ml-2"></i> عرض رمز QR
                     </button>
                 </div>
             </div>
@@ -326,7 +362,8 @@
                         <div id="team-a-players" class="space-y-2 max-h-60 overflow-y-auto pr-2">
                             <!-- Team A players will be added here -->
                         </div>
-                        <button id="join-team-a-btn" class="btn bg-blue-600 text-white w-full mt-4 hover:bg-blue-700 transition-all duration-300">
+                        <button id="join-team-a-btn"
+                            class="btn bg-blue-600 text-white w-full mt-4 hover:bg-blue-700 transition-all duration-300">
                             <i class="fa-solid fa-plus-circle ml-2"></i>
                             انضم للفريق الأول
                         </button>
@@ -348,7 +385,8 @@
                         <div id="team-b-players" class="space-y-2 max-h-60 overflow-y-auto pr-2">
                             <!-- Team B players will be added here -->
                         </div>
-                        <button id="join-team-b-btn" class="btn bg-green-600 text-white w-full mt-4 hover:bg-green-700 transition-all duration-300">
+                        <button id="join-team-b-btn"
+                            class="btn bg-green-600 text-white w-full mt-4 hover:bg-green-700 transition-all duration-300">
                             <i class="fa-solid fa-plus-circle ml-2"></i>
                             انضم للفريق الثاني
                         </button>
@@ -362,7 +400,7 @@
                     <i class="fa-solid fa-users-line text-yellow-600 ml-2"></i>
                     تجمع اللاعبين (<span id="team-purpose"></span>)
                 </h3>
-                
+
                 <div id="join-form" class="mb-8 p-4 bg-gray-50 rounded-lg border border-gray-200">
                     <p class="text-lg font-semibold text-gray-800 mb-4">
                         انضم إلى الفريق الآن لتأكيد مكانك!
@@ -372,29 +410,30 @@
                         انضمام
                     </button>
                 </div>
-                
+
                 <div class="mt-8">
                     <div class="player-count text-xl font-bold mb-4 text-gray-800">
                         <i class="fa-solid fa-user-friends text-yellow-600 ml-2"></i>
-                        اللاعبون الحاليون: <span id="current-players">0</span> 
+                        اللاعبون الحاليون: <span id="current-players">0</span>
                         <span class="text-base font-normal text-gray-500">
                             (<span id="min-players">0</span> الحد الأدنى)
                         </span>
                     </div>
-                    
+
                     <div class="progress-bar-container mb-4">
                         <div id="progress-bar-fill" class="progress-bar-fill bg-yellow-500" style="width: 0%;"></div>
                     </div>
-                    <div id="players-needed-indicator" class="text-sm font-semibold text-blue-700 text-center mb-4"></div>
+                    <div id="players-needed-indicator" class="text-sm font-semibold text-blue-700 text-center mb-4">
+                    </div>
                     <div id="single-team-status" class="text-md font-semibold text-center mb-6"></div>
-                    
+
                     <h3 class="text-2xl font-bold mt-8 mb-4 text-gray-800 border-b pb-2">قائمة اللاعبين</h3>
                     <div id="player-list-container" class="space-y-2 max-h-60 overflow-y-auto pr-2">
                         <!-- Players will be added here -->
                     </div>
                 </div>
             </div>
-            
+
             <!-- Confirmation Buttons -->
             <div id="confirmation-section" class="mt-8">
                 <button id="confirm-booking-btn" class="hidden btn bg-green-600 text-white w-full hover:bg-green-700">
@@ -408,11 +447,15 @@
             </div>
         </div>
     </main>
-    
+
+    <div id="global-footer"></div>
+
     <!-- QR Code Modal (New structure) -->
     <div id="qr-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50">
-        <div class="bg-white rounded-2xl shadow-3xl w-full max-w-sm relative p-8 qr-modal-content border-b-4 border-blue-600">
-            <button onclick="toggleQrModal()" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 transition-colors duration-300 rounded-full bg-gray-100 p-2 hover:bg-gray-200">
+        <div
+            class="bg-white rounded-2xl shadow-3xl w-full max-w-sm relative p-8 qr-modal-content border-b-4 border-blue-600">
+            <button onclick="toggleQrModal()"
+                class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 transition-colors duration-300 rounded-full bg-gray-100 p-2 hover:bg-gray-200">
                 <i class="fa-solid fa-xmark"></i>
             </button>
             <h3 class="text-3xl font-bold mb-6 text-center text-gray-900">
@@ -426,11 +469,14 @@
         </div>
     </div>
 
-    
+
     <!-- Confirmation Modal -->
-    <div id="confirmation-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50">
-        <div class="bg-white rounded-2xl shadow-3xl w-full max-w-md relative p-8 confirmation-modal-content border-b-4 border-green-600">
-            <button onclick="closeBookingModal()" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 transition-colors duration-300 rounded-full bg-gray-100 p-2 hover:bg-gray-200">
+    <div id="confirmation-modal"
+        class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50">
+        <div
+            class="bg-white rounded-2xl shadow-3xl w-full max-w-md relative p-8 confirmation-modal-content border-b-4 border-green-600">
+            <button onclick="closeBookingModal()"
+                class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 transition-colors duration-300 rounded-full bg-gray-100 p-2 hover:bg-gray-200">
                 <i class="fa-solid fa-xmark"></i>
             </button>
             <h3 class="text-3xl font-bold mb-6 text-center text-gray-900">
@@ -441,31 +487,40 @@
                 <!-- Details injected here -->
             </div>
             <div class="flex items-center mb-8">
-                <input type="checkbox" id="accept-terms" class="ml-2 w-5 h-5 text-green-600 bg-gray-100 border-gray-300 rounded focus:ring-green-500">
+                <input type="checkbox" id="accept-terms"
+                    class="ml-2 w-5 h-5 text-green-600 bg-gray-100 border-gray-300 rounded focus:ring-green-500">
                 <label for="accept-terms" class="text-sm font-semibold text-gray-700">
-                    أقر وأوافق على هذا الحجز، وسأدفع المبلغ الإجمالي بالكامل (<span id="final-price-text"></span>) في الملعب عند الوصول.
+                    أقر وأوافق على هذا الحجز، وسأدفع المبلغ الإجمالي بالكامل (<span id="final-price-text"></span>) في
+                    الملعب عند الوصول.
                 </label>
             </div>
             <div class="flex gap-4">
-                <button onclick="closeBookingModal()" class="flex-1 bg-gray-500 text-white py-3 rounded-lg hover:bg-gray-600 transition-colors">
+                <button onclick="closeBookingModal()"
+                    class="flex-1 bg-gray-500 text-white py-3 rounded-lg hover:bg-gray-600 transition-colors">
                     إلغاء
                 </button>
-                <button id="final-confirm-btn" onclick="confirmBooking()" class="flex-1 bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 transition-colors" disabled>
+                <button id="final-confirm-btn" onclick="confirmBooking()"
+                    class="flex-1 bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 transition-colors"
+                    disabled>
                     تأكيد الحجز النهائي
                 </button>
             </div>
-    </div>
+        </div>
     </div>
 
     <!-- Global Confirmation Modal (Shown to all participants on completion) -->
-    <div id="global-confirmation-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50">
-        <div class="bg-white rounded-2xl shadow-3xl w-full max-w-md relative p-8 confirmation-modal-content border-b-4 border-blue-600">
-            <button onclick="closeGlobalConfirmationModal()" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 transition-colors duration-300 rounded-full bg-gray-100 p-2 hover:bg-gray-200">
+    <div id="global-confirmation-modal"
+        class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50">
+        <div
+            class="bg-white rounded-2xl shadow-3xl w-full max-w-md relative p-8 confirmation-modal-content border-b-4 border-blue-600">
+            <button onclick="closeGlobalConfirmationModal()"
+                class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 transition-colors duration-300 rounded-full bg-gray-100 p-2 hover:bg-gray-200">
                 <i class="fa-solid fa-xmark"></i>
             </button>
             <h3 id="global-modal-title" class="text-3xl font-bold mb-6 text-center text-gray-900"></h3>
             <p id="global-modal-message" class="text-gray-700 mb-6 text-center"></p>
-            <button onclick="window.location.href='user-dashboard.html'" class="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-colors">
+            <button onclick="window.location.href='user-dashboard.html'"
+                class="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-colors">
                 <i class="fa-solid fa-gauge ml-2"></i> الذهاب إلى لوحة التحكم
             </button>
         </div>
@@ -475,15 +530,19 @@
     <!-- Message Box (reused from index.html) -->
     <div id="message-box" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50">
         <div class="bg-white rounded-2xl shadow-3xl p-8 w-full max-w-sm relative text-center border-t-4 border-red-500">
-            <h4 id="message-box-title" class="text-2xl font-bold mb-4 text-gray-900 flex items-center justify-center gap-2"></h4>
+            <h4 id="message-box-title"
+                class="text-2xl font-bold mb-4 text-gray-900 flex items-center justify-center gap-2"></h4>
             <p id="message-box-content" class="text-gray-700 mb-6 text-lg"></p>
             <div id="message-box-actions" class="flex items-center justify-center gap-3">
-                <button onclick="closeMessageBox()" class="bg-red-600 text-white px-7 py-3 rounded-xl hover:bg-red-700 transition-all duration-300 shadow-md text-lg">حسناً</button>
+                <button onclick="closeMessageBox()"
+                    class="bg-red-600 text-white px-7 py-3 rounded-xl hover:bg-red-700 transition-all duration-300 shadow-md text-lg">حسناً</button>
             </div>
         </div>
     </div>
 
-        <script src="/header.js"></script>
+    <script src="/components/header.js"></script>
+    <script src="/components/footer.js"></script>
+    <script src="/components/loader.js"></script>
     <script>
         const urlParams = new URLSearchParams(window.location.search);
         let invitationCode = null;
@@ -498,12 +557,12 @@
 
         const loggedInUserId = localStorage.getItem('userId');
         const loggedInUserName = localStorage.getItem('userName');
-        
+
         // --- CONSTANTS FROM URL PARAMS (Now purely for booking/matchmaking) ---
         // Min/Max size for the single team layout is determined by the booking type
-        let MIN_TEAM_SIZE = parseInt(urlParams.get('minTeamSize')) || 6; 
-        let MAX_TEAM_SIZE = parseInt(urlParams.get('maxTeamSize')) || 20; 
-        
+        let MIN_TEAM_SIZE = parseInt(urlParams.get('minTeamSize')) || 6;
+        let MAX_TEAM_SIZE = parseInt(urlParams.get('maxTeamSize')) || 20;
+
         // --- Utility Functions ---
         function showMessageBox(title, content, type = 'error', actionsHtml = null) {
             const msgBox = document.getElementById('message-box');
@@ -518,7 +577,7 @@
 
             let icon = '', color = 'red', buttonText = 'حسناً';
             let buttonClass = 'bg-red-600';
-            switch(type) {
+            switch (type) {
                 case 'success':
                     icon = `<i class="fa-solid fa-circle-check text-green-600 ml-2"></i>`;
                     color = 'green';
@@ -584,21 +643,21 @@
                 default: return bookingType;
             }
         }
-        
+
         // --- QR Code Functions ---
         function generateQRCode(text) {
             const canvas = document.getElementById('qrcode-canvas');
             if (!canvas) return;
-            
+
             // Clear previous QR
             const ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
+
             try {
                 const qr = qrcode(0, 'H');
                 qr.addData(text);
                 qr.make();
-                
+
                 const size = 240; // Increased size slightly for better visibility in modal
                 const cell = size / qr.getModuleCount();
                 canvas.width = size;
@@ -625,7 +684,7 @@
                 ctx.fillText('QR Failed', size / 2, size / 2);
             }
         }
-        
+
         function toggleQrModal() {
             const qrModal = document.getElementById('qr-modal');
             qrModal.classList.toggle('hidden');
@@ -634,20 +693,20 @@
         function setupInvitationLink() {
             const invitationLinkInput = document.getElementById('invitation-link');
             // Ensure this uses the correct path format: /join/<code here>
-            const fullUrl = `${window.location.origin}/join/${invitationCode}`; 
-            
+            const fullUrl = `${window.location.origin}/join/${invitationCode}`;
+
             invitationLinkInput.value = fullUrl;
             // Generate QR code right away so it's ready when the modal opens
-            generateQRCode(fullUrl); 
+            generateQRCode(fullUrl);
         }
 
         // --- Core Functions ---
-async function loadOrCreateTeam() {
-    const loadingState = document.getElementById('loading-state');
-    const mainContent = document.getElementById('main-content');
-    loadingState.classList.remove('hidden');
-    mainContent.classList.add('hidden');
-            
+        async function loadOrCreateTeam() {
+            const loadingState = document.getElementById('loading-state');
+            const mainContent = document.getElementById('main-content');
+            loadingState.classList.remove('hidden');
+            mainContent.classList.add('hidden');
+
             if (!loggedInUserId) {
                 showMessageBox(
                     'تسجيل الدخول مطلوب',
@@ -656,40 +715,40 @@ async function loadOrCreateTeam() {
                 );
                 return;
             }
-            
+
             // --- REMOVED TOURNAMENT-SPECIFIC LOGIC ---
-            
-    // Get invitation code from path or URL params
-    // Only treat the last path segment as an invitation code if the URL contains '/join/'
-    const lastSegment = window.location.pathname.split('/').pop();
-    const pathInvitationCode = window.location.pathname.includes('/join/') ? lastSegment : null;
-    const urlInvitationCode = urlParams.get('invitationCode');
-    invitationCode = urlInvitationCode || pathInvitationCode;
-    // Guard against mistakenly using page filenames like 'user-dashboard.html' or 'team-join.html'
-    let invalidRouteHtml = false;
-    if (invitationCode && /\.html$/i.test(invitationCode)) {
-        invalidRouteHtml = true;
-        invitationCode = null;
-    }
-            
+
+            // Get invitation code from path or URL params
+            // Only treat the last path segment as an invitation code if the URL contains '/join/'
+            const lastSegment = window.location.pathname.split('/').pop();
+            const pathInvitationCode = window.location.pathname.includes('/join/') ? lastSegment : null;
+            const urlInvitationCode = urlParams.get('invitationCode');
+            invitationCode = urlInvitationCode || pathInvitationCode;
+            // Guard against mistakenly using page filenames like 'user-dashboard.html' or 'team-join.html'
+            let invalidRouteHtml = false;
+            if (invitationCode && /\.html$/i.test(invitationCode)) {
+                invalidRouteHtml = true;
+                invitationCode = null;
+            }
+
             // Derive booking type from URL params (Only for new session creation)
             currentBookingType = urlParams.get('bookingType');
-            
-            // Fetch min/max sizes for matchmaking from URL params
-            MIN_TEAM_SIZE = parseInt(urlParams.get('minTeamSize')) || 6; 
-            MAX_TEAM_SIZE = parseInt(urlParams.get('maxTeamSize')) || 20; 
 
-    if (invitationCode) {
-        // Flow for joining an existing team (via invitation link)
-        await fetchTeamDetails();
-    } else if (currentBookingType) {
-        // Flow for creating a new team (from index.html)
-        const fieldId = urlParams.get('fieldId');
-        const slotDate = urlParams.get('slotDate');
-        const startTime = urlParams.get('startTime');
-        const endTime = urlParams.get('endTime');
-        const initialPlayerCount = urlParams.get('initialPlayerCount');
-                
+            // Fetch min/max sizes for matchmaking from URL params
+            MIN_TEAM_SIZE = parseInt(urlParams.get('minTeamSize')) || 6;
+            MAX_TEAM_SIZE = parseInt(urlParams.get('maxTeamSize')) || 20;
+
+            if (invitationCode) {
+                // Flow for joining an existing team (via invitation link)
+                await fetchTeamDetails();
+            } else if (currentBookingType) {
+                // Flow for creating a new team (from index.html)
+                const fieldId = urlParams.get('fieldId');
+                const slotDate = urlParams.get('slotDate');
+                const startTime = urlParams.get('startTime');
+                const endTime = urlParams.get('endTime');
+                const initialPlayerCount = urlParams.get('initialPlayerCount');
+
                 // Check if necessary params exist
                 const requiresExactTimes = currentBookingType === 'two_teams_ready';
                 const hasBaseParams = Boolean(fieldId && slotDate && currentBookingType);
@@ -700,17 +759,17 @@ async function loadOrCreateTeam() {
                     document.getElementById('loading-state').classList.add('hidden');
                     return;
                 }
-                
-        isCreator = true;
-        await createNewTeam(fieldId, slotDate, startTime || null, endTime || null, currentBookingType, initialPlayerCount);
-    } else {
-        // If the path looked like /join/<view>.html, surface a helpful modal with navigation
-        if (invalidRouteHtml) {
-            showMessageBox(
-                'رابط غير صالح',
-                'تم فتح صفحة الانضمام برابط غير صحيح. استخدم رابط دعوة صالح أو عد إلى الصفحة الرئيسية.',
-                'info',
-                `
+
+                isCreator = true;
+                await createNewTeam(fieldId, slotDate, startTime || null, endTime || null, currentBookingType, initialPlayerCount);
+            } else {
+                // If the path looked like /join/<view>.html, surface a helpful modal with navigation
+                if (invalidRouteHtml) {
+                    showMessageBox(
+                        'رابط غير صالح',
+                        'تم فتح صفحة الانضمام برابط غير صحيح. استخدم رابط دعوة صالح أو عد إلى الصفحة الرئيسية.',
+                        'info',
+                        `
                 <a href="/index.html" class="bg-blue-600 text-white px-6 py-3 rounded-xl hover:bg-blue-700 transition-all duration-300 shadow-md text-lg inline-flex items-center gap-2">
                     <i class="fa-solid fa-house"></i> الصفحة الرئيسية
                 </a>
@@ -718,18 +777,18 @@ async function loadOrCreateTeam() {
                     <i class="fa-solid fa-gauge"></i> لوحة التحكم
                 </a>
                 `
-            );
-        } else {
-            showMessageBox('خطأ', 'الرجاء البدء بالحجز من الصفحة الرئيسية.');
+                    );
+                } else {
+                    showMessageBox('خطأ', 'الرجاء البدء بالحجز من الصفحة الرئيسية.');
+                }
+                document.getElementById('loading-state').classList.add('hidden');
+            }
         }
-        document.getElementById('loading-state').classList.add('hidden');
-    }
-}
 
 
         async function createNewTeam(fieldId, slotDate, startTime, endTime, bookingType, initialPlayerCount) {
             try {
- const response = await fetch('/api/team-building/initiate', {
+                const response = await fetch('/api/team-building/initiate', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -742,13 +801,13 @@ async function loadOrCreateTeam() {
                         initialPlayerCount: initialPlayerCount
                     })
                 });
-                
+
                 const data = await response.json();
-                
+
                 if (!response.ok) {
                     throw new Error(data.error || 'Failed to create new team.');
                 }
-                
+
                 invitationCode = data.invitationCode;
                 // Redirect to the clean invitation URL
                 history.replaceState({}, '', `/join/${invitationCode}`);
@@ -764,13 +823,13 @@ async function loadOrCreateTeam() {
             if (!invitationCode) return;
             try {
                 // Poll the server for updated team details
- const response = await fetch(`/api/team-building/${invitationCode}?userId=${loggedInUserId}`);
+                const response = await fetch(`/api/team-building/${invitationCode}?userId=${loggedInUserId}`);
                 const data = await response.json();
 
                 if (!response.ok) {
                     throw new Error(data.error || 'Failed to fetch team details.');
                 }
-                
+
                 bookingData = data;
                 currentBookingType = bookingData.session.booking_type;
                 // Derive min/max constraints from the session booking type for invitation flows
@@ -786,35 +845,35 @@ async function loadOrCreateTeam() {
                     MAX_TEAM_SIZE = 20;
                 }
                 isCreator = bookingData.session.creator_id === parseInt(loggedInUserId);
-                
+
                 // Sort players into their respective teams
                 if (currentBookingType === 'two_teams_ready') {
                     teamAPlayers = bookingData.members.filter(p => p.team_designation === 'A') || [];
                     // Ensure the creator is always in Team A if they haven't switched
-                    if(isCreator && !teamAPlayers.some(p => p.user_id === parseInt(loggedInUserId))) {
+                    if (isCreator && !teamAPlayers.some(p => p.user_id === parseInt(loggedInUserId))) {
                         // This handles the first load edge case where the DB might not have the creator's role yet
                         const creatorMember = bookingData.members.find(p => p.user_id === parseInt(loggedInUserId));
-                        if(creatorMember && creatorMember.team_designation === 'A') {
+                        if (creatorMember && creatorMember.team_designation === 'A') {
                             teamAPlayers.push(creatorMember);
                         }
                     }
-                    
+
                     teamBPlayers = bookingData.members.filter(p => p.team_designation === 'B') || [];
                 } else {
                     singleTeamPlayers = bookingData.members.filter(p => p.team_designation === 'single') || [];
                 }
-                
+
                 renderTeamDetails();
-                
+
                 // Start polling only if the session is active
                 if (bookingData.session.status === 'active') {
                     if (!pollingInterval) {
-                         pollingInterval = setInterval(fetchTeamDetails, 5000);
+                        pollingInterval = setInterval(fetchTeamDetails, 5000);
                     }
                 } else {
                     if (pollingInterval) clearInterval(pollingInterval);
                     // If session is completed/cancelled, show success/error message
-                    if(bookingData.session.status === 'completed') {
+                    if (bookingData.session.status === 'completed') {
                         // Show global confirmation modal to all participants based on booking type
                         const bType = bookingData.session.booking_type;
                         let title = 'تم الإكمال';
@@ -851,7 +910,7 @@ async function loadOrCreateTeam() {
             // Always render field overview and booking info for booking/matchmaking
             renderFieldOverview();
             renderBookingInfo();
-            
+
             // Handle Creator Section visibility and setup globally
             if (isCreator) {
                 creatorSection.classList.remove('hidden');
@@ -859,7 +918,7 @@ async function loadOrCreateTeam() {
             } else {
                 creatorSection.classList.add('hidden');
             }
-            
+
             const twoTeamsLayout = document.getElementById('two-teams-layout');
             const singleTeamLayout = document.getElementById('single-team-layout');
 
@@ -878,17 +937,17 @@ async function loadOrCreateTeam() {
                 singleTeamLayout.classList.add('hidden');
                 showMessageBox('خطأ', 'نوع الحجز غير مدعوم في هذه الصفحة.', 'error');
             }
-            
+
             updateConfirmationButtons();
         }
 
         function renderFieldOverview() {
             const fieldOverview = document.getElementById('field-overview');
             const { field_name, field_address, field_image } = bookingData.session;
-            
-            const imageUrl = bookingData.session.field_image_url 
+
+            const imageUrl = bookingData.session.field_image_url
                 || `https://placehold.co/600x400/22c55e/ffffff?text=${field_name.replace(/\s/g, '+')}`;
-            
+
             fieldOverview.innerHTML = `
                 <div class="field-card">
                     <img src="${imageUrl}" alt="${field_name}" class="field-image" 
@@ -964,15 +1023,15 @@ async function loadOrCreateTeam() {
         function renderTwoTeamsLayout() {
             // Min required per team is always 6 for two_teams_ready
             const minPerTeam = 6;
-            
+
             // Update team counts and progress
             updateTeamDisplay('A', teamAPlayers, minPerTeam);
             updateTeamDisplay('B', teamBPlayers, minPerTeam);
-            
+
             // Render players for both teams
             renderTeamPlayers('A', teamAPlayers, minPerTeam);
             renderTeamPlayers('B', teamBPlayers, minPerTeam);
-            
+
             // Setup join buttons
             setupTeamJoinButtons();
         }
@@ -981,11 +1040,11 @@ async function loadOrCreateTeam() {
             const currentSpan = document.getElementById(`team-${team.toLowerCase()}-current`);
             const statusSpan = document.getElementById(`team-${team.toLowerCase()}-status`);
             const progressBar = document.getElementById(`team-${team.toLowerCase()}-progress`);
-            
+
             const current = players.length;
-            
+
             currentSpan.textContent = `${current} / ${min}+`;
-            
+
             let statusText = '';
             let colorClass = 'text-red-600';
             let barColor = 'bg-red-500';
@@ -999,13 +1058,13 @@ async function loadOrCreateTeam() {
                 colorClass = 'text-yellow-600';
                 barColor = 'bg-yellow-500';
             }
-            
+
             statusSpan.className = `text-sm font-normal ${colorClass}`;
             statusSpan.textContent = `(${statusText})`;
 
             const percentage = Math.min(100, (current / min) * 100);
             progressBar.style.width = `${percentage}%`;
-            
+
             // Remove previous color classes and add the correct one
             const progressBarElement = document.getElementById(`team-${team.toLowerCase()}-progress`);
             progressBarElement.className = progressBarElement.className.replace(/bg-(red|yellow|green|blue)-\d{3}/g, '').trim() + ` ${barColor}`;
@@ -1014,11 +1073,11 @@ async function loadOrCreateTeam() {
         function setupTeamJoinButtons() {
             const joinTeamABtn = document.getElementById('join-team-a-btn');
             const joinTeamBBtn = document.getElementById('join-team-b-btn');
-            
+
             const userInTeamA = teamAPlayers.some(p => p.user_id === parseInt(loggedInUserId));
             const userInTeamB = teamBPlayers.some(p => p.user_id === parseInt(loggedInUserId));
             const userJoinedAny = userInTeamA || userInTeamB;
-            
+
             // Team A Button
             if (userInTeamA) {
                 joinTeamABtn.innerHTML = '<i class="fa-solid fa-check-circle ml-2"></i>أنت في الفريق الأول';
@@ -1036,7 +1095,7 @@ async function loadOrCreateTeam() {
                 joinTeamABtn.disabled = false;
                 joinTeamABtn.onclick = () => joinTeam('A');
             }
-            
+
             // Team B Button
             if (userInTeamB) {
                 joinTeamBBtn.innerHTML = '<i class="fa-solid fa-check-circle ml-2"></i>أنت في الفريق الثاني';
@@ -1060,9 +1119,9 @@ async function loadOrCreateTeam() {
         function renderSingleTeamLayout() {
             const teamPurpose = document.getElementById('team-purpose');
             const joinForm = document.getElementById('join-form');
-            
+
             const userInTeam = singleTeamPlayers.some(p => p.user_id === parseInt(loggedInUserId));
-            
+
             // Set team purpose text
             teamPurpose.textContent = getBookingTypeDisplayName(currentBookingType);
 
@@ -1070,7 +1129,7 @@ async function loadOrCreateTeam() {
             if (userInTeam || isCreator) {
                 // If creator or already joined, hide the general join button/form
                 joinForm.classList.add('hidden');
-                
+
                 // If the user is the creator, setup the join button for the Single Team Layout to allow joining
                 if (isCreator) {
                     setupJoinButton();
@@ -1084,7 +1143,7 @@ async function loadOrCreateTeam() {
                 joinForm.classList.remove('hidden');
                 setupJoinButton();
             }
-            
+
             updateSingleTeamDisplay();
             renderSingleTeamPlayers();
         }
@@ -1092,16 +1151,16 @@ async function loadOrCreateTeam() {
         function updateSingleTeamDisplay() {
             const current = singleTeamPlayers.length;
             // MIN_TEAM_SIZE and MAX_TEAM_SIZE are passed from index.html for this specific booking type
-            const min = MIN_TEAM_SIZE; 
-            const max = MAX_TEAM_SIZE; 
-            
+            const min = MIN_TEAM_SIZE;
+            const max = MAX_TEAM_SIZE;
+
             document.getElementById('current-players').textContent = current;
             document.getElementById('min-players').textContent = min;
-            
+
             const progressBar = document.getElementById('progress-bar-fill');
             const statusDiv = document.getElementById('single-team-status');
             const playersNeededDiv = document.getElementById('players-needed-indicator');
-            
+
             // Visual max is based on the limit for the current booking type
             const visualMax = currentBookingType === 'team_looking_for_players' ? 5 : 10;
             const percentage = Math.min(100, (current / visualMax) * 100);
@@ -1120,23 +1179,23 @@ async function loadOrCreateTeam() {
                 : `نبحث عن ${playersNeededToSix} ${playersNeededToSix === 1 ? 'لاعب' : 'لاعبين'} إضافيين`;
 
             if (currentBookingType === 'team_looking_for_players') {
-                 if (current > max) {
+                if (current > max) {
                     statusText = `تجاوز الحد الأقصى! (${current} / ${max})`;
                     statusColor = 'text-red-600';
                     barColor = 'bg-red-500';
-                 } else if (current === max) {
+                } else if (current === max) {
                     statusText = `الفريق مكتمل! (${current} / ${max}) - يمكن إرسال الطلب`;
                     statusColor = 'text-green-600';
                     barColor = 'bg-green-500';
-                 } else if (current >= min) {
+                } else if (current >= min) {
                     statusText = `جاهز لإرسال الطلب! (${current} / ${max})`;
                     statusColor = 'text-yellow-600';
                     barColor = 'bg-yellow-500';
-                 } else {
+                } else {
                     statusText = `تحتاج لـ ${min - current} لاعب آخر (الحد الأدنى ${min} لاعب)`;
                     statusColor = 'text-red-600';
                     barColor = 'bg-red-500';
-                 }
+                }
 
             } else if (currentBookingType === 'team_vs_team') { // min=6, max=20
                 if (current >= min) {
@@ -1155,7 +1214,7 @@ async function loadOrCreateTeam() {
             // Update players-needed indicator (clear when none needed)
             playersNeededDiv.textContent = neededLabel;
             playersNeededDiv.className = `text-sm font-semibold text-center mb-4 ${playersNeededToSix === 0 ? 'text-green-700' : 'text-blue-700'}`;
-            
+
             // Update progress bar color
             progressBar.className = progressBar.className.replace(/bg-(red|yellow|green|blue)-\d{3}/g, '').trim() + ` ${barColor}`;
         }
@@ -1163,7 +1222,7 @@ async function loadOrCreateTeam() {
         function renderTeamPlayers(team, players, maxLimit) {
             const container = document.getElementById(`team-${team.toLowerCase()}-players`);
             container.innerHTML = '';
-            
+
             players.forEach(player => {
                 const playerDiv = document.createElement('div');
                 const isCreatorPlayer = player.user_id === bookingData.session.creator_id;
@@ -1183,7 +1242,7 @@ async function loadOrCreateTeam() {
         function renderSingleTeamPlayers() {
             const container = document.getElementById('player-list-container');
             container.innerHTML = '';
-            
+
             singleTeamPlayers.forEach(player => {
                 const playerDiv = document.createElement('div');
                 const isCreatorPlayer = player.user_id === bookingData.session.creator_id;
@@ -1204,13 +1263,13 @@ async function loadOrCreateTeam() {
 
         function setupJoinButton() {
             const joinForm = document.getElementById('join-form');
-            
+
             // Check if user is already in the team
             const userInTeam = singleTeamPlayers.some(player => player.user_id === parseInt(loggedInUserId));
-            
+
             // Option 3 has a max limit of 5
             const isTeamLookingForPlayersFull = (currentBookingType === 'team_looking_for_players' && singleTeamPlayers.length >= 5);
-            
+
             if (userInTeam) {
                 joinForm.innerHTML = `
                     <div class="text-center p-6 bg-gradient-to-r from-green-100 to-emerald-100 rounded-lg border-2 border-green-300">
@@ -1222,7 +1281,7 @@ async function loadOrCreateTeam() {
                     </div>
                 `;
             } else if (isTeamLookingForPlayersFull) {
-                joinForm.classList.remove('hidden'); 
+                joinForm.classList.remove('hidden');
                 joinForm.innerHTML = `
                     <div class="text-center p-6 bg-gradient-to-r from-red-100 to-pink-100 rounded-lg border-2 border-red-300">
                         <div class="mb-4">
@@ -1249,7 +1308,7 @@ async function loadOrCreateTeam() {
 
         async function joinTeam(teamDesignation) {
             try {
- const response = await fetch('/api/team-building/join', {
+                const response = await fetch('/api/team-building/join', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -1258,16 +1317,16 @@ async function loadOrCreateTeam() {
                         teamDesignation: teamDesignation
                     })
                 });
-                
+
                 const data = await response.json();
-                
+
                 if (!response.ok) {
                     throw new Error(data.error || 'Failed to join team.');
                 }
-                
+
                 showMessageBox('تم الانضمام بنجاح!', 'لقد انضممت إلى الفريق بنجاح.', 'success');
                 fetchTeamDetails(); // Refresh the team details
-                
+
             } catch (error) {
                 console.error('Error joining team:', error);
                 showMessageBox('خطأ في الانضمام', error.message);
@@ -1277,9 +1336,9 @@ async function loadOrCreateTeam() {
         async function removePlayer(targetUserId, team = null) {
             // Using a custom modal for confirmation is safer than browser confirm
             if (!confirm('هل أنت متأكد من إزالة هذا اللاعب؟')) return;
-            
+
             try {
- const response = await fetch('/api/team-building/remove-player', {
+                const response = await fetch('/api/team-building/remove-player', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -1288,16 +1347,16 @@ async function loadOrCreateTeam() {
                         targetUserId: targetUserId // User to be removed
                     })
                 });
-                
+
                 const data = await response.json();
-                
+
                 if (!response.ok) {
                     throw new Error(data.error || 'Failed to remove player.');
                 }
-                
+
                 showMessageBox('تم إزالة اللاعب', 'تم إزالة اللاعب من الفريق بنجاح.', 'success');
                 fetchTeamDetails(); // Refresh the team details
-                
+
             } catch (error) {
                 console.error('Error removing player:', error);
                 showMessageBox('خطأ في إزالة اللاعب', error.message);
@@ -1307,15 +1366,15 @@ async function loadOrCreateTeam() {
         function updateConfirmationButtons() {
             const confirmBookingBtn = document.getElementById('confirm-booking-btn');
             const confirmMatchmakingBtn = document.getElementById('confirm-matchmaking-btn');
-            
+
             confirmBookingBtn.classList.add('hidden');
             confirmMatchmakingBtn.classList.add('hidden');
-            
+
             // Only show buttons for the creator
             if (!isCreator) return;
-            
+
             let canConfirm = false;
-            
+
             if (currentBookingType === 'two_teams_ready') {
                 // Option 1: Two Teams Ready (Min per team from session)
                 canConfirm = teamAPlayers.length >= MIN_TEAM_SIZE && teamBPlayers.length >= MIN_TEAM_SIZE;
@@ -1347,15 +1406,15 @@ async function loadOrCreateTeam() {
         function showBookingConfirmationModal() {
             const modal = document.getElementById('confirmation-modal');
             const detailsContainer = document.getElementById('confirmation-modal-details');
-            
+
             const { field_name, slot_date, start_time, end_time, price_per_hour } = bookingData.session;
-            
+
             // Ensure data integrity before using it
             if (!start_time || !end_time) {
-                 showMessageBox('خطأ في الموعد', 'بيانات وقت الحجز مفقودة.', 'error');
-                 return;
+                showMessageBox('خطأ في الموعد', 'بيانات وقت الحجز مفقودة.', 'error');
+                return;
             }
-            
+
             const startHour = parseInt(start_time.split(':')[0]);
             const endHour = parseInt(end_time.split(':')[0]);
             const hours = endHour - startHour;
@@ -1383,11 +1442,11 @@ async function loadOrCreateTeam() {
             `;
 
             document.getElementById('final-price-text').textContent = `${totalPrice} شيكل`;
-            
+
             // Enable/Disable final confirm button based on checkbox
             const acceptTerms = document.getElementById('accept-terms');
             const finalConfirmBtn = document.getElementById('final-confirm-btn');
-            
+
             acceptTerms.checked = false; // Reset checkbox state
             finalConfirmBtn.disabled = true;
 
@@ -1408,13 +1467,13 @@ async function loadOrCreateTeam() {
                 showMessageBox('يرجى الموافقة', 'يرجى الموافقة على الشروط لتأكيد الحجز.', 'warning');
                 return;
             }
-            
+
             const finalConfirmBtn = document.getElementById('final-confirm-btn');
             finalConfirmBtn.disabled = true;
             finalConfirmBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin ml-2"></i> جاري التأكيد...';
 
             try {
- const response = await fetch('/api/team-building/confirm-booking', {
+                const response = await fetch('/api/team-building/confirm-booking', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -1422,21 +1481,21 @@ async function loadOrCreateTeam() {
                         userId: loggedInUserId
                     })
                 });
-                
+
                 const data = await response.json();
-                
+
                 if (!response.ok) {
                     throw new Error(data.error || 'Failed to confirm booking.');
                 }
-                
+
                 closeBookingModal();
                 showMessageBox('تم تأكيد الحجز!', 'تم تأكيد حجزك بنجاح. ستتمكن من رؤية التفاصيل في لوحة التحكم الخاصة بك.', 'success');
-                
+
                 // Redirect to dashboard after 3 seconds
                 setTimeout(() => {
                     window.location.href = '/user-dashboard.html';
                 }, 3000);
-                
+
             } catch (error) {
                 console.error('Error confirming booking:', error);
                 showMessageBox('خطأ في تأكيد الحجز', error.message);
@@ -1451,7 +1510,7 @@ async function loadOrCreateTeam() {
         async function submitMatchmakingRequest() {
             // Using a custom modal for confirmation is safer than browser confirm
             if (!confirm('هل أنت متأكد من إرسال طلب المباراة؟')) return;
-            
+
             const confirmBtn = document.getElementById('confirm-matchmaking-btn');
             const originalHtml = confirmBtn.innerHTML;
             confirmBtn.disabled = true;
@@ -1460,8 +1519,8 @@ async function loadOrCreateTeam() {
             try {
                 // The current player count is derived from the session members
                 const currentPlayers = singleTeamPlayers.length;
-                
- const response = await fetch('/api/team-building/submit-matchmaking', {
+
+                const response = await fetch('/api/team-building/submit-matchmaking', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -1470,20 +1529,20 @@ async function loadOrCreateTeam() {
                         currentPlayers: currentPlayers // Pass current player count for server logic
                     })
                 });
-                
+
                 const data = await response.json();
-                
+
                 if (!response.ok) {
                     throw new Error(data.error || 'Failed to submit matchmaking request.');
                 }
-                
+
                 showMessageBox('تم إرسال الطلب!', 'تم إرسال طلب المباراة بنجاح. سنقوم بالبحث عن مباراة مناسبة لك.', 'success');
-                
+
                 // Redirect to dashboard after 3 seconds
                 setTimeout(() => {
                     window.location.href = 'user-dashboard.html';
                 }, 3000);
-                
+
             } catch (error) {
                 console.error('Error submitting matchmaking request:', error);
                 showMessageBox('خطأ في إرسال الطلب', error.message);
@@ -1507,7 +1566,7 @@ async function loadOrCreateTeam() {
             const modal = document.getElementById('global-confirmation-modal');
             modal.classList.add('hidden');
         }
-        
+
         // --- REMOVED ALL TOURNAMENT-SPECIFIC FUNCTIONS ---
 
         function copyLink() {
@@ -1529,4 +1588,5 @@ async function loadOrCreateTeam() {
         });
     </script>
 </body>
+
 </html>

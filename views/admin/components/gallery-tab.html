@@ -1,0 +1,87 @@
+<section id="gallery-tab" class="tab-pane hidden">
+    <!-- Categories Management Section -->
+    <div class="bg-white rounded-2xl shadow-xl p-8 border-b-4 border-indigo-500 mb-6">
+        <h4 class="text-3xl font-bold text-gray-900 mb-8 flex items-center gap-3">
+            <i class="fa-solid fa-tags text-indigo-600"></i>
+            إدارة فئات الصور
+        </h4>
+
+        <div class="mb-8 bg-indigo-50 border border-indigo-200 rounded-xl p-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label class="block text-gray-700 text-sm font-bold mb-2">اسم الفئة:</label>
+                    <input id="category-name" type="text"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        placeholder="مثال: مباريات، تدريبات، احتفالات..." required>
+                </div>
+                <div>
+                    <label class="block text-gray-700 text-sm font-bold mb-2">الوصف (اختياري):</label>
+                    <input id="category-description" type="text"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        placeholder="وصف مختصر للفئة...">
+                </div>
+            </div>
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                <button id="category-add-btn"
+                    class="w-full sm:w-auto bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700 transition-all duration-300">
+                    <i class="fa-solid fa-plus ml-1"></i> إضافة فئة
+                </button>
+            </div>
+            <p id="category-status" class="mt-3 text-sm text-gray-500"></p>
+        </div>
+
+        <div>
+            <h5 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-list text-indigo-600"></i> الفئات الحالية
+            </h5>
+            <div id="categories-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- categories will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Gallery Images Management Section -->
+    <div class="bg-white rounded-2xl shadow-xl p-8 border-b-4 border-teal-500">
+        <h4 class="text-3xl font-bold text-gray-900 mb-8 flex items-center gap-3">
+            <i class="fa-solid fa-images text-teal-600"></i>
+            إدارة معرض الصور
+        </h4>
+
+        <div class="mb-8 bg-teal-50 border border-teal-200 rounded-xl p-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label class="block text-gray-700 text-sm font-bold mb-2">عنوان الصورة
+                        (اختياري):</label>
+                    <input id="gallery-title" type="text"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+                        placeholder="اكتب عنواناً قصيراً...">
+                </div>
+                <div>
+                    <label class="block text-gray-700 text-sm font-bold mb-2">الفئة:</label>
+                    <select id="gallery-category"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500">
+                        <option value="">اختر فئة (اختياري)</option>
+                        <!-- categories will be loaded here -->
+                    </select>
+                </div>
+            </div>
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                <input id="gallery-image-file" type="file" accept="image/*" class="w-full sm:flex-1 min-w-0">
+                <button id="gallery-upload-btn"
+                    class="w-full sm:w-auto bg-teal-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-teal-700 transition-all duration-300">
+                    رفع الصورة
+                </button>
+            </div>
+            <p id="gallery-upload-status" class="mt-3 text-sm text-gray-500"></p>
+        </div>
+
+        <div>
+            <h5 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-photo-film text-teal-600"></i> الصور الحالية
+            </h5>
+            <div id="admin-gallery-container" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                <!-- images will be loaded here -->
+            </div>
+        </div>
+    </div>
+</section>

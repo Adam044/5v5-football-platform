@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,38 +9,51 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Font Awesome CDN -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    
+
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap');
+
         body {
             font-family: 'Cairo', sans-serif;
             background-color: #f0f4f8;
             color: #2c3e50;
         }
+
         .animate-fade-in {
             animation: fadeIn 0.4s ease-out forwards;
         }
+
         @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
         }
+
         ::-webkit-scrollbar {
             width: 8px;
         }
+
         ::-webkit-scrollbar-track {
             background: #f0f4f8;
             border-radius: 10px;
         }
+
         ::-webkit-scrollbar-thumb {
             background: #aab8c2;
             border-radius: 10px;
         }
+
         ::-webkit-scrollbar-thumb:hover {
             background: #8899a6;
         }
     </style>
 </head>
+
 <body class="min-h-screen flex flex-col">
 
     <!-- Global Header Placeholder -->
@@ -52,7 +66,8 @@
         </h3>
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-10 mb-12">
             <!-- Summary Card: Upcoming Reservations -->
-            <div class="bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-2xl shadow-xl p-8 flex flex-col justify-between h-48 transform hover:scale-105 hover:-translate-y-2 transition-all duration-500 relative overflow-hidden">
+            <div
+                class="bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-2xl shadow-xl p-8 flex flex-col justify-between h-48 transform hover:scale-105 hover:-translate-y-2 transition-all duration-500 relative overflow-hidden">
                 <div class="absolute top-0 right-0 w-20 h-20 bg-white bg-opacity-10 rounded-full -mr-10 -mt-10"></div>
                 <div class="absolute bottom-0 left-0 w-16 h-16 bg-white bg-opacity-10 rounded-full -ml-8 -mb-8"></div>
                 <div class="flex justify-between items-center mb-4 relative z-10">
@@ -64,12 +79,15 @@
                 <p id="upcoming-reservations" class="text-5xl font-extrabold text-white mb-2 relative z-10">...</p>
                 <div class="flex justify-between items-center relative z-10">
                     <p class="text-blue-200 text-xs">حجز نشط</p>
-                    <a href="#reservations" class="text-sm font-semibold text-white text-opacity-80 hover:text-white underline">عرض التفاصيل</a>
+                    <a href="#reservations"
+                        class="text-sm font-semibold text-white text-opacity-80 hover:text-white underline">عرض
+                        التفاصيل</a>
                 </div>
             </div>
 
             <!-- Summary Card: Total Played Hours -->
-            <div class="bg-gradient-to-br from-green-500 to-green-600 text-white rounded-2xl shadow-xl p-8 flex flex-col justify-between h-48 transform hover:scale-105 hover:-translate-y-2 transition-all duration-500 relative overflow-hidden">
+            <div
+                class="bg-gradient-to-br from-green-500 to-green-600 text-white rounded-2xl shadow-xl p-8 flex flex-col justify-between h-48 transform hover:scale-105 hover:-translate-y-2 transition-all duration-500 relative overflow-hidden">
                 <div class="absolute top-0 right-0 w-20 h-20 bg-white bg-opacity-10 rounded-full -mr-10 -mt-10"></div>
                 <div class="absolute bottom-0 left-0 w-16 h-16 bg-white bg-opacity-10 rounded-full -ml-8 -mb-8"></div>
                 <div class="flex justify-between items-center mb-4 relative z-10">
@@ -81,12 +99,15 @@
                 <p id="total-hours" class="text-5xl font-extrabold text-white mb-2 relative z-10">...</p>
                 <div class="flex justify-between items-center relative z-10">
                     <p class="text-green-200 text-xs">وقت مكتمل</p>
-                    <a href="#reservations" class="text-sm font-semibold text-white text-opacity-80 hover:text-white underline">عرض السجل</a>
+                    <a href="#reservations"
+                        class="text-sm font-semibold text-white text-opacity-80 hover:text-white underline">عرض
+                        السجل</a>
                 </div>
             </div>
 
             <!-- Summary Card: Favorite Field -->
-            <div class="bg-gradient-to-br from-purple-500 to-purple-600 text-white rounded-2xl shadow-xl p-8 flex flex-col justify-between h-48 transform hover:scale-105 hover:-translate-y-2 transition-all duration-500 relative overflow-hidden">
+            <div
+                class="bg-gradient-to-br from-purple-500 to-purple-600 text-white rounded-2xl shadow-xl p-8 flex flex-col justify-between h-48 transform hover:scale-105 hover:-translate-y-2 transition-all duration-500 relative overflow-hidden">
                 <div class="absolute top-0 right-0 w-20 h-20 bg-white bg-opacity-10 rounded-full -mr-10 -mt-10"></div>
                 <div class="absolute bottom-0 left-0 w-16 h-16 bg-white bg-opacity-10 rounded-full -ml-8 -mb-8"></div>
                 <div class="flex justify-between items-center mb-4 relative z-10">
@@ -98,49 +119,59 @@
                 <p id="favorite-field" class="text-3xl font-extrabold text-white mb-2 relative z-10">...</p>
                 <div class="flex justify-between items-center relative z-10">
                     <p class="text-purple-200 text-xs">الأكثر حجزاً</p>
-                    <a href="index.html" class="text-sm font-semibold text-white text-opacity-80 hover:text-white underline">عرض الملاعب</a>
+                    <a href="/" class="text-sm font-semibold text-white text-opacity-80 hover:text-white underline">عرض
+                        الملاعب</a>
                 </div>
             </div>
         </div>
 
-                    <!-- Quick Actions Section -->
-                    <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 mb-8">
-                        <h3 class="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-3">
-                            <i class="fa-solid fa-bolt text-yellow-500"></i>
-                            إجراءات سريعة
-                        </h3>
-                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                            <a href="index.html" class="bg-gradient-to-br from-blue-500 to-blue-600 text-white p-4 rounded-xl hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 text-center group">
-                                <div class="bg-white bg-opacity-20 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform duration-300">
-                                    <i class="fa-solid fa-plus text-xl"></i>
-                                </div>
-                                <p class="font-semibold text-sm">حجز جديد</p>
-                            </a>
-                            <button onclick="scrollToReservations()" class="bg-gradient-to-br from-green-500 to-green-600 text-white p-4 rounded-xl hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 text-center group">
-                                <div class="bg-white bg-opacity-20 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform duration-300">
-                                    <i class="fa-solid fa-calendar-check text-xl"></i>
-                                </div>
-                                <p class="font-semibold text-sm">حجوزاتي</p>
-                            </button>
-                            <a href="tournaments.html" class="bg-gradient-to-br from-purple-500 to-purple-600 text-white p-4 rounded-xl hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 text-center group">
-                                <div class="bg-white bg-opacity-20 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform duration-300">
-                                    <i class="fa-solid fa-trophy text-xl"></i>
-                                </div>
-                                <p class="font-semibold text-sm">البطولات</p>
-                            </a>
-                            <button onclick="scrollToProfile()" class="bg-gradient-to-br from-orange-500 to-orange-600 text-white p-4 rounded-xl hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 text-center group">
-                                <div class="bg-white bg-opacity-20 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform duration-300">
-                                    <i class="fa-solid fa-user text-xl"></i>
-                                </div>
-                                <p class="font-semibold text-sm">الملف الشخصي</p>
-                            </button>
-                        </div>
+        <!-- Quick Actions Section -->
+        <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 mb-8">
+            <h3 class="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-3">
+                <i class="fa-solid fa-bolt text-yellow-500"></i>
+                إجراءات سريعة
+            </h3>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <a href="/"
+                    class="bg-gradient-to-br from-blue-500 to-blue-600 text-white p-4 rounded-xl hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 text-center group">
+                    <div
+                        class="bg-white bg-opacity-20 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform duration-300">
+                        <i class="fa-solid fa-plus text-xl"></i>
                     </div>
+                    <p class="font-semibold text-sm">حجز جديد</p>
+                </a>
+                <button onclick="scrollToReservations()"
+                    class="bg-gradient-to-br from-green-500 to-green-600 text-white p-4 rounded-xl hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 text-center group">
+                    <div
+                        class="bg-white bg-opacity-20 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform duration-300">
+                        <i class="fa-solid fa-calendar-check text-xl"></i>
+                    </div>
+                    <p class="font-semibold text-sm">حجوزاتي</p>
+                </button>
+                <a href="/tournaments"
+                    class="bg-gradient-to-br from-purple-500 to-purple-600 text-white p-4 rounded-xl hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 text-center group">
+                    <div
+                        class="bg-white bg-opacity-20 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform duration-300">
+                        <i class="fa-solid fa-trophy text-xl"></i>
+                    </div>
+                    <p class="font-semibold text-sm">البطولات</p>
+                </a>
+                <button onclick="scrollToProfile()"
+                    class="bg-gradient-to-br from-orange-500 to-orange-600 text-white p-4 rounded-xl hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 text-center group">
+                    <div
+                        class="bg-white bg-opacity-20 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform duration-300">
+                        <i class="fa-solid fa-user text-xl"></i>
+                    </div>
+                    <p class="font-semibold text-sm">الملف الشخصي</p>
+                </button>
+            </div>
+        </div>
 
 
 
-                    <!-- My Matchmaking Requests Section -->
-        <section id="my-matchmaking" class="bg-white rounded-2xl shadow-xl p-8 mb-12 border-t-4 border-blue-500 relative overflow-hidden">
+        <!-- My Matchmaking Requests Section -->
+        <section id="my-matchmaking"
+            class="bg-white rounded-2xl shadow-xl p-8 mb-12 border-t-4 border-blue-500 relative overflow-hidden">
             <div class="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-full -mr-16 -mt-16 opacity-50"></div>
             <div class="absolute bottom-0 left-0 w-24 h-24 bg-green-50 rounded-full -ml-12 -mb-12 opacity-50"></div>
             <div class="relative z-10">
@@ -153,11 +184,13 @@
 
                 <!-- Tabs -->
                 <div class="flex gap-3 mb-6">
-                    <button id="tab-created" class="px-4 py-2 rounded-xl bg-blue-600 text-white font-semibold flex items-center gap-2">
+                    <button id="tab-created"
+                        class="px-4 py-2 rounded-xl bg-blue-600 text-white font-semibold flex items-center gap-2">
                         <i class="fa-solid fa-plus"></i>
                         أنشأتها
                     </button>
-                    <button id="tab-joined" class="px-4 py-2 rounded-xl bg-gray-100 text-gray-800 font-semibold flex items-center gap-2">
+                    <button id="tab-joined"
+                        class="px-4 py-2 rounded-xl bg-gray-100 text-gray-800 font-semibold flex items-center gap-2">
                         <i class="fa-solid fa-user-check"></i>
                         انضممت إليها
                     </button>
@@ -170,7 +203,8 @@
         </section>
 
         <!-- My Tournament Teams Section -->
-        <section id="my-tournaments" class="bg-white rounded-2xl shadow-xl p-8 mb-12 border-t-4 border-purple-500 relative overflow-hidden">
+        <section id="my-tournaments"
+            class="bg-white rounded-2xl shadow-xl p-8 mb-12 border-t-4 border-purple-500 relative overflow-hidden">
             <div class="absolute top-0 right-0 w-32 h-32 bg-purple-50 rounded-full -mr-16 -mt-16 opacity-50"></div>
             <div class="absolute bottom-0 left-0 w-24 h-24 bg-yellow-50 rounded-full -ml-12 -mb-12 opacity-50"></div>
             <div class="relative z-10">
@@ -186,18 +220,18 @@
 
                 <!-- Filter Buttons -->
                 <div class="flex gap-2 mb-6">
-                    <button id="filter-all" onclick="filterTournamentTeams('all')" 
-                            class="filter-btn active bg-purple-600 text-white px-3 py-1.5 rounded-lg hover:bg-purple-700 transition-all duration-200 flex items-center gap-1.5 text-sm">
+                    <button id="filter-all" onclick="filterTournamentTeams('all')"
+                        class="filter-btn active bg-purple-600 text-white px-3 py-1.5 rounded-lg hover:bg-purple-700 transition-all duration-200 flex items-center gap-1.5 text-sm">
                         <i class="fa-solid fa-list text-xs"></i>
                         جميع الفرق
                     </button>
-                    <button id="filter-created" onclick="filterTournamentTeams('created')" 
-                            class="filter-btn bg-gray-200 text-gray-700 px-3 py-1.5 rounded-lg hover:bg-gray-300 transition-all duration-200 flex items-center gap-1.5 text-sm">
+                    <button id="filter-created" onclick="filterTournamentTeams('created')"
+                        class="filter-btn bg-gray-200 text-gray-700 px-3 py-1.5 rounded-lg hover:bg-gray-300 transition-all duration-200 flex items-center gap-1.5 text-sm">
                         <i class="fa-solid fa-crown text-xs"></i>
                         الفرق التي أنشأتها
                     </button>
-                    <button id="filter-joined" onclick="filterTournamentTeams('joined')" 
-                            class="filter-btn bg-gray-200 text-gray-700 px-3 py-1.5 rounded-lg hover:bg-gray-300 transition-all duration-200 flex items-center gap-1.5 text-sm">
+                    <button id="filter-joined" onclick="filterTournamentTeams('joined')"
+                        class="filter-btn bg-gray-200 text-gray-700 px-3 py-1.5 rounded-lg hover:bg-gray-300 transition-all duration-200 flex items-center gap-1.5 text-sm">
                         <i class="fa-solid fa-user-plus text-xs"></i>
                         الفرق التي انضممت إليها
                     </button>
@@ -219,7 +253,8 @@
                     </div>
                     <h5 class="text-xl font-semibold text-gray-700 mb-2">لا توجد فرق مسجلة</h5>
                     <p class="text-gray-500 mb-4">لم تقم بإنشاء أي فريق في البطولات بعد</p>
-                    <a href="tournaments.html" class="inline-flex items-center gap-2 bg-purple-600 text-white px-6 py-3 rounded-xl hover:bg-purple-700 transition-colors duration-300">
+                    <a href="/tournaments"
+                        class="inline-flex items-center gap-2 bg-purple-600 text-white px-6 py-3 rounded-xl hover:bg-purple-700 transition-colors duration-300">
                         <i class="fa-solid fa-plus"></i>
                         انضم لبطولة
                     </a>
@@ -227,8 +262,9 @@
             </div>
         </section>
 
-                    <!-- Latest Reservations Section -->
-        <section id="reservations" class="bg-white rounded-2xl shadow-xl p-8 mb-12 border-t-4 border-green-500 relative overflow-hidden">
+        <!-- Latest Reservations Section -->
+        <section id="reservations"
+            class="bg-white rounded-2xl shadow-xl p-8 mb-12 border-t-4 border-green-500 relative overflow-hidden">
             <div class="absolute top-0 right-0 w-32 h-32 bg-green-50 rounded-full -mr-16 -mt-16 opacity-50"></div>
             <div class="absolute bottom-0 left-0 w-24 h-24 bg-blue-50 rounded-full -ml-12 -mb-12 opacity-50"></div>
             <div class="relative z-10">
@@ -241,60 +277,67 @@
                         محدث الآن
                     </div>
                 </h4>
-            
-            <!-- Desktop Table View -->
-            <div class="overflow-x-auto hidden lg:block rounded-xl border border-gray-200">
-                <table class="min-w-full bg-white rounded-lg overflow-hidden">
-                    <thead>
-                        <tr class="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
-                            <th class="py-4 px-6 text-right font-bold text-gray-800 text-sm uppercase tracking-wide">
-                                <div class="flex items-center gap-2">
-                                    <i class="fa-solid fa-futbol text-green-600"></i>
-                                    الملعب
-                                </div>
-                            </th>
-                            <th class="py-4 px-6 text-right font-bold text-gray-800 text-sm uppercase tracking-wide">
-                                <div class="flex items-center gap-2">
-                                    <i class="fa-solid fa-calendar text-blue-600"></i>
-                                    التاريخ
-                                </div>
-                            </th>
-                            <th class="py-4 px-6 text-right font-bold text-gray-800 text-sm uppercase tracking-wide">
-                                <div class="flex items-center gap-2">
-                                    <i class="fa-solid fa-clock text-purple-600"></i>
-                                    الوقت
-                                </div>
-                            </th>
-                            <th class="py-4 px-6 text-right font-bold text-gray-800 text-sm uppercase tracking-wide">
-                                <div class="flex items-center gap-2">
-                                    <i class="fa-solid fa-hourglass-half text-orange-600"></i>
-                                    المدة
-                                </div>
-                            </th>
-                            <th class="py-4 px-6 text-right font-bold text-gray-800 text-sm uppercase tracking-wide">
-                                <div class="flex items-center gap-2">
-                                    <i class="fa-solid fa-money-bill text-green-600"></i>
-                                    السعر
-                                </div>
-                            </th>
-                            <th class="py-4 px-6 text-right font-bold text-gray-800 text-sm uppercase tracking-wide">
-                                <div class="flex items-center gap-2">
-                                    <i class="fa-solid fa-info-circle text-indigo-600"></i>
-                                    الحالة
-                                </div>
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody id="reservations-table-body" class="text-gray-600 text-sm font-light divide-y divide-gray-100">
-                        <!-- Reservations will be injected here via JavaScript from the server -->
-                    </tbody>
-                </table>
-            </div>
 
-            <!-- Mobile Card View -->
-            <div id="reservations-card-container" class="lg:hidden space-y-6">
-                 <!-- Reservation cards will be injected here for mobile -->
-            </div>
+                <!-- Desktop Table View -->
+                <div class="overflow-x-auto hidden lg:block rounded-xl border border-gray-200">
+                    <table class="min-w-full bg-white rounded-lg overflow-hidden">
+                        <thead>
+                            <tr class="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
+                                <th
+                                    class="py-4 px-6 text-right font-bold text-gray-800 text-sm uppercase tracking-wide">
+                                    <div class="flex items-center gap-2">
+                                        <i class="fa-solid fa-futbol text-green-600"></i>
+                                        الملعب
+                                    </div>
+                                </th>
+                                <th
+                                    class="py-4 px-6 text-right font-bold text-gray-800 text-sm uppercase tracking-wide">
+                                    <div class="flex items-center gap-2">
+                                        <i class="fa-solid fa-calendar text-blue-600"></i>
+                                        التاريخ
+                                    </div>
+                                </th>
+                                <th
+                                    class="py-4 px-6 text-right font-bold text-gray-800 text-sm uppercase tracking-wide">
+                                    <div class="flex items-center gap-2">
+                                        <i class="fa-solid fa-clock text-purple-600"></i>
+                                        الوقت
+                                    </div>
+                                </th>
+                                <th
+                                    class="py-4 px-6 text-right font-bold text-gray-800 text-sm uppercase tracking-wide">
+                                    <div class="flex items-center gap-2">
+                                        <i class="fa-solid fa-hourglass-half text-orange-600"></i>
+                                        المدة
+                                    </div>
+                                </th>
+                                <th
+                                    class="py-4 px-6 text-right font-bold text-gray-800 text-sm uppercase tracking-wide">
+                                    <div class="flex items-center gap-2">
+                                        <i class="fa-solid fa-money-bill text-green-600"></i>
+                                        السعر
+                                    </div>
+                                </th>
+                                <th
+                                    class="py-4 px-6 text-right font-bold text-gray-800 text-sm uppercase tracking-wide">
+                                    <div class="flex items-center gap-2">
+                                        <i class="fa-solid fa-info-circle text-indigo-600"></i>
+                                        الحالة
+                                    </div>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody id="reservations-table-body"
+                            class="text-gray-600 text-sm font-light divide-y divide-gray-100">
+                            <!-- Reservations will be injected here via JavaScript from the server -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Mobile Card View -->
+                <div id="reservations-card-container" class="lg:hidden space-y-6">
+                    <!-- Reservation cards will be injected here for mobile -->
+                </div>
 
         </section>
 
@@ -307,30 +350,41 @@
             <form class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                     <label for="username" class="block text-gray-700 text-lg font-medium mb-2">اسم المستخدم</label>
-                    <input type="text" id="username" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-right bg-gray-50 text-gray-700 cursor-not-allowed" disabled required/>
+                    <input type="text" id="username"
+                        class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-right bg-gray-50 text-gray-700 cursor-not-allowed"
+                        disabled required />
                     <div id="username-error" class="text-red-500 text-sm mt-1 hidden"></div>
                 </div>
                 <div>
                     <label for="email" class="block text-gray-700 text-lg font-medium mb-2">البريد الإلكتروني</label>
-                    <input type="email" id="email" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-right bg-gray-50 text-gray-700 cursor-not-allowed" disabled required/>
+                    <input type="email" id="email"
+                        class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-right bg-gray-50 text-gray-700 cursor-not-allowed"
+                        disabled required />
                     <div id="email-error" class="text-red-500 text-sm mt-1 hidden"></div>
                 </div>
                 <div>
                     <label for="phone" class="block text-gray-700 text-lg font-medium mb-2">رقم الهاتف</label>
-                    <input type="tel" id="phone" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-right bg-gray-50 text-gray-700 cursor-not-allowed" disabled/>
+                    <input type="tel" id="phone"
+                        class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-right bg-gray-50 text-gray-700 cursor-not-allowed"
+                        disabled />
                     <div id="phone-error" class="text-red-500 text-sm mt-1 hidden"></div>
                 </div>
                 <div>
                     <label for="birthdate" class="block text-gray-700 text-lg font-medium mb-2">تاريخ الميلاد</label>
-                    <input type="date" id="birthdate" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-right bg-gray-50 text-gray-700 cursor-not-allowed" disabled/>
+                    <input type="date" id="birthdate"
+                        class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-right bg-gray-50 text-gray-700 cursor-not-allowed"
+                        disabled />
                 </div>
                 <div>
-<label for="gender" class="block text-gray-700 text-lg font-medium mb-2">الجنس</label>
-<input type="text" id="gender" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-right bg-gray-50 text-gray-700 cursor-not-allowed" disabled/>
+                    <label for="gender" class="block text-gray-700 text-lg font-medium mb-2">الجنس</label>
+                    <input type="text" id="gender"
+                        class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-right bg-gray-50 text-gray-700 cursor-not-allowed"
+                        disabled />
                 </div>
                 <div class="md:col-span-2 mt-6 flex justify-center gap-3">
 
-                    <button type="button" onclick="handleLogout()" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-all duration-300 shadow-md text-sm font-medium">
+                    <button type="button" onclick="handleLogout()"
+                        class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-all duration-300 shadow-md text-sm font-medium">
                         <i class="fa-solid fa-arrow-right-from-bracket ml-2"></i>
                         تسجيل الخروج
                     </button>
@@ -340,11 +394,15 @@
     </main>
 
     <!-- Message Box (replaces alert) -->
-    <div id="message-box" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50 animate-fade-in">
-        <div class="bg-white rounded-2xl shadow-3xl p-8 w-full max-w-sm relative animate-scale-in-up text-center border-t-4 border-red-500">
-            <h4 id="message-box-title" class="text-2xl font-bold mb-4 text-gray-900 flex items-center justify-center gap-2"></h4>
+    <div id="message-box"
+        class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50 animate-fade-in">
+        <div
+            class="bg-white rounded-2xl shadow-3xl p-8 w-full max-w-sm relative animate-scale-in-up text-center border-t-4 border-red-500">
+            <h4 id="message-box-title"
+                class="text-2xl font-bold mb-4 text-gray-900 flex items-center justify-center gap-2"></h4>
             <p id="message-box-content" class="text-gray-700 mb-6 text-lg"></p>
-            <button onclick="closeMessageBox()" class="bg-red-600 text-white px-7 py-3 rounded-xl hover:bg-red-700 transition-all duration-300 shadow-md text-lg">
+            <button onclick="closeMessageBox()"
+                class="bg-red-600 text-white px-7 py-3 rounded-xl hover:bg-red-700 transition-all duration-300 shadow-md text-lg">
                 حسناً
             </button>
         </div>
@@ -362,7 +420,8 @@
             <p class="mb-4 text-sm text-gray-400">تم تطوير هذه المنصة بواسطة ادم حواش</p>
             <!-- Terms of Use link -->
             <div class="text-md">
-                <a href="terms-of-use.html" class="text-gray-400 hover:text-white transition-colors duration-300">شروط الاستخدام</a>
+                <a href="terms-of-use.html" class="text-gray-400 hover:text-white transition-colors duration-300">شروط
+                    الاستخدام</a>
             </div>
         </div>
     </footer>
@@ -379,7 +438,7 @@
     <script>
         // Current user derived from cookie-based auth
         let currentUserId = null;
-        
+
         // --- Helper functions ---
         function showMessageBox(title, content, type = 'error') {
             const msgBox = document.getElementById('message-box');
@@ -427,7 +486,7 @@
         // --- Fetch and Render Data ---
         async function fetchUserData() {
             try {
-                const response = await fetch(`/api/user/${currentUserId}` , { credentials: 'include' });
+                const response = await fetch(`/api/user/${currentUserId}`, { credentials: 'include' });
                 const data = await response.json();
                 if (response.ok) {
                     const user = data.user;
@@ -436,7 +495,7 @@
                     document.getElementById('email').value = user.email;
                     document.getElementById('phone').value = user.phone_number;
                     document.getElementById('birthdate').value = user.birthdate;
-document.getElementById('gender').value = user.gender === 'male' ? 'ذكر' : user.gender === 'female' ? 'أنثى' : '';
+                    document.getElementById('gender').value = user.gender === 'male' ? 'ذكر' : user.gender === 'female' ? 'أنثى' : '';
                 } else {
                     showMessageBox('خطأ في البيانات', 'تعذر تحميل بيانات المستخدم.', 'error');
                 }
@@ -448,11 +507,11 @@ document.getElementById('gender').value = user.gender === 'male' ? 'ذكر' : us
 
         async function fetchUserReservations() {
             try {
-                const response = await fetch(`/api/user/reservations/${currentUserId}`, { credentials: 'include' });
+                const response = await fetch(`/api/user/${currentUserId}/reservations`, { credentials: 'include' });
                 const data = await response.json();
                 if (response.ok) {
                     renderReservationsTable(data.reservations);
-                updateSummaryCards(data.reservations);
+                    updateSummaryCards(data.reservations);
                 } else {
                     showMessageBox('خطأ في البيانات', 'تعذر تحميل حجوزاتك.', 'error');
                 }
@@ -465,14 +524,14 @@ document.getElementById('gender').value = user.gender === 'male' ? 'ذكر' : us
         function renderReservationsTable(reservations) {
             const tableBody = document.getElementById('reservations-table-body');
             const cardContainer = document.getElementById('reservations-card-container');
-            
+
             tableBody.innerHTML = '';
             cardContainer.innerHTML = '';
 
             if (reservations && reservations.length > 0) {
                 reservations.forEach(res => {
                     const durationHours = (new Date(`1970/01/01 ${res.end_time}`) - new Date(`1970/01/01 ${res.start_time}`)) / 3600000;
-                    
+
                     // Render for Desktop Table
                     const tableRow = document.createElement('tr');
                     tableRow.className = 'border-b border-gray-200 hover:bg-gray-50';
@@ -548,7 +607,7 @@ document.getElementById('gender').value = user.gender === 'male' ? 'ذكر' : us
                 return total;
             }, 0);
             const favoriteField = getFavoriteField(reservations);
-            
+
             document.getElementById('upcoming-reservations').innerText = upcomingCount;
             document.getElementById('total-hours').innerText = `${totalHours} س`;
             document.getElementById('favorite-field').innerText = favoriteField || 'لا يوجد';
@@ -562,7 +621,7 @@ document.getElementById('gender').value = user.gender === 'male' ? 'ذكر' : us
             const sortedFields = Object.keys(fieldCounts).sort((a, b) => fieldCounts[b] - fieldCounts[a]);
             return sortedFields[0];
         }
-        
+
         // Profile editing functions
 
 
@@ -570,14 +629,14 @@ document.getElementById('gender').value = user.gender === 'male' ? 'ذكر' : us
 
         // Utility functions
         function scrollToReservations() {
-            document.getElementById('reservations').scrollIntoView({ 
+            document.getElementById('reservations').scrollIntoView({
                 behavior: 'smooth',
                 block: 'start'
             });
         }
 
         function scrollToProfile() {
-            document.getElementById('profile').scrollIntoView({ 
+            document.getElementById('profile').scrollIntoView({
                 behavior: 'smooth',
                 block: 'start'
             });
@@ -588,8 +647,8 @@ document.getElementById('gender').value = user.gender === 'male' ? 'ذكر' : us
             // Table skeleton (desktop view)
             const tableRows = Array.from({ length: 5 }).map(() => {
                 const tds = Array.from({ length: 6 })
-                  .map(() => `<td class="py-3 px-6"><div class="skeleton skeleton-line h-4 w-24"></div></td>`)
-                  .join('');
+                    .map(() => `<td class="py-3 px-6"><div class="skeleton skeleton-line h-4 w-24"></div></td>`)
+                    .join('');
                 return `<tr class="border-b border-gray-200">${tds}</tr>`;
             }).join('');
             const tableSkeleton = tableRows;
@@ -636,21 +695,21 @@ document.getElementById('gender').value = user.gender === 'male' ? 'ذكر' : us
         function showNotification(title, message, type = 'info', duration = 5000) {
             const container = document.getElementById('notification-container');
             const notificationId = 'notification-' + Date.now();
-            
+
             const typeStyles = {
                 success: 'bg-green-500 border-green-600',
                 error: 'bg-red-500 border-red-600',
                 warning: 'bg-yellow-500 border-yellow-600',
                 info: 'bg-blue-500 border-blue-600'
             };
-            
+
             const typeIcons = {
                 success: 'fa-check-circle',
                 error: 'fa-exclamation-circle',
                 warning: 'fa-exclamation-triangle',
                 info: 'fa-info-circle'
             };
-            
+
             const notification = document.createElement('div');
             notification.id = notificationId;
             notification.className = `${typeStyles[type]} text-white p-4 rounded-lg shadow-lg border-l-4 max-w-sm transform translate-x-full transition-transform duration-300 ease-out`;
@@ -666,14 +725,14 @@ document.getElementById('gender').value = user.gender === 'male' ? 'ذكر' : us
                     </button>
                 </div>
             `;
-            
+
             container.appendChild(notification);
-            
+
             // Animate in
             setTimeout(() => {
                 notification.classList.remove('translate-x-full');
             }, 100);
-            
+
             // Auto remove
             if (duration > 0) {
                 setTimeout(() => {
@@ -681,7 +740,7 @@ document.getElementById('gender').value = user.gender === 'male' ? 'ذكر' : us
                 }, duration);
             }
         }
-        
+
         function removeNotification(notificationId) {
             const notification = document.getElementById(notificationId);
             if (notification) {
@@ -691,14 +750,14 @@ document.getElementById('gender').value = user.gender === 'male' ? 'ذكر' : us
                 }, 300);
             }
         }
-        
+
         // Welcome notification
         function showWelcomeNotification() {
             setTimeout(() => {
                 showNotification('مرحباً بك!', 'تم تحديث لوحة التحكم بنجاح', 'success');
             }, 2000);
         }
-        
+
         // Enhanced fetch functions with notifications
         async function fetchUserDataWithNotifications() {
             try {
@@ -707,7 +766,7 @@ document.getElementById('gender').value = user.gender === 'male' ? 'ذكر' : us
                 showNotification('خطأ في التحميل', 'تعذر تحميل بيانات المستخدم', 'error');
             }
         }
-        
+
         async function fetchUserReservationsWithNotifications() {
             try {
                 await fetchUserReservations();
@@ -845,29 +904,29 @@ document.getElementById('gender').value = user.gender === 'male' ? 'ذكر' : us
 
         function filterTournamentTeams(filter) {
             currentFilter = filter;
-            
+
             // Update button styles
             document.querySelectorAll('.filter-btn').forEach(btn => {
                 btn.classList.remove('active', 'bg-purple-600', 'text-white');
                 btn.classList.add('bg-gray-200', 'text-gray-700');
             });
-            
+
             const activeBtn = document.getElementById(`filter-${filter}`);
             if (activeBtn) {
                 activeBtn.classList.remove('bg-gray-200', 'text-gray-700');
                 activeBtn.classList.add('active', 'bg-purple-600', 'text-white');
             }
-            
+
             // Filter teams
             let filteredTeams = allTournamentTeams;
             const userId = Number(currentUserId);
-            
+
             if (filter === 'created') {
                 filteredTeams = allTournamentTeams.filter(team => team.captain_id === userId);
             } else if (filter === 'joined') {
                 filteredTeams = allTournamentTeams.filter(team => team.captain_id !== userId);
             }
-            
+
             renderTournamentTeams(filteredTeams);
         }
 
@@ -999,9 +1058,9 @@ document.getElementById('gender').value = user.gender === 'male' ? 'ذكر' : us
         function showTournamentTeamsError() {
             const loadingElement = document.getElementById('tournament-teams-loading');
             const listElement = document.getElementById('tournament-teams-list');
-            
+
             if (loadingElement) loadingElement.style.display = 'none';
-            
+
             if (listElement) {
                 listElement.innerHTML = `
                     <div class="p-6 bg-red-50 border border-red-200 rounded-xl text-red-700 text-center">
@@ -1017,15 +1076,15 @@ document.getElementById('gender').value = user.gender === 'male' ? 'ذكر' : us
 
         // Helper functions for tournament team actions
         function continueTeamRegistration(invitationCode) {
-            window.location.href = `tournament-team-hub.html?invitationCode=${invitationCode}`;
+            window.location.href = `/tournament-team-hub?invitationCode=${invitationCode}`;
         }
 
         function viewTeamDetails(invitationCode) {
-            window.location.href = `tournament-team-hub.html?invitationCode=${invitationCode}`;
+            window.location.href = `/tournament-team-hub?invitationCode=${invitationCode}`;
         }
 
         function viewTournamentDetails(tournamentId) {
-            window.location.href = `tournaments.html#tournament-${tournamentId}`;
+            window.location.href = `/tournaments#tournament-${tournamentId}`;
         }
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -1034,13 +1093,13 @@ document.getElementById('gender').value = user.gender === 'male' ? 'ذكر' : us
                 try {
                     const meResp = await fetch('/api/me', { credentials: 'include' });
                     if (!meResp.ok) {
-                        window.location.href = 'auth.html?view=sign-in&returnUrl=' + encodeURIComponent('user-dashboard.html');
+                        window.location.href = '/auth?view=sign-in&returnUrl=' + encodeURIComponent('/user-dashboard');
                         return;
                     }
                     const meData = await meResp.json();
                     currentUserId = meData?.user?.id;
                     if (!currentUserId) {
-                        window.location.href = 'auth.html?view=sign-in&returnUrl=' + encodeURIComponent('user-dashboard.html');
+                        window.location.href = '/auth?view=sign-in&returnUrl=' + encodeURIComponent('/user-dashboard');
                         return;
                     }
                     showLoadingState();
@@ -1057,4 +1116,5 @@ document.getElementById('gender').value = user.gender === 'male' ? 'ذكر' : us
         });
     </script>
 </body>
+
 </html>

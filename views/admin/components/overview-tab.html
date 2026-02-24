@@ -1,0 +1,122 @@
+<section id="overview-tab" class="tab-pane">
+    <div class="mb-8">
+        <h2 class="text-3xl font-black text-slate-800 mb-2">نظرة عامة على النظام</h2>
+        <p class="text-slate-500 font-medium">مرحباً بك مجدداً، إليك ملخص لأداء المنصة اليوم</p>
+    </div>
+
+    <div class="glass-panel rounded-3xl p-6 sm:p-10 mb-10 shadow-xl shadow-slate-200/50">
+        <div class="flex flex-col sm:flex-row items-center justify-between mb-10 gap-4">
+            <h3 class="text-2xl font-bold text-slate-800 flex items-center gap-3">
+                <div class="w-12 h-12 rounded-2xl bg-blue-500/10 flex items-center justify-center">
+                    <i class="fa-solid fa-chart-line text-blue-600 text-xl"></i>
+                </div>
+                إحصائيات المنصة
+            </h3>
+            <div
+                class="flex items-center gap-3 text-sm font-bold text-emerald-600 bg-emerald-50 px-5 py-2.5 rounded-full border border-emerald-100">
+                <span class="relative flex h-3 w-3">
+                    <span
+                        class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+                </span>
+                النظام يعمل بشكل ممتاز
+            </div>
+        </div>
+
+        <!-- Analytics Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            <!-- Users Card -->
+            <div class="info-card p-8 group">
+                <div class="flex items-center gap-5">
+                    <div
+                        class="w-14 h-14 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-600 text-2xl group-hover:scale-110 transition-transform">
+                        <i class="fa-solid fa-users"></i>
+                    </div>
+                    <div class="flex-grow">
+                        <p class="text-slate-500 text-[10px] font-black uppercase tracking-widest mb-1">
+                            المستخدمين</p>
+                        <h3 id="total-users" class="text-3xl font-black text-slate-800">0</h3>
+                    </div>
+                </div>
+                <div class="mt-4 pt-4 border-t border-slate-50 text-[11px] text-blue-600 font-bold">
+                    <i class="fa-solid fa-arrow-trend-up mr-1"></i> +12% هذا الأسبوع
+                </div>
+                <div class="absolute bottom-0 right-0 w-24 h-1 bg-blue-500"></div>
+            </div>
+
+            <!-- Reservations Card -->
+            <div class="info-card p-8 group">
+                <div class="flex items-center gap-5">
+                    <div
+                        class="w-14 h-14 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-600 text-2xl group-hover:scale-110 transition-transform">
+                        <i class="fa-solid fa-calendar-check"></i>
+                    </div>
+                    <div class="flex-grow">
+                        <p class="text-slate-500 text-[10px] font-black uppercase tracking-widest mb-1">
+                            الحجوزات</p>
+                        <h3 id="total-reservations" class="text-3xl font-black text-slate-800">0</h3>
+                    </div>
+                </div>
+                <div class="mt-4 pt-4 border-t border-slate-50 text-[11px] text-emerald-600 font-bold">
+                    <i class="fa-solid fa-arrow-trend-up mr-1"></i> مجموع الحجوزات النشطة
+                </div>
+                <div class="absolute bottom-0 right-0 w-24 h-1 bg-emerald-500"></div>
+            </div>
+
+            <!-- Pending Requests Card -->
+            <div class="info-card p-8 group">
+                <div class="flex items-center gap-5">
+                    <div
+                        class="w-14 h-14 rounded-2xl bg-amber-50 flex items-center justify-center text-amber-600 text-2xl group-hover:scale-110 transition-transform">
+                        <i class="fa-solid fa-clock-rotate-left"></i>
+                    </div>
+                    <div class="flex-grow">
+                        <p class="text-slate-500 text-[10px] font-black uppercase tracking-widest mb-1">
+                            طلبات معلقة</p>
+                        <h3 id="pending-requests" class="text-3xl font-black text-slate-800">0</h3>
+                    </div>
+                </div>
+                <div class="mt-4 pt-4 border-t border-slate-50 text-[11px] text-amber-600 font-bold">
+                    <i class="fa-solid fa-circle-exclamation mr-1"></i> تتطلب إجراءً فورياً
+                </div>
+                <div class="absolute bottom-0 right-0 w-24 h-1 bg-amber-500"></div>
+            </div>
+
+            <!-- Earnings Card -->
+            <div class="info-card p-8 group">
+                <div class="flex items-center gap-5">
+                    <div
+                        class="w-14 h-14 rounded-2xl bg-purple-50 flex items-center justify-center text-purple-600 text-2xl group-hover:scale-110 transition-transform">
+                        <i class="fa-solid fa-coins"></i>
+                    </div>
+                    <div class="flex-grow">
+                        <p class="text-slate-500 text-[10px] font-black uppercase tracking-widest mb-1">
+                            الأرباح</p>
+                        <h3 id="total-earnings" class="text-3xl font-black text-slate-800">0 ₪</h3>
+                    </div>
+                </div>
+                <div class="mt-4 pt-4 border-t border-slate-50 text-[11px] text-purple-600 font-bold">
+                    <i class="fa-solid fa-shield-halved mr-1"></i> مؤمنة بالكامل
+                </div>
+                <div class="absolute bottom-0 right-0 w-24 h-1 bg-purple-500"></div>
+            </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="mt-12">
+            <div class="flex items-center justify-between mb-6">
+                <h4 class="text-xl font-bold text-gray-800 flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center">
+                        <i class="fa-solid fa-bolt-lightning text-slate-600"></i>
+                    </div>
+                    آخر النشاطات
+                </h4>
+                <button class="text-sm font-bold text-blue-600 hover:text-blue-700 transition-colors">عرض
+                    السجل الكامل</button>
+            </div>
+            <div id="recent-reservations" class="space-y-4">
+                <!-- Recent reservations will be loaded here -->
+            </div>
+        </div>
+    </div>
+</section>

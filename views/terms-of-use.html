@@ -1,117 +1,136 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>شروط الاستخدام - 5ع5</title>
+    <title>5ع5 - شروط الاستخدام</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="/components/styles.css" />
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap');
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: #f8fafc;
+        }
+
+        .legal-content h2 {
+            font-weight: 800;
+            color: #1e293b;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .legal-content h2 i {
+            color: #10b981;
+            font-size: 1.25rem;
+        }
+
+        .legal-content p {
+            color: #475569;
+            line-height: 1.8;
+            margin-bottom: 1rem;
+        }
+
+        .legal-content ul {
+            margin-bottom: 1.5rem;
+            padding-right: 1.5rem;
+        }
+
+        .legal-content li {
+            color: #475569;
+            margin-bottom: 0.5rem;
+            position: relative;
+        }
+
+        .legal-content li::before {
+            content: '•';
+            color: #10b981;
+            position: absolute;
+            right: -1.25rem;
+            font-weight: bold;
+        }
+    </style>
 </head>
-<body class="bg-gray-50 text-gray-800 min-h-screen flex flex-col">
-    <!-- Global Header -->
+
+<body class="min-h-screen flex flex-col">
     <div id="global-header"></div>
 
-    <!-- Main Content -->
-    <main class="flex-grow container mx-auto px-6 py-8">
-        <div class="max-w-4xl mx-auto bg-white rounded-lg shadow-lg p-8">
-            <h1 class="text-3xl font-bold text-green-600 mb-8 text-center">شروط الاستخدام</h1>
-            
-            <div class="space-y-6 text-lg leading-relaxed">
-                <section>
-                    <h2 class="text-2xl font-semibold text-gray-800 mb-4">1. مقدمة</h2>
-                    <p>مرحباً بكم في منصة 5ع5 لحجز الملاعب الرياضية. باستخدامكم لهذه المنصة، فإنكم توافقون على الالتزام بشروط الاستخدام التالية. يرجى قراءة هذه الشروط بعناية قبل استخدام الخدمة.</p>
-                </section>
+    <main class="flex-grow py-16 px-6">
+        <div class="container mx-auto max-w-4xl">
+            <div class="bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100">
+                <div class="bg-gradient-to-r from-green-600 to-emerald-500 p-10 text-white text-center">
+                    <h1 class="text-4xl font-black mb-4">شروط الاستخدام</h1>
+                    <p class="text-green-50 opacity-90">آخر تحديث: فبراير 2026</p>
+                </div>
 
-                <section>
-                    <h2 class="text-2xl font-semibold text-gray-800 mb-4">2. تعريف الخدمة</h2>
-                    <p>منصة 5ع5 هي خدمة إلكترونية تتيح للمستخدمين حجز الملاعب الرياضية، والانضمام إلى المباريات، وتنظيم البطولات. نحن نوفر منصة تقنية لربط اللاعبين بالملاعب المتاحة.</p>
-                </section>
+                <div class="p-8 md:p-12 legal-content">
+                    <p
+                        class="text-lg font-medium text-gray-700 italic border-r-4 border-green-500 pr-4 py-2 bg-green-50/50 rounded-lg">
+                        مرحباً بكم في منصة 5ع5. يرجى قراءة هذه الشروط بعناية قبل استخدام خدماتنا. باستخدامك للمنصة، فإنك
+                        توافق على الالتزام بهذه الشروط.
+                    </p>
 
-                <section>
-                    <h2 class="text-2xl font-semibold text-gray-800 mb-4">3. شروط التسجيل</h2>
-                    <ul class="list-disc list-inside space-y-2 mr-6">
-                        <li>يجب أن يكون عمر المستخدم 16 عاماً أو أكثر</li>
-                        <li>تقديم معلومات صحيحة ودقيقة عند التسجيل</li>
-                        <li>المحافظة على سرية كلمة المرور</li>
-                        <li>عدم مشاركة الحساب مع أشخاص آخرين</li>
+                    <h2><i class="fa-solid fa-circle-check"></i> 1. قبول الشروط</h2>
+                    <p>
+                        بمجرد إنشاء حساب أو استخدام أي من خدمات 5ع5 (بما في ذلك حجز الملاعب، المشاركة في البطولات، أو
+                        التسوق من متجرنا)، فإنك تقر بأنك قد قرأت وفهمت ووافقت على الشروط والأحكام الواردة هنا.
+                    </p>
+
+                    <h2><i class="fa-solid fa-user-shield"></i> 2. مسؤولية الحساب</h2>
+                    <ul>
+                        <li>يجب أن تكون المعلومات المقدمة عند التسجيل دقيقة ومحدثة.</li>
+                        <li>أنت مسؤول بالكامل عن الحفاظ على سرية بيانات حسابك وكلمة المرور.</li>
+                        <li>يمنع استخدام الحساب لأغراض تجارية غير مصرح بها أو انتحال شخصية الآخرين.</li>
                     </ul>
-                </section>
 
-                <section>
-                    <h2 class="text-2xl font-semibold text-gray-800 mb-4">4. قواعد الحجز والإلغاء</h2>
-                    <ul class="list-disc list-inside space-y-2 mr-6">
-                        <li>يجب تأكيد الحجز خلال 15 دقيقة من بدء عملية الحجز</li>
-                        <li>يمكن إلغاء الحجز قبل 24 ساعة من موعد المباراة</li>
-                        <li>في حالة الإلغاء المتأخر، قد يتم فرض رسوم إضافية</li>
-                        <li>عدم الحضور بدون إشعار مسبق قد يؤثر على تقييم المستخدم</li>
+                    <h2><i class="fa-solid fa-calendar-day"></i> 3. قواعد الحجز والإلغاء</h2>
+                    <p>
+                        تهدف منصة 5ع5 إلى تنظيم عملية حجز ملاعب كرة القدم الخماسية. تخضع جميع الحجوزات للقواعد التالية:
+                    </p>
+                    <ul>
+                        <li>الحجز يعتبر مؤكداً فقط بعد استلام رسالة تأكيد عبر المنصة أو البريد الإلكتروني.</li>
+                        <li>يجب الحضور إلى الملعب قبل موعد الحجز بـ 10 دقائق على الأقل.</li>
+                        <li>سياسة الإلغاء تختلف حسب الملعب، ولكن بشكل عام يجب الإلغاء قبل 24 ساعة لاسترداد الرصيد.</li>
                     </ul>
-                </section>
 
-                <section>
-                    <h2 class="text-2xl font-semibold text-gray-800 mb-4">5. السلوك والآداب</h2>
-                    <ul class="list-disc list-inside space-y-2 mr-6">
-                        <li>احترام اللاعبين الآخرين وإدارة الملاعب</li>
-                        <li>عدم استخدام لغة غير لائقة أو مسيئة</li>
-                        <li>الالتزام بقوانين اللعبة والروح الرياضية</li>
-                        <li>المحافظة على نظافة وسلامة المرافق</li>
+                    <h2><i class="fa-solid fa-store"></i> 4. متجر 5v5 Fashion</h2>
+                    <p>
+                        عند الشراء من متجرنا، يتم تطبيق الشروط التالية:
+                    </p>
+                    <ul>
+                        <li>الأسعار الموضحة تشمل ضريبة القيمة المضافة ما لم يذكر خلاف ذلك.</li>
+                        <li>نضمن جودة المنتجات المقدمة، وفي حال وجود عيب مصنعي يحق للعميل الاستبدال خلال 7 أيام.</li>
+                        <li>الشحن يتم خلال المدة الموضحة عند إتمام الطلب.</li>
                     </ul>
-                </section>
 
-                <section>
-                    <h2 class="text-2xl font-semibold text-gray-800 mb-4">6. المسؤولية والضمان</h2>
-                    <p>منصة 5ع5 تعمل كوسيط بين المستخدمين وأصحاب الملاعب. نحن غير مسؤولين عن:</p>
-                    <ul class="list-disc list-inside space-y-2 mr-6 mt-2">
-                        <li>الإصابات التي قد تحدث أثناء اللعب</li>
-                        <li>جودة المرافق أو الخدمات المقدمة في الملاعب</li>
-                        <li>النزاعات بين اللاعبين</li>
-                        <li>فقدان أو تلف الممتلكات الشخصية</li>
+                    <h2><i class="fa-solid fa-ban"></i> 5. السلوك المحظور</h2>
+                    <p>
+                        يمنع منعاً باتاً القيام بأي من الأفعال التالية:
+                    </p>
+                    <ul>
+                        <li>محاولة اختراق المنصة أو التلاعب بأنظمتها البرمجية.</li>
+                        <li>نشر محتوى مسيء أو غير لائق في التقييمات أو الملف الشخصي.</li>
+                        <li>استخدام المنصة للترويج لخدمات منافسة دون إذن مسبق.</li>
                     </ul>
-                </section>
 
-                <section>
-                    <h2 class="text-2xl font-semibold text-gray-800 mb-4">7. الدفع والاسترداد</h2>
-                    <ul class="list-disc list-inside space-y-2 mr-6">
-                        <li>جميع المدفوعات تتم عبر وسائل الدفع الآمنة المتاحة</li>
-                        <li>الأسعار المعروضة شاملة لجميع الرسوم</li>
-                        <li>سياسة الاسترداد تختلف حسب نوع الحجز وتوقيت الإلغاء</li>
-                        <li>المبالغ المستردة تتم خلال 5-7 أيام عمل</li>
-                    </ul>
-                </section>
+                    <h2><i class="fa-solid fa-gavel"></i> 6. إخلاء المسؤولية</h2>
+                    <p>
+                        منصة 5ع5 هي وسيط بين اللاعبين وأصحاب الملاعب. نحن لا نتحمل مسؤولية أي إصابات جسدية تقع داخل
+                        الملاعب أو فقدان الممتلكات الشخصية. المسؤولية تقع على عاتق مستخدم الملعب وإدارة الملعب المستضيف.
+                    </p>
 
-                <section>
-                    <h2 class="text-2xl font-semibold text-gray-800 mb-4">8. الخصوصية وحماية البيانات</h2>
-                    <p>نحن ملتزمون بحماية خصوصيتكم وبياناتكم الشخصية. يتم استخدام المعلومات المقدمة فقط لأغراض تقديم الخدمة وتحسين تجربة المستخدم. لن نشارك بياناتكم مع أطراف ثالثة دون موافقتكم.</p>
-                </section>
-
-                <section>
-                    <h2 class="text-2xl font-semibold text-gray-800 mb-4">9. تعديل الشروط</h2>
-                    <p>نحتفظ بالحق في تعديل هذه الشروط في أي وقت. سيتم إشعار المستخدمين بأي تغييرات جوهرية عبر البريد الإلكتروني أو من خلال المنصة. استمرار استخدام الخدمة بعد التعديل يعني موافقتكم على الشروط الجديدة.</p>
-                </section>
-
-                <section>
-                    <h2 class="text-2xl font-semibold text-gray-800 mb-4">10. إنهاء الخدمة</h2>
-                    <p>نحتفظ بالحق في إيقاف أو إنهاء حساب أي مستخدم في حالة مخالفة هذه الشروط أو السلوك غير اللائق. كما يمكن للمستخدم إلغاء حسابه في أي وقت من خلال إعدادات الحساب.</p>
-                </section>
-
-                <section>
-                    <h2 class="text-2xl font-semibold text-gray-800 mb-4">11. التواصل والدعم</h2>
-                    <p>لأي استفسارات أو مشاكل تقنية، يمكنكم التواصل معنا عبر:</p>
-                    <ul class="list-disc list-inside space-y-2 mr-6 mt-2">
-                        <li>البريد الإلكتروني: support@5v5.ps</li>
-                        <li>الهاتف: +970-XXX-XXXX</li>
-                        <li>ساعات العمل: من الأحد إلى الخميس، 9 صباحاً - 6 مساءً</li>
-                    </ul>
-                </section>
-
-                <section>
-                    <h2 class="text-2xl font-semibold text-gray-800 mb-4">12. القانون المطبق</h2>
-                    <p>تخضع هذه الشروط للقوانين المعمول بها في فلسطين. أي نزاع ينشأ عن استخدام هذه الخدمة سيتم حله وفقاً للقانون الفلسطيني.</p>
-                </section>
-
-                <div class="bg-green-50 border-r-4 border-green-400 p-4 mt-8">
-                    <p class="text-green-800 font-semibold">تاريخ آخر تحديث: يناير 2025</p>
-                    <p class="text-green-700 mt-2">شكراً لكم على اختيار منصة 5ع5. نتطلع لتقديم أفضل تجربة رياضية لكم!</p>
+                    <h2><i class="fa-solid fa-envelope-open-text"></i> 7. التواصل</h2>
+                    <p>
+                        إذا كان لديك أي استفسار حول هذه الشروط، يمكنك التواصل معنا عبر البريد الإلكتروني:
+                        support@5v5.com أو عبر قنوات التواصل الاجتماعي الرسمية.
+                    </p>
                 </div>
             </div>
         </div>
@@ -121,5 +140,7 @@
 
     <script src="/components/header.js"></script>
     <script src="/components/footer.js"></script>
+    <script src="/components/loader.js"></script>
 </body>
+
 </html>

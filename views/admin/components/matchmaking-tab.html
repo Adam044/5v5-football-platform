@@ -1,0 +1,111 @@
+<section id="matchmaking-requests-tab" class="tab-pane hidden">
+    <!-- Header with Background Gradient -->
+    <div class="relative overflow-hidden bg-white rounded-3xl shadow-2xl border border-slate-100 mb-8">
+        <div class="absolute top-0 right-0 w-64 h-64 bg-blue-50/50 rounded-full -mr-32 -mt-32 blur-3xl"></div>
+        <div class="absolute bottom-0 left-0 w-64 h-64 bg-indigo-50/30 rounded-full -ml-32 -mb-32 blur-3xl"></div>
+
+        <div class="relative p-8 lg:p-10">
+            <div class="flex flex-col lg:flex-row items-center justify-between gap-8">
+                <div class="space-y-2 text-center lg:text-right">
+                    <h4
+                        class="text-4xl font-black text-slate-900 tracking-tight flex items-center justify-center lg:justify-start gap-4">
+                        <div
+                            class="w-14 h-14 rounded-2xl bg-blue-600 text-white flex items-center justify-center shadow-lg shadow-blue-200">
+                            <i class="fa-solid fa-handshake-angle"></i>
+                        </div>
+                        إدارة طلبات المطابقة
+                    </h4>
+                    <p class="text-slate-500 font-medium">نظام التوفيق الذكي بين اللاعبين والفرق</p>
+                </div>
+
+                <!-- Live Quick Stats -->
+                <div class="flex items-center gap-4 bg-slate-50 p-2 rounded-2xl border border-slate-100">
+                    <div class="px-6 py-4 text-center">
+                        <div class="text-2xl font-black text-blue-600 mb-1" id="stat-pending-requests">0</div>
+                        <div class="text-[10px] uppercase font-bold text-slate-400 tracking-widest">طلبات معلقة</div>
+                    </div>
+                    <div class="w-px h-10 bg-slate-200"></div>
+                    <div class="px-6 py-4 text-center">
+                        <div class="text-2xl font-black text-green-600 mb-1" id="stat-potential-matches">0</div>
+                        <div class="text-[10px] uppercase font-bold text-slate-400 tracking-widest">تطابق محتمل</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Grid Layout -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <!-- Sidebar: Potential Matches (High Priority) -->
+        <div class="lg:col-span-4 space-y-6 order-2 lg:order-1">
+            <div class="bg-white rounded-3xl border border-green-100 shadow-xl overflow-hidden">
+                <div class="bg-green-50 px-6 py-5 border-b border-green-100 flex items-center justify-between">
+                    <h5 class="font-black text-green-800 flex items-center gap-2">
+                        <i class="fa-solid fa-wand-magic-sparkles text-green-500"></i>
+                        المطابقات المحتملة
+                    </h5>
+                    <span
+                        class="px-3 py-1 bg-green-200/50 text-green-700 text-[10px] font-black rounded-full uppercase">ذكي</span>
+                </div>
+                <div id="potential-matches-suggestions"
+                    class="p-6 space-y-4 max-h-[700px] overflow-y-auto custom-scrollbar">
+                    <!-- Suggestions loaded here -->
+                </div>
+            </div>
+
+            <!-- Done Requests Toggle Box -->
+            <div class="bg-slate-50 rounded-3xl p-6 border border-slate-200 shadow-inner">
+                <div class="flex items-center justify-between mb-4">
+                    <h5 class="font-black text-slate-700 flex items-center gap-2">
+                        <i class="fa-solid fa-history"></i> السجل المنجز
+                    </h5>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input id="toggle-done-requests" type="checkbox" class="sr-only peer">
+                        <div
+                            class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600">
+                        </div>
+                    </label>
+                </div>
+                <div id="done-requests" class="hidden animate-fade-in mt-4 space-y-3 max-h-64 overflow-y-auto">
+                    <!-- Done requests -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content: Active Requests -->
+        <div class="lg:col-span-8 space-y-10 order-1 lg:order-2">
+            <!-- 1. Team Requests -->
+            <div class="space-y-6">
+                <div class="flex items-center justify-between px-2">
+                    <h5 class="text-xl font-black text-slate-800 flex items-center gap-3">
+                        <div class="w-2 h-8 bg-blue-500 rounded-full"></div>
+                        طلبات الفرق
+                    </h5>
+                    <span class="text-slate-400 text-xs font-bold">فرق تبحث عن لاعبين أو منافسين</span>
+                </div>
+                <div id="teams-looking-requests" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Cards loaded here -->
+                </div>
+
+                <div id="team-vs-team-requests"
+                    class="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-slate-100 pt-6">
+                    <!-- Specific Team vs Team Cards -->
+                </div>
+            </div>
+
+            <!-- 2. Individual Player Requests -->
+            <div class="space-y-6">
+                <div class="flex items-center justify-between px-2">
+                    <h5 class="text-xl font-black text-slate-800 flex items-center gap-3">
+                        <div class="w-2 h-8 bg-amber-500 rounded-full"></div>
+                        طلبات اللاعبين الفرديين
+                    </h5>
+                    <span class="text-slate-400 text-xs font-bold">لاعبون يبحثون عن فريق</span>
+                </div>
+                <div id="players-looking-requests" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Cards loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

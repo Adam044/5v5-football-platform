@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,53 +9,77 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Font Awesome CDN -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="/styles.css" />
-    
+    <link rel="stylesheet" href="/components/styles.css" />
+
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap');
+
         body {
             font-family: 'Cairo', sans-serif;
             background-color: #f0f4f8;
             color: #2c3e50;
         }
+
         .animate-fade-in {
             animation: fadeIn 0.4s ease-out forwards;
         }
+
         .animate-scale-in-up {
             animation: scaleInUp 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
         }
+
         @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
         }
+
         @keyframes scaleInUp {
-            from { transform: translateY(30px) scale(0.95); opacity: 0; }
-            to { transform: translateY(0) scale(1); opacity: 1; }
+            from {
+                transform: translateY(30px) scale(0.95);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0) scale(1);
+                opacity: 1;
+            }
         }
+
         ::-webkit-scrollbar {
             width: 8px;
         }
+
         ::-webkit-scrollbar-track {
             background: #f0f4f8;
             border-radius: 10px;
         }
+
         ::-webkit-scrollbar-thumb {
             background: #aab8c2;
             border-radius: 10px;
         }
+
         ::-webkit-scrollbar-thumb:hover {
             background: #8899a6;
         }
     </style>
 </head>
+
 <body class="min-h-screen flex flex-col">
 
     <!-- Global Header Placeholder -->
     <div id="global-header"></div>
 
     <!-- Hero Section for Tournaments -->
-    <section class="relative bg-gradient-to-br from-purple-600 to-pink-500 text-white py-28 text-center shadow-2xl overflow-hidden">
-        <div class="absolute inset-0 bg-cover bg-center opacity-60" style="background-image: url('/images/tournament.jpg');"></div>
+    <section
+        class="relative bg-gradient-to-br from-purple-600 to-pink-500 text-white py-28 text-center shadow-2xl overflow-hidden">
+        <div class="absolute inset-0 bg-cover bg-center opacity-60"
+            style="background-image: url('/images/tournament.jpg');"></div>
         <div class="absolute inset-0 bg-black opacity-0"></div>
         <div class="container mx-auto px-6 relative z-10 animate-fade-in">
             <h2 class="text-5xl md:text-7xl font-extrabold mb-6 leading-tight drop-shadow-lg">
@@ -63,10 +88,8 @@
             <p class="text-xl md:text-3xl mb-10 opacity-95 drop-shadow">
                 اكتشف البطولات القادمة، سجل فريقك، وتنافس للفوز بالجوائز الكبرى.
             </p>
-            <button
-                onclick="document.getElementById('upcoming-tournaments').scrollIntoView({ behavior: 'smooth' })"
-                class="bg-white text-purple-700 font-bold px-10 py-5 rounded-full shadow-2xl hover:bg-gray-100 transform hover:scale-105 transition-all duration-300 text-lg"
-            >
+            <button onclick="document.getElementById('upcoming-tournaments').scrollIntoView({ behavior: 'smooth' })"
+                class="bg-white text-purple-700 font-bold px-10 py-5 rounded-full shadow-2xl hover:bg-gray-100 transform hover:scale-105 transition-all duration-300 text-lg">
                 شاهد البطولات
                 <i class="fa-solid fa-trophy mr-2"></i>
             </button>
@@ -79,7 +102,8 @@
             <h3 class="text-5xl font-extrabold text-center mb-16 text-gray-900 leading-tight">
                 البطولات <span class="text-purple-600">القادمة</span>
             </h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 justify-items-center" id="upcoming-tournaments-container">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 justify-items-center"
+                id="upcoming-tournaments-container">
                 <p class="col-span-full text-center text-gray-500 text-lg">جاري تحميل البطولات...</p>
             </div>
         </section>
@@ -88,16 +112,20 @@
             <h3 class="text-5xl font-extrabold text-center mb-16 text-gray-900 leading-tight">
                 البطولات <span class="text-blue-600">المنتهية</span>
             </h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 justify-items-center" id="past-tournaments-container">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 justify-items-center"
+                id="past-tournaments-container">
                 <p class="col-span-full text-center text-gray-500 text-lg">لا توجد بطولات منتهية.</p>
             </div>
         </section>
     </main>
 
     <!-- Tournament Participation Modal (KEPT for other interactions, but registration flow changes) -->
-    <div id="participation-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50 animate-fade-in">
-        <div class="bg-white rounded-2xl shadow-3xl p-8 w-full max-w-lg relative animate-scale-in-up border-b-4 border-blue-600">
-            <button onclick="closeParticipationModal()" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 transition-colors duration-300 rounded-full bg-gray-100 p-2 hover:bg-gray-200">
+    <div id="participation-modal"
+        class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50 animate-fade-in">
+        <div
+            class="bg-white rounded-2xl shadow-3xl p-8 w-full max-w-lg relative animate-scale-in-up border-b-4 border-blue-600">
+            <button onclick="closeParticipationModal()"
+                class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 transition-colors duration-300 rounded-full bg-gray-100 p-2 hover:bg-gray-200">
                 <i class="fa-solid fa-xmark"></i>
             </button>
             <h3 class="text-4xl font-bold mb-8 text-center text-gray-900 flex items-center justify-center gap-3">
@@ -123,48 +151,31 @@
                     <label for="team-name" class="block text-gray-700 font-semibold mb-2 flex items-center gap-2">
                         <i class="fa-solid fa-users text-green-500"></i> اسم فريقك
                     </label>
-                    <input
-                        type="text"
-                        id="team-name"
-                        name="teamName"
-                        placeholder="أدخل اسم الفريق"
+                    <input type="text" id="team-name" name="teamName" placeholder="أدخل اسم الفريق"
                         class="p-3 border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-right bg-white"
-                        required
-                    />
+                        required />
                 </div>
                 <div>
                     <label for="captain-name" class="block text-gray-700 font-semibold mb-2 flex items-center gap-2">
                         <i class="fa-solid fa-user text-blue-500"></i> اسم قائد الفريق
                     </label>
-                    <input
-                        type="text"
-                        id="captain-name"
-                        name="captainName"
-                        placeholder="أدخل اسم قائد الفريق"
+                    <input type="text" id="captain-name" name="captainName" placeholder="أدخل اسم قائد الفريق"
                         class="p-3 border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-right bg-white"
-                        required
-                    />
+                        required />
                 </div>
                 <div>
                     <label for="contact-email" class="block text-gray-700 font-semibold mb-2 flex items-center gap-2">
                         <i class="fa-solid fa-envelope text-purple-500"></i> البريد الإلكتروني للتواصل
                     </label>
-                    <input
-                        type="email"
-                        id="contact-email"
-                        name="contactEmail"
-                        placeholder="أدخل البريد الإلكتروني"
+                    <input type="email" id="contact-email" name="contactEmail" placeholder="أدخل البريد الإلكتروني"
                         class="p-3 border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-right bg-white"
-                        required
-                    />
+                        required />
                 </div>
             </div>
 
             <div class="border-t border-gray-200 pt-6 mt-6">
-                <button
-                    onclick="submitParticipation()"
-                    class="bg-gradient-to-r from-blue-600 to-blue-500 text-white font-bold px-8 py-4 rounded-xl w-full hover:from-blue-700 hover:to-blue-600 transition-all duration-300 shadow-lg transform hover:-translate-y-1 text-xl flex items-center justify-center gap-3"
-                >
+                <button onclick="submitParticipation()"
+                    class="bg-gradient-to-r from-blue-600 to-blue-500 text-white font-bold px-8 py-4 rounded-xl w-full hover:from-blue-700 hover:to-blue-600 transition-all duration-300 shadow-lg transform hover:-translate-y-1 text-xl flex items-center justify-center gap-3">
                     <i class="fa-solid fa-paper-plane"></i>
                     إرسال طلب المشاركة
                 </button>
@@ -173,15 +184,21 @@
     </div>
 
     <!-- Message Box (replaces alert) -->
-    <div id="message-box" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50 animate-fade-in">
-        <div class="bg-white rounded-2xl shadow-3xl p-8 w-full max-w-sm relative animate-scale-in-up text-center border-t-4 border-red-500">
-            <button onclick="closeMessageBox()" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 transition-colors duration-300 rounded-full bg-gray-100 p-2 hover:bg-gray-200" aria-label="إغلاق">
+    <div id="message-box"
+        class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50 animate-fade-in">
+        <div
+            class="bg-white rounded-2xl shadow-3xl p-8 w-full max-w-sm relative animate-scale-in-up text-center border-t-4 border-red-500">
+            <button onclick="closeMessageBox()"
+                class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 transition-colors duration-300 rounded-full bg-gray-100 p-2 hover:bg-gray-200"
+                aria-label="إغلاق">
                 <i class="fa-solid fa-xmark"></i>
             </button>
-            <h4 id="message-box-title" class="text-2xl font-bold mb-4 text-gray-900 flex items-center justify-center gap-2"></h4>
+            <h4 id="message-box-title"
+                class="text-2xl font-bold mb-4 text-gray-900 flex items-center justify-center gap-2"></h4>
             <p id="message-box-content" class="text-gray-700 mb-6 text-lg"></p>
             <div id="message-box-actions" class="flex items-center justify-center gap-3">
-                <button onclick="closeMessageBox()" class="bg-red-600 text-white px-7 py-3 rounded-xl hover:bg-red-700 transition-all duration-300 shadow-md text-lg">
+                <button onclick="closeMessageBox()"
+                    class="bg-red-600 text-white px-7 py-3 rounded-xl hover:bg-red-700 transition-all duration-300 shadow-md text-lg">
                     حسناً
                 </button>
             </div>
@@ -193,13 +210,15 @@
         <div class="bg-white rounded-2xl p-8 w-full max-w-lg mx-4 max-h-[80vh] overflow-y-auto shadow-2xl">
             <div class="flex justify-between items-center mb-6">
                 <h3 class="text-2xl font-bold text-gray-800">الفرق المشاركة</h3>
-                <button onclick="closeTeamsModal()" class="text-gray-400 hover:text-gray-600 transition-colors duration-200 p-2 hover:bg-gray-100 rounded-full">
+                <button onclick="closeTeamsModal()"
+                    class="text-gray-400 hover:text-gray-600 transition-colors duration-200 p-2 hover:bg-gray-100 rounded-full">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
+                        </path>
                     </svg>
                 </button>
             </div>
-            
+
             <div class="grid grid-cols-2 gap-4 mb-6">
                 <div class="bg-green-50 border border-green-200 rounded-xl p-4 text-center">
                     <div class="text-2xl font-bold text-green-600" id="registered-teams-count">0</div>
@@ -218,7 +237,9 @@
             <div id="no-teams-message" class="text-center py-12 text-gray-500 hidden">
                 <div class="w-20 h-20 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
                     <svg class="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z">
+                        </path>
                     </svg>
                 </div>
                 <p class="text-lg font-medium text-gray-600">لا توجد فرق مسجلة بعد</p>
@@ -310,7 +331,7 @@
             pastContainer.innerHTML = Array.from({ length: 3 }).map(tournamentSkeleton).join('');
 
             try {
- const response = await fetch('/api/tournaments');
+                const response = await fetch('/api/tournaments');
                 const data = await response.json();
                 const tournaments = data.tournaments;
 
@@ -329,7 +350,7 @@
                         upcomingContainer.appendChild(tournamentCard);
                     }
                 } else {
-                     upcomingContainer.innerHTML = '<p class="col-span-full text-center text-gray-500 text-lg">لا توجد بطولات قادمة.</p>';
+                    upcomingContainer.innerHTML = '<p class="col-span-full text-center text-gray-500 text-lg">لا توجد بطولات قادمة.</p>';
                 }
 
                 if (past.length > 0) {
@@ -339,7 +360,7 @@
                         pastContainer.appendChild(tournamentCard);
                     }
                 } else {
-                     pastContainer.innerHTML = '<p class="col-span-full text-center text-gray-500 text-lg">لا توجد بطولات منتهية.</p>';
+                    pastContainer.innerHTML = '<p class="col-span-full text-center text-gray-500 text-lg">لا توجد بطولات منتهية.</p>';
                 }
 
             } catch (error) {
@@ -356,13 +377,13 @@
             // Check user's team status for this tournament
             const loggedInUserId = localStorage.getItem('userId');
             let buttonHtml = '';
-            
+
             if (status === 'upcoming') {
                 if (loggedInUserId) {
                     try {
                         const response = await fetch(`/api/user/${loggedInUserId}/tournament/${tournament.id}/team-status`);
                         const teamStatus = await response.json();
-                        
+
                         if (teamStatus.hasTeam) {
                             if (teamStatus.status === 'registered') {
                                 // Team is already registered
@@ -541,22 +562,22 @@
             // This modal is now unused for the main flow but is kept for legacy/other buttons
             const loggedInUserId = localStorage.getItem('userId');
             if (!loggedInUserId) {
-                 showMessageBox(
+                showMessageBox(
                     'تسجيل الدخول مطلوب',
                     'للمشاركة في البطولة، يرجى تسجيل الدخول أولاً.',
                     'error'
                 );
                 return;
             }
-             // Find the tournament details (simplified mock version)
+            // Find the tournament details (simplified mock version)
             const allTournaments = [...document.querySelectorAll('#upcoming-tournaments-container .bg-white')];
             const tournamentElement = allTournaments.find(el => el.querySelector('button[onclick*="' + tournamentId + '"]'));
-            
+
             if (!tournamentElement) return;
 
             const tournamentName = tournamentElement.querySelector('h4').textContent.trim().replace('🏆', '').trim();
             const tournamentField = tournamentElement.querySelector('p').textContent.replace(' الملعب: ', '').trim();
-            
+
             document.getElementById('modal-tournament-name').innerText = tournamentName;
             document.getElementById('modal-tournament-field').innerText = tournamentField;
 
@@ -582,7 +603,7 @@
                 showMessageBox('بريد إلكتروني غير صالح', 'الرجاء إدخال بريد إلكتروني صحيح.', 'error');
                 return;
             }
-            
+
             // This submission is now for informational requests only, as the actual registration happens in the hub
             showMessageBox('تم استلام طلبك', `شكراً لفريق ${teamName} على اهتمامكم بالبطولة. سنتواصل معكم قريباً!`, 'success');
             closeParticipationModal();
@@ -591,32 +612,32 @@
         // --- Teams Modal Functions ---
         async function viewTournamentTeams(tournamentId) {
             try {
- const response = await fetch(`/api/tournaments/${tournamentId}/teams`);
+                const response = await fetch(`/api/tournaments/${tournamentId}/teams`);
                 const data = await response.json();
-                
+
                 if (data.success) {
                     const tournament = data.tournament;
                     const teams = data.teams || [];
-                    
+
                     // Count teams by status
                     const registeredTeams = teams.filter(team => team.status === 'registered');
                     const formingTeams = teams.filter(team => team.status === 'forming' || team.status === 'pending');
-                    
+
                     // Update counters
                     document.getElementById('registered-teams-count').textContent = registeredTeams.length;
                     document.getElementById('forming-teams-count').textContent = formingTeams.length;
-                    
+
                     const teamsList = document.getElementById('teams-list');
                     const noTeamsMessage = document.getElementById('no-teams-message');
-                    
+
                     if (registeredTeams.length > 0) {
                         teamsList.innerHTML = '';
                         noTeamsMessage.classList.add('hidden');
-                        
+
                         registeredTeams.forEach((team, index) => {
                             const teamCard = document.createElement('div');
                             teamCard.className = 'bg-white border border-gray-100 rounded-xl p-5 hover:shadow-md transition-all duration-200';
-                            
+
                             teamCard.innerHTML = `
                                 <div class="flex items-center space-x-4 space-x-reverse">
                                     <div class="bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-full w-12 h-12 flex items-center justify-center font-bold text-lg shadow-lg">
@@ -637,7 +658,7 @@
                         teamsList.innerHTML = '';
                         noTeamsMessage.classList.remove('hidden');
                     }
-                    
+
                     document.getElementById('teams-modal').classList.remove('hidden');
                 } else {
                     showMessageBox('خطأ', data.message || 'فشل في تحميل الفرق المسجلة', 'error');
@@ -658,4 +679,5 @@
         });
     </script>
 </body>
+
 </html>

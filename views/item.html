@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تفاصيل المنتج - 5v5 Fashion</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="/components/styles.css" />
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap');
+
+        :root {
+            --primary: #10B981;
+            --primary-dark: #059669;
+            --bg: #f8fafc;
+        }
+
+        body {
+            font-family: Cairo, sans-serif;
+            background: var(--bg);
+            color: #1e293b;
+        }
+
+        .product-image-wrap {
+            border-radius: 2rem;
+            overflow: hidden;
+            background: white;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e2e8f0;
+        }
+
+        .buy-btn {
+            background: #1e293b;
+            color: white;
+            padding: 1.25rem 2rem;
+            border-radius: 1rem;
+            font-weight: 800;
+            font-size: 1.125rem;
+            width: 100%;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #64748b;
+            font-weight: 600;
+            margin-bottom: 2rem;
+            transition: color 0.3s;
+        }
+
+        .back-link:hover {
+            color: var(--primary);
+        }
+
+        .info-badge {
+            background: #f1f5f9;
+            padding: 0.5rem 1rem;
+            border-radius: 2rem;
+            font-size: 0.825rem;
+            font-weight: 700;
+            color: #475569;
+        }
+
+        .stock-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        .stock-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+    </style>
+</head>
+
+<body class="min-h-screen flex flex-col">
+    <div id="global-header"></div>
+
+    <main class="flex-grow container mx-auto px-6 py-12 max-w-6xl">
+        <a href="5v5-fashion.html" class="back-link">
+            <i class="fa-solid fa-arrow-right"></i>
+            العودة للمتجر
+        </a>
+
+        <div id="product-content" class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+            <!-- Loading state -->
+            <div class="skel h-96 rounded-3xl"></div>
+            <div class="space-y-6">
+                <div class="skel h-12 w-3/4"></div>
+                <div class="skel h-24 w-full"></div>
+                <div class="skel h-16 w-1/2"></div>
+            </div>
+        </div>
+    </main>
+
+    <div id="global-footer"></div>
+
+    <script src="/components/header.js"></script>
+    <script src="/components/footer.js"></script>
+    <script src="/components/loader.js"></script>
+    <script>
+        const productId = new URLSearchParams(window.location.search).get('id');
+
+        async function loadProduct() {
+            if (!productId) {
+                window.location.href = '5v5-fashion.html';
+                return;
+            }
+
+            const container = document.getElementById('product-content');
+
+            try {
+                const res = await fetch(`/api/fashion/products/${productId}`);
+                const data = await res.json();
+                const p = data.product;
+
+                if (!p) {
+                    container.innerHTML = '<p class="col-span-full text-center text-red-500">المنتج غير موجود.</p>';
+                    return;
+                }
+
+                document.title = `${p.name} - 5v5 Fashion`;
+
+                const stockStatus = p.stock > 0
+                    ? `<div class="stock-indicator text-green-600"><span class="stock-dot bg-green-500"></span> متوفر في المخزون (${p.stock})</div>`
+                    : `<div class="stock-indicator text-red-500"><span class="stock-dot bg-red-500"></span> غير متوفر حالياً</div>`;
+
+                container.innerHTML = `
+                    <div class="product-image-wrap">
+                        <img src="${p.image_url || 'https://placehold.co/800x800/1e293b/white?text=No+Image'}" 
+                             alt="${p.name}" class="w-full h-full object-cover">
+                    </div>
+                    <div class="space-y-8 flex flex-col justify-center">
+                        <div>
+                            <span class="info-badge mb-4 inline-block">${getCategoryName(p.category)}</span>
+                            <h1 class="text-4xl md:text-5xl font-black text-gray-900 mb-2">${p.name}</h1>
+                            ${stockStatus}
+                        </div>
+
+                        <div class="text-3xl font-black text-green-600">
+                            ${p.price} <span class="text-lg font-bold text-gray-400">ج.م</span>
+                        </div>
+
+                        <div class="text-gray-500 leading-relaxed text-lg">
+                            ${p.description || 'لا يوجد وصف متاح لهذا المنتج حالياً.'}
+                        </div>
+
+                        <div class="pt-8">
+                            <button class="buy-btn" title="الشراء غير متاح حالياً">
+                                <i class="fa-solid fa-cart-shopping"></i>
+                                غير متاح للشراء أونلاين حالياً
+                            </button>
+                            <p class="text-sm text-gray-400 mt-3 text-center">خدمة الشراء عبر الموقع ستكون متاحة قريباً</p>
+                        </div>
+                    </div>
+                `;
+            } catch (err) {
+                console.error('Error loading product:', err);
+                container.innerHTML = '<p class="col-span-full text-center text-red-500">عذراً، حدث خطأ أثناء تحميل تفاصيل المنتج.</p>';
+            }
+        }
+
+        function getCategoryName(cat) {
+            const map = {
+                'clothes': 'ملابس',
+                'accessories': 'أكسسوارات',
+                'shoes': 'أحذية'
+            };
+            return map[cat] || cat;
+        }
+
+        document.addEventListener('DOMContentLoaded', loadProduct);
+    </script>
+</body>
+
+</html>

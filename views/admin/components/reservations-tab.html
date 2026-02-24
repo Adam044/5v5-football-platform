@@ -1,0 +1,106 @@
+<section id="reservations-tab" class="tab-pane hidden">
+    <!-- Header with Background Gradient -->
+    <div class="relative overflow-hidden bg-white rounded-3xl shadow-2xl border border-slate-100 mb-8">
+        <div class="p-8 lg:p-10 relative">
+            <div class="flex flex-col lg:flex-row items-center justify-between gap-8 mb-10">
+                <div class="space-y-2 text-center lg:text-right">
+                    <h4
+                        class="text-4xl font-black text-slate-900 tracking-tight flex items-center justify-center lg:justify-start gap-4">
+                        <div
+                            class="w-14 h-14 rounded-2xl bg-green-600 text-white flex items-center justify-center shadow-lg shadow-green-200">
+                            <i class="fa-solid fa-book-open-reader"></i>
+                        </div>
+                        جميع الحجوزات
+                    </h4>
+                    <p class="text-slate-500 font-medium tracking-wide">التحكم المركزي في جميع حجوزات الملاعب</p>
+                </div>
+            </div>
+
+            <!-- Enhanced Filter Bar -->
+            <div class="bg-slate-50 p-6 rounded-[2.5rem] border border-slate-100 shadow-inner">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <!-- 1. Search -->
+                    <div class="space-y-2">
+                        <label class="block text-[10px] uppercase font-black text-slate-400 tracking-widest pl-2">البحث
+                            بالاسم</label>
+                        <div class="relative">
+                            <input type="text" id="res-filter-search" oninput="filterReservations()"
+                                placeholder="ابحث عن اسم العميل..."
+                                class="w-full pl-10 pr-5 py-3.5 rounded-2xl border border-white bg-white focus:ring-2 focus:ring-green-500 font-bold text-slate-600 transition-all shadow-sm">
+                            <i class="fa-solid fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-300"></i>
+                        </div>
+                    </div>
+
+                    <!-- 2. Field Filter -->
+                    <div class="space-y-2">
+                        <label
+                            class="block text-[10px] uppercase font-black text-slate-400 tracking-widest pl-2">الملعب</label>
+                        <select id="res-filter-field" onchange="filterReservations()"
+                            class="w-full px-5 py-3.5 rounded-2xl border border-white bg-white focus:ring-2 focus:ring-green-500 font-bold text-slate-600 appearance-none cursor-pointer shadow-sm">
+                            <option value="">جميع الملاعب</option>
+                        </select>
+                    </div>
+
+                    <!-- 3. Date Filter -->
+                    <div class="space-y-2">
+                        <label class="block text-[10px] uppercase font-black text-slate-400 tracking-widest pl-2">تاريخ
+                            الحجز</label>
+                        <input type="date" id="res-filter-date" onchange="filterReservations()"
+                            class="w-full px-5 py-3.5 rounded-2xl border border-white bg-white focus:ring-2 focus:ring-green-500 font-bold text-slate-600 shadow-sm">
+                    </div>
+
+                    <!-- 4. Status Filter -->
+                    <div class="space-y-2">
+                        <label
+                            class="block text-[10px] uppercase font-black text-slate-400 tracking-widest pl-2">الحالة</label>
+                        <div
+                            class="flex p-1 bg-white rounded-2xl border border-white shadow-sm overflow-hidden h-[54px]">
+                            <button onclick="setResStatusFilter('all')" id="res-status-all"
+                                class="res-status-btn flex-1 rounded-xl text-[10px] font-black uppercase transition-all bg-green-600 text-white">الكل</button>
+                            <button onclick="setResStatusFilter('confirmed')" id="res-status-confirmed"
+                                class="res-status-btn flex-1 rounded-xl text-[10px] font-black uppercase transition-all text-slate-400 hover:bg-slate-50">مؤكد</button>
+                            <button onclick="setResStatusFilter('cancelled')" id="res-status-cancelled"
+                                class="res-status-btn flex-1 rounded-xl text-[10px] font-black uppercase transition-all text-slate-400 hover:bg-slate-50">ملغى</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Table Container -->
+    <div class="bg-white rounded-[2.5rem] shadow-xl border border-slate-100 overflow-hidden">
+        <div class="overflow-x-auto custom-scrollbar">
+            <table class="w-full border-collapse">
+                <thead>
+                    <tr class="bg-slate-50/50 border-b border-slate-100">
+                        <th
+                            class="px-8 py-6 text-right text-[10px] uppercase font-black text-slate-400 tracking-widest">
+                            العميل</th>
+                        <th
+                            class="px-8 py-6 text-right text-[10px] uppercase font-black text-slate-400 tracking-widest">
+                            الملعب</th>
+                        <th
+                            class="px-8 py-6 text-right text-[10px] uppercase font-black text-slate-400 tracking-widest">
+                            الموعد</th>
+                        <th
+                            class="px-8 py-6 text-right text-[10px] uppercase font-black text-slate-400 tracking-widest">
+                            التوقيت</th>
+                        <th
+                            class="px-8 py-6 text-right text-[10px] uppercase font-black text-slate-400 tracking-widest">
+                            النوع</th>
+                        <th
+                            class="px-8 py-6 text-center text-[10px] uppercase font-black text-slate-400 tracking-widest">
+                            الحالة</th>
+                        <th
+                            class="px-8 py-6 text-center text-[10px] uppercase font-black text-slate-400 tracking-widest">
+                            الإجراءات</th>
+                    </tr>
+                </thead>
+                <tbody id="reservations-table-body" class="divide-y divide-slate-50">
+                    <!-- Reservations will be loaded here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>

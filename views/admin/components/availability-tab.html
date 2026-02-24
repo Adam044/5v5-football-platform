@@ -1,0 +1,316 @@
+<section id="availability-tab" class="tab-pane hidden">
+    <div class="glass-panel rounded-3xl p-8 mb-12 shadow-xl border-t-4 border-purple-500">
+        <div class="flex flex-col lg:flex-row items-center justify-between mb-8 gap-6">
+            <h4 class="text-3xl font-black text-slate-800 flex items-center gap-3">
+                <div class="w-12 h-12 rounded-2xl bg-purple-50 flex items-center justify-center text-purple-600">
+                    <i class="fa-solid fa-calendar-days"></i>
+                </div>
+                إدارة المواعيد المتاحة
+            </h4>
+            <div class="flex gap-4">
+                <button onclick="toggleBatchCreator()"
+                    class="flex items-center gap-2 bg-purple-600 text-white font-bold py-3 px-8 rounded-2xl hover:bg-purple-700 transition-all shadow-lg hover:scale-105 active:scale-95">
+                    <i class="fa-solid fa-plus-circle"></i>
+                    إضافة مواعيد جديدة
+                </button>
+            </div>
+        </div>
+
+        <!-- View Toggle Tabs -->
+        <div class="flex items-center gap-2 mb-8 p-1.5 bg-slate-100 rounded-2xl w-fit">
+            <button onclick="switchAvailabilityView('daily')" id="view-daily-btn"
+                class="px-6 py-2.5 rounded-xl text-sm font-bold transition-all bg-white shadow-sm text-purple-600">
+                <i class="fa-solid fa-clock-rotate-left mr-2"></i> المواعيد اليومية
+            </button>
+            <button onclick="switchAvailabilityView('master')" id="view-master-btn"
+                class="px-6 py-2.5 rounded-xl text-sm font-bold transition-all text-slate-500 hover:bg-white/50">
+                <i class="fa-solid fa-calendar-check mr-2"></i> الجدول الأسبوعي الثابت
+            </button>
+        </div>
+
+        <!-- Simplified Add Availability Panel -->
+        <div id="batch-creator-panel"
+            class="hidden animate-slide-up mb-12 p-8 bg-slate-50 rounded-3xl border border-slate-200 shadow-inner">
+            <div class="flex items-center justify-between mb-8 pb-4 border-b border-slate-200">
+                <div>
+                    <h5 class="text-xl font-bold text-slate-800 flex items-center gap-2 mb-1">
+                        <i class="fa-solid fa-plus-circle text-purple-500"></i> إضافة مواعيد
+                    </h5>
+                    <p class="text-xs text-slate-400 font-medium">حدد الملاعب والتوقيت لإنشاء مواعيد جديدة</p>
+                </div>
+                <button onclick="toggleBatchCreator()"
+                    class="w-8 h-8 rounded-full flex items-center justify-center bg-slate-200 text-slate-500 hover:bg-slate-300 transition-all">
+                    <i class="fa-solid fa-times"></i>
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+                <!-- 1. Fields -->
+                <div class="space-y-4">
+                    <label class="block text-slate-700 font-black text-xs uppercase tracking-widest mb-4">1. الملاعب
+                        المستهدفة:</label>
+                    <div id="batch-fields-list"
+                        class="flex flex-wrap gap-2 max-h-56 overflow-y-auto p-4 bg-white rounded-2xl border border-slate-200 shadow-sm">
+                        <!-- Field checkboxes injected via JS -->
+                    </div>
+                </div>
+
+                <!-- 2. Time Scope -->
+                <div class="space-y-4">
+                    <label class="block text-slate-700 font-black text-xs uppercase tracking-widest mb-4">2. النطاق
+                        الزمني:</label>
+                    <div class="p-4 bg-white rounded-2xl border border-slate-200 shadow-sm space-y-6">
+                        <div class="flex items-center p-1 bg-slate-100 rounded-xl">
+                            <button onclick="setBatchMode('single')" id="btn-mode-single"
+                                class="flex-1 px-4 py-2 rounded-lg text-xs font-bold transition-all bg-white shadow-sm text-purple-600">يوم
+                                محدد</button>
+                            <button onclick="setBatchMode('recurring')" id="btn-mode-recurring"
+                                class="flex-1 px-4 py-2 rounded-lg text-xs font-bold transition-all text-slate-500 hover:bg-white/50">تكرار
+                                أسبوعي</button>
+                        </div>
+
+                        <div id="single-date-container">
+                            <label class="text-[10px] uppercase font-bold text-slate-400 block mb-1">التاريخ</label>
+                            <input type="date" id="batch-date-start"
+                                class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-purple-500 transition-all font-bold text-slate-700">
+                        </div>
+
+                        <div id="recurring-date-container" class="hidden space-y-6">
+                            <!-- End Date Selection (Mandatory for slot generation) -->
+                            <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                                <label
+                                    class="text-[10px] uppercase font-black text-slate-400 block mb-3 tracking-widest text-center">تكرار
+                                    الجدول حتى تاريخ</label>
+                                <input type="date" id="batch-recur-end"
+                                    class="w-full px-5 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-purple-500 font-bold text-slate-700 text-center bg-white transition-all">
+                            </div>
+
+                            <!-- Day Selection -->
+                            <div class="space-y-3">
+                                <label
+                                    class="text-[10px] uppercase font-black text-slate-400 block tracking-widest pl-2">اختر
+                                    أيام الأسبوع:</label>
+                                <div class="flex flex-wrap gap-2">
+                                    <label class="day-chip flex-1 min-w-[60px] cursor-pointer">
+                                        <input type="checkbox" value="0" class="hidden" onchange="previewBatchSlots()">
+                                        <span
+                                            class="block py-3 text-center rounded-xl bg-slate-50 border border-slate-100 text-xs font-black text-slate-600 transition-all hover:bg-white hover:border-purple-200">أحد</span>
+                                    </label>
+                                    <label class="day-chip flex-1 min-w-[60px] cursor-pointer">
+                                        <input type="checkbox" value="1" class="hidden" onchange="previewBatchSlots()">
+                                        <span
+                                            class="block py-3 text-center rounded-xl bg-slate-50 border border-slate-100 text-xs font-black text-slate-600 transition-all hover:bg-white hover:border-purple-200">اثنين</span>
+                                    </label>
+                                    <label class="day-chip flex-1 min-w-[60px] cursor-pointer">
+                                        <input type="checkbox" value="2" class="hidden" onchange="previewBatchSlots()">
+                                        <span
+                                            class="block py-3 text-center rounded-xl bg-slate-50 border border-slate-100 text-xs font-black text-slate-600 transition-all hover:bg-white hover:border-purple-200">ثلاثاء</span>
+                                    </label>
+                                    <label class="day-chip flex-1 min-w-[60px] cursor-pointer">
+                                        <input type="checkbox" value="3" class="hidden" onchange="previewBatchSlots()">
+                                        <span
+                                            class="block py-3 text-center rounded-xl bg-slate-50 border border-slate-100 text-xs font-black text-slate-600 transition-all hover:bg-white hover:border-purple-200">أربعاء</span>
+                                    </label>
+                                    <label class="day-chip flex-1 min-w-[60px] cursor-pointer">
+                                        <input type="checkbox" value="4" class="hidden" onchange="previewBatchSlots()">
+                                        <span
+                                            class="block py-3 text-center rounded-xl bg-slate-50 border border-slate-100 text-xs font-black text-slate-600 transition-all hover:bg-white hover:border-purple-200">خميس</span>
+                                    </label>
+                                    <label class="day-chip flex-1 min-w-[60px] cursor-pointer">
+                                        <input type="checkbox" value="5" class="hidden" onchange="previewBatchSlots()">
+                                        <span
+                                            class="block py-3 text-center rounded-xl bg-slate-50 border border-slate-100 text-xs font-black text-slate-600 transition-all hover:bg-white hover:border-purple-200">جمعة</span>
+                                    </label>
+                                    <label class="day-chip flex-1 min-w-[60px] cursor-pointer">
+                                        <input type="checkbox" value="6" class="hidden" onchange="previewBatchSlots()">
+                                        <span
+                                            class="block py-3 text-center rounded-xl bg-slate-50 border border-slate-100 text-xs font-black text-slate-600 transition-all hover:bg-white hover:border-purple-200">سبت</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. Simplified Time Selection -->
+                <div class="space-y-4">
+                    <label class="block text-slate-700 font-bold text-xs uppercase tracking-widest mb-2">3. إعدادات
+                        الوقت</label>
+
+                    <!-- Start Time -->
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                        <label class="text-[10px] uppercase font-bold text-slate-400 block mb-2 tracking-widest">وقت
+                            البدء</label>
+                        <div class="flex gap-2">
+                            <select id="batch-time-hhmm"
+                                class="flex-[2] p-4 rounded-xl border border-slate-200 focus:ring-2 focus:ring-purple-500 text-xl font-black text-slate-800 bg-slate-50 cursor-pointer">
+                                <!-- 12h options like 05:30 -->
+                            </select>
+                            <select id="batch-time-ampm"
+                                class="flex-1 p-4 rounded-xl border border-slate-200 focus:ring-2 focus:ring-purple-500 text-xl font-black text-slate-800 bg-slate-50 cursor-pointer text-center">
+                                <option value="PM">PM</option>
+                                <option value="AM">AM</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Duration -->
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                        <label class="text-[10px] uppercase font-bold text-slate-400 block mb-3 tracking-widest">مدة
+                            المباراة</label>
+                        <input type="hidden" id="batch-duration" value="90">
+                        <div class="flex flex-wrap gap-2">
+                            <button type="button" onclick="setBatchDuration(60)"
+                                class="duration-btn flex-1 min-w-[80px] py-4 rounded-xl border border-slate-200 text-xs font-black text-slate-600 hover:bg-slate-50 transition-all"
+                                data-mins="60">60 دقيقة</button>
+                            <button type="button" onclick="setBatchDuration(90)"
+                                class="duration-btn flex-1 min-w-[80px] py-4 rounded-xl border-2 border-purple-500 bg-purple-50 text-xs font-black text-purple-600 transition-all"
+                                data-mins="90">90 دقيقة</button>
+                            <button type="button" onclick="setBatchDuration(120)"
+                                class="duration-btn flex-1 min-w-[80px] py-4 rounded-xl border border-slate-200 text-xs font-black text-slate-600 hover:bg-slate-50 transition-all"
+                                data-mins="120">120 دقيقة</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer Action Area -->
+            <div
+                class="mt-10 pt-8 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-6">
+                <div class="flex items-center gap-4">
+                    <div id="batch-preview-count"
+                        class="px-5 py-2.5 bg-slate-100 rounded-full text-sm font-bold text-slate-600 border border-slate-200 shadow-sm">
+                        سيتم توليد 0 مواعيد
+                    </div>
+                    <div class="flex items-center gap-2" id="recurring-logic-info">
+                        <i class="fa-solid fa-circle-info text-blue-400 text-xs"></i>
+                        <span class="text-[10px] text-slate-400 font-bold max-w-[200px] leading-tight">الوضع المتكرر
+                            يحفظ هذا النمط كـ "جدول ثابت" للمستقبل.</span>
+                    </div>
+                </div>
+                <div class="flex gap-4 w-full sm:w-auto">
+                    <button onclick="handleBatchCreate()"
+                        class="flex-1 sm:flex-none bg-purple-600 text-white font-bold py-3.5 px-12 rounded-2xl hover:bg-purple-700 transition-all shadow-xl shadow-purple-200 hover:scale-105 active:scale-95 text-sm">
+                        إنشـاء الآن
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- DAILY VIEW CONTENT -->
+        <div id="availability-daily-view">
+            <!-- Advanced Filters Layer -->
+            <div
+                class="bg-white p-6 rounded-[2.5rem] border border-slate-200/60 shadow-xl shadow-slate-200/20 mb-10 overflow-hidden relative">
+                <div class="flex flex-col lg:flex-row gap-8 items-stretch">
+
+                    <!-- 1. Field Filter -->
+                    <div class="flex-1 space-y-3">
+                        <label class="block text-slate-400 font-bold text-[10px] uppercase tracking-widest pl-2">تصفية
+                            الملعب</label>
+                        <div class="relative">
+                            <select id="availability-field-select" onchange="loadAvailabilitySlots()"
+                                class="w-full pl-10 pr-5 py-4 rounded-2xl border border-slate-100 bg-slate-50/50 focus:ring-2 focus:ring-purple-500 font-black text-slate-700 appearance-none cursor-pointer transition-all hover:bg-white hover:border-purple-200">
+                                <option value="">جميع الملاعب</option>
+                            </select>
+                            <div
+                                class="absolute inset-y-0 left-4 flex items-center pointer-events-none text-purple-400">
+                                <i class="fa-solid fa-futbol"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 2. Date Filter -->
+                    <div class="flex-[1.5] space-y-3">
+                        <label class="block text-slate-400 font-bold text-[10px] uppercase tracking-widest pl-2">النطاق
+                            الزمني للمشاهدة</label>
+                        <div class="flex items-center gap-3">
+                            <div class="flex-1 relative">
+                                <input type="date" id="availability-date-start" onchange="loadAvailabilitySlots()"
+                                    class="w-full px-5 py-4 rounded-2xl border border-slate-100 bg-slate-50/50 focus:ring-2 focus:ring-purple-500 font-black text-slate-700 transition-all hover:bg-white">
+                            </div>
+                            <span class="text-slate-300 font-black">إلى</span>
+                            <div class="flex-1 relative">
+                                <input type="date" id="availability-date-end" onchange="loadAvailabilitySlots()"
+                                    class="w-full px-5 py-4 rounded-2xl border border-slate-100 bg-slate-50/50 focus:ring-2 focus:ring-purple-500 font-black text-slate-700 transition-all hover:bg-white">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 3. Presets -->
+                    <div class="flex-1 space-y-3">
+                        <label class="block text-slate-400 font-bold text-[10px] uppercase tracking-widest pl-2">خيارات
+                            سريعة</label>
+                        <div class="flex gap-2">
+                            <button onclick="setViewingPreset('today', event)"
+                                class="preset-btn flex-1 py-4 px-2 rounded-2xl bg-slate-50 border border-slate-100 text-[11px] font-black text-slate-600 hover:border-purple-200 hover:bg-purple-50 hover:text-purple-600 transition-all">اليوم</button>
+                            <button onclick="setViewingPreset('week', event)"
+                                class="preset-btn flex-1 py-4 px-2 rounded-2xl bg-slate-50 border border-slate-100 text-[11px] font-black text-slate-600 hover:border-purple-200 hover:bg-purple-50 hover:text-purple-600 transition-all">أسبوع</button>
+                            <button onclick="setViewingPreset('month', event)"
+                                class="preset-btn flex-1 py-4 px-2 rounded-2xl bg-slate-50 border border-slate-100 text-[11px] font-black text-slate-600 hover:border-purple-200 hover:bg-purple-50 hover:text-purple-600 transition-all">شهر</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Live Status Bar -->
+                <div class="mt-8 pt-6 border-t border-slate-50 flex items-center justify-between">
+                    <div class="flex items-center gap-6">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">تحديث تلقائي
+                                مفعل</span>
+                        </div>
+                        <div id="filter-status-text"
+                            class="text-xs font-black text-purple-600 bg-purple-50 px-3 py-1 rounded-full border border-purple-100">
+                            عرض المواعيد القادمة
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <button onclick="clearAvailabilityFilters()"
+                            class="flex items-center gap-2 text-slate-400 hover:text-red-500 transition-all font-bold text-xs px-4 py-2 rounded-xl hover:bg-red-50">
+                            <i class="fa-solid fa-filter-circle-xmark"></i>
+                            إعادة ضبط
+                        </button>
+                        <button onclick="loadAvailabilitySlots()"
+                            class="group flex items-center gap-2 text-slate-400 hover:text-purple-600 transition-all">
+                            <span class="text-[10px] font-black uppercase tracking-widest">تحديث البيانات</span>
+                            <div
+                                class="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center group-hover:bg-purple-50 group-active:rotate-180 transition-all">
+                                <i class="fa-solid fa-sync text-xs"></i>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slots Grid -->
+            <div id="availability-slots-container"
+                class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                <!-- Slots injected via JS -->
+            </div>
+        </div>
+
+        <!-- MASTER VIEW CONTENT -->
+        <div id="availability-master-view" class="hidden">
+            <div
+                class="bg-purple-50 p-6 rounded-3xl border border-purple-100 mb-10 flex flex-col md:flex-row items-center justify-between gap-6">
+                <div>
+                    <h5 class="text-xl font-bold text-purple-900 mb-1">الجدول الأسبوعي الثابت</h5>
+                    <p class="text-sm text-purple-600/70 font-medium">هنا تدير الأنماط التي تتكرر كل أسبوع تلقائياً</p>
+                </div>
+                <div class="bg-white p-2 rounded-2xl shadow-sm border border-purple-100 flex items-center gap-2">
+                    <span class="text-xs font-bold text-slate-400 px-3">تصفية الملعب:</span>
+                    <select id="master-field-select" onchange="loadMasterRules()"
+                        class="border-none focus:ring-0 text-sm font-black text-slate-700 py-1.5 px-4 rounded-xl cursor-pointer">
+                        <option value="">جميع الملاعب</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Master Rules Board -->
+            <div id="master-rules-container" class="grid grid-cols-1 md:grid-cols-7 gap-4">
+                <!-- Week days boxes injected via JS -->
+            </div>
+        </div>
+    </div>
+</section>

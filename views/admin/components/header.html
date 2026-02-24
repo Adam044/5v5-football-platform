@@ -1,0 +1,31 @@
+<header class="admin-top-header hidden lg:flex">
+    <div class="flex items-center gap-4">
+        <h1 class="text-2xl font-black text-slate-800 tracking-tight">
+            لوحة تحكم <span
+                class="bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent">الإدارة</span>
+        </h1>
+    </div>
+    <div class="flex items-center gap-6">
+        <div id="admin-user-info-desktop"
+            class="flex items-center gap-4 bg-slate-50 px-4 py-2 rounded-2xl border border-slate-100">
+            <div class="text-right">
+                <p class="admin-name-display text-sm font-bold text-slate-800">الأدمن</p>
+            </div>
+            <div class="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-600">
+                <i class="fa-solid fa-user-shield"></i>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Mobile Header -->
+<header class="mobile-header">
+    <div class="flex items-center gap-3">
+        <img src="/images/logo.jpg" alt="Logo" class="w-10 h-10 rounded-xl shadow-sm">
+        <span class="font-black text-slate-800 text-lg">5v5 <span class="text-emerald-600">Admin</span></span>
+    </div>
+    <button onclick="toggleSidebar()"
+        class="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-600 hover:bg-slate-100 transition-colors">
+        <i class="fa-solid fa-bars-staggered text-xl"></i>
+    </button>
+</header>

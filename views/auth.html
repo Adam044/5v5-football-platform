@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,10 +10,10 @@
     <!-- Font Awesome CDN -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <!-- API base config -->
-    
+
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap');
-        
+
         :root {
             --primary-color: #10B981;
             --secondary-color: #3B82F6;
@@ -25,45 +26,67 @@
             background-color: var(--background-color);
             color: var(--text-color);
         }
+
         .animate-fade-in {
             animation: fadeIn 0.4s ease-out forwards;
         }
+
         .animate-scale-in-up {
             animation: scaleInUp 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
         }
+
         @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
         }
+
         @keyframes scaleInUp {
-            from { transform: translateY(30px) scale(0.95); opacity: 0; }
-            to { transform: translateY(0) scale(1); opacity: 1; }
+            from {
+                transform: translateY(30px) scale(0.95);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0) scale(1);
+                opacity: 1;
+            }
         }
+
         ::-webkit-scrollbar {
             width: 8px;
         }
+
         ::-webkit-scrollbar-track {
             background: #f0f4f8;
             border-radius: 10px;
         }
+
         ::-webkit-scrollbar-thumb {
             background: #aab8c2;
             border-radius: 10px;
         }
+
         ::-webkit-scrollbar-thumb:hover {
             background: #8899a6;
         }
-        
+
         .logo {
             width: 90px;
             height: 90px;
             border-radius: 50%;
             object-fit: cover;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         }
+
         .form-container {
             transition: opacity 0.3s ease-in-out;
         }
+
         .form-container.hidden {
             opacity: 0;
             height: 0;
@@ -71,18 +94,20 @@
         }
     </style>
 </head>
+
 <body class="min-h-screen flex flex-col">
 
     <!-- Global Header Placeholder -->
     <div id="global-header"></div>
-    
+
     <!-- Auth Card -->
     <div class="flex-grow flex items-center justify-center w-full p-4">
-        <div class="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md animate-scale-in-up text-center border-b-4 border-green-600">
+        <div
+            class="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md animate-scale-in-up text-center border-b-4 border-green-600">
             <div class="mb-8 flex justify-center">
                 <img src="images/logo.jpg" alt="5v5 Palestine Logo" class="logo">
             </div>
-            
+
             <!-- Sign In Form -->
             <div id="sign-in-form" class="form-container">
                 <h2 class="text-3xl font-bold mb-8 text-gray-900 flex items-center justify-center gap-3">
@@ -90,23 +115,30 @@
                 </h2>
                 <form onsubmit="event.preventDefault(); handleSignIn();">
                     <div class="mb-5 text-right">
-                        <label for="signin-email" class="block text-gray-700 font-semibold mb-2">البريد الإلكتروني</label>
-                        <input type="email" id="signin-email" class="p-3 border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 text-right bg-white" required>
+                        <label for="signin-email" class="block text-gray-700 font-semibold mb-2">البريد
+                            الإلكتروني</label>
+                        <input type="email" id="signin-email"
+                            class="p-3 border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 text-right bg-white"
+                            required>
                     </div>
                     <div class="mb-8 text-right">
                         <label for="signin-password" class="block text-gray-700 font-semibold mb-2">كلمة المرور</label>
-                        <input type="password" id="signin-password" class="p-3 border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 text-right bg-white" required>
+                        <input type="password" id="signin-password"
+                            class="p-3 border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 text-right bg-white"
+                            required>
                     </div>
-                    <button type="submit" id="signin-btn" class="bg-gradient-to-r from-green-600 to-green-500 text-white font-bold px-8 py-4 rounded-xl w-full hover:from-green-700 hover:to-green-600 transition-all duration-300 shadow-lg text-xl flex items-center justify-center gap-3">
+                    <button type="submit" id="signin-btn"
+                        class="bg-gradient-to-r from-green-600 to-green-500 text-white font-bold px-8 py-4 rounded-xl w-full hover:from-green-700 hover:to-green-600 transition-all duration-300 shadow-lg text-xl flex items-center justify-center gap-3">
                         <i class="fa-solid fa-key text-white"></i> تسجيل الدخول
                     </button>
                 </form>
                 <p class="mt-6 text-sm text-gray-600">
                     ليس لديك حساب؟
-                    <a href="#" onclick="toggleForm('sign-up')" class="text-green-600 hover:underline font-bold">إنشاء حساب جديد</a>
+                    <a href="#" onclick="toggleForm('sign-up')" class="text-green-600 hover:underline font-bold">إنشاء
+                        حساب جديد</a>
                 </p>
             </div>
-    
+
             <!-- Sign Up Form (hidden by default) -->
             <div id="sign-up-form" class="form-container hidden">
                 <h2 class="text-3xl font-bold mb-8 text-gray-900 flex items-center justify-center gap-3">
@@ -115,29 +147,42 @@
                 <form onsubmit="event.preventDefault(); handleSignUp();">
                     <div class="mb-5 text-right">
                         <label for="signup-name" class="block text-gray-700 font-semibold mb-2">الاسم الكامل</label>
-                        <input type="text" id="signup-name" class="p-3 border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-right bg-white" required>
+                        <input type="text" id="signup-name"
+                            class="p-3 border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-right bg-white"
+                            required>
                     </div>
                     <div class="mb-5 text-right">
-                        <label for="signup-email" class="block text-gray-700 font-semibold mb-2">البريد الإلكتروني</label>
-                        <input type="email" id="signup-email" class="p-3 border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-right bg-white" required>
+                        <label for="signup-email" class="block text-gray-700 font-semibold mb-2">البريد
+                            الإلكتروني</label>
+                        <input type="email" id="signup-email"
+                            class="p-3 border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-right bg-white"
+                            required>
                     </div>
                     <div class="mb-5 text-right">
                         <label for="signup-phone" class="block text-gray-700 font-semibold mb-2">رقم الهاتف</label>
                         <div class="flex">
-                            <input type="tel" id="signup-phone" class="p-3 border border-gray-300 rounded-l-lg w-full focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-right bg-white" required>
-                            <select id="country-code" class="p-3 border border-gray-300 rounded-r-lg bg-gray-100 text-gray-700 focus:outline-none">
+                            <input type="tel" id="signup-phone"
+                                class="p-3 border border-gray-300 rounded-l-lg w-full focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-right bg-white"
+                                required>
+                            <select id="country-code"
+                                class="p-3 border border-gray-300 rounded-r-lg bg-gray-100 text-gray-700 focus:outline-none">
                                 <option value="+970">+970</option>
                                 <option value="+972">+972</option>
                             </select>
                         </div>
                     </div>
                     <div class="mb-5 text-right">
-                        <label for="signup-birthdate" class="block text-gray-700 font-semibold mb-2">تاريخ الميلاد</label>
-                        <input type="date" id="signup-birthdate" class="p-3 border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-right bg-white" required>
+                        <label for="signup-birthdate" class="block text-gray-700 font-semibold mb-2">تاريخ
+                            الميلاد</label>
+                        <input type="date" id="signup-birthdate"
+                            class="p-3 border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-right bg-white"
+                            required>
                     </div>
                     <div class="mb-5 text-right">
-            <label for="signup-gender" class="block text-gray-700 font-semibold mb-2">الجنس</label>
-            <select id="signup-gender" class="p-3 border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-right bg-white" required>
+                        <label for="signup-gender" class="block text-gray-700 font-semibold mb-2">الجنس</label>
+                        <select id="signup-gender"
+                            class="p-3 border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-right bg-white"
+                            required>
                             <option value="">اختر الجنس</option>
                             <option value="male">ذكر</option>
                             <option value="female">أنثى</option>
@@ -145,43 +190,57 @@
                     </div>
                     <div class="mb-5 text-right">
                         <label for="signup-password" class="block text-gray-700 font-semibold mb-2">كلمة المرور</label>
-                        <input type="password" id="signup-password" class="p-3 border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-right bg-white" required>
-                        <div id="password-strength" class="mt-2 text-sm text-gray-600">الحد الأدنى 8 أحرف ويجب أن تحتوي على حرف كبير ورقم واحد على الأقل.</div>
+                        <input type="password" id="signup-password"
+                            class="p-3 border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-right bg-white"
+                            required>
+                        <div id="password-strength" class="mt-2 text-sm text-gray-600">الحد الأدنى 8 أحرف ويجب أن تحتوي
+                            على حرف كبير ورقم واحد على الأقل.</div>
                     </div>
                     <div class="mb-8 text-right">
-                        <label for="signup-confirm-password" class="block text-gray-700 font-semibold mb-2">تأكيد كلمة المرور</label>
-                        <input type="password" id="signup-confirm-password" class="p-3 border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-right bg-white" required>
+                        <label for="signup-confirm-password" class="block text-gray-700 font-semibold mb-2">تأكيد كلمة
+                            المرور</label>
+                        <input type="password" id="signup-confirm-password"
+                            class="p-3 border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-right bg-white"
+                            required>
                         <div id="password-match" class="mt-2 text-sm text-gray-600"></div>
                     </div>
 
-                    <button type="submit" id="signup-btn" class="bg-gradient-to-r from-blue-600 to-blue-500 text-white font-bold px-8 py-4 rounded-xl w-full hover:from-blue-700 hover:to-blue-600 transition-all duration-300 shadow-lg text-xl flex items-center justify-center gap-3">
+                    <button type="submit" id="signup-btn"
+                        class="bg-gradient-to-r from-blue-600 to-blue-500 text-white font-bold px-8 py-4 rounded-xl w-full hover:from-blue-700 hover:to-blue-600 transition-all duration-300 shadow-lg text-xl flex items-center justify-center gap-3">
                         <i class="fa-solid fa-check-circle text-white"></i> إنشاء الحساب
                     </button>
                 </form>
                 <p class="mt-6 text-sm text-gray-600">
                     لديك حساب بالفعل؟
-                    <a href="#" onclick="toggleForm('sign-in')" class="text-blue-600 hover:underline font-bold">تسجيل الدخول</a>
+                    <a href="#" onclick="toggleForm('sign-in')" class="text-blue-600 hover:underline font-bold">تسجيل
+                        الدخول</a>
                 </p>
             </div>
         </div>
     </div>
-    
+
     <!-- Message Box (replaces alert) -->
-    <div id="message-box" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50 animate-fade-in">
-        <div class="bg-white rounded-2xl shadow-3xl p-8 w-full max-w-sm relative animate-scale-in-up text-center border-t-4 border-red-500">
-            <button onclick="closeMessageBox()" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 transition-colors duration-300 rounded-full bg-gray-100 p-2 hover:bg-gray-200 modal-close" aria-label="إغلاق">
+    <div id="message-box"
+        class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50 animate-fade-in">
+        <div
+            class="bg-white rounded-2xl shadow-3xl p-8 w-full max-w-sm relative animate-scale-in-up text-center border-t-4 border-red-500">
+            <button onclick="closeMessageBox()"
+                class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 transition-colors duration-300 rounded-full bg-gray-100 p-2 hover:bg-gray-200 modal-close"
+                aria-label="إغلاق">
                 <i class="fa-solid fa-xmark"></i>
             </button>
-            <h4 id="message-box-title" class="text-2xl font-bold mb-4 text-gray-900 flex items-center justify-center gap-2"></h4>
+            <h4 id="message-box-title"
+                class="text-2xl font-bold mb-4 text-gray-900 flex items-center justify-center gap-2"></h4>
             <p id="message-box-content" class="text-gray-700 mb-6 text-lg"></p>
             <div id="message-box-actions" class="flex items-center justify-center gap-3">
-                <button onclick="closeMessageBox()" class="bg-red-600 text-white px-7 py-3 rounded-xl hover:bg-red-700 transition-all duration-300 shadow-md text-lg">
+                <button onclick="closeMessageBox()"
+                    class="bg-red-600 text-white px-7 py-3 rounded-xl hover:bg-red-700 transition-all duration-300 shadow-md text-lg">
                     حسناً
                 </button>
             </div>
         </div>
     </div>
-    
+
     <div id="global-footer"></div>
 
     <script src="/components/header.js"></script>
@@ -226,15 +285,15 @@
                 msgButton.className = 'bg-blue-600 text-white px-7 py-3 rounded-xl hover:bg-blue-700 transition-all duration-300 shadow-md text-lg';
             }
             msgContent.innerText = content;
-            
+
             // Set callback for button click
             if (callback) {
-                 msgButton.onclick = function() {
-                     closeMessageBox();
-                     callback();
-                 };
+                msgButton.onclick = function () {
+                    closeMessageBox();
+                    callback();
+                };
             } else {
-                 msgButton.onclick = closeMessageBox;
+                msgButton.onclick = closeMessageBox;
             }
 
             msgBox.classList.remove('hidden');
@@ -243,7 +302,7 @@
         function closeMessageBox() {
             document.getElementById('message-box').classList.add('hidden');
         }
-        
+
         function toggleForm(formType) {
             const signInForm = document.getElementById('sign-in-form');
             const signUpForm = document.getElementById('sign-up-form');
@@ -273,7 +332,7 @@
                 return getCookieValue('csrf_token');
             }
         }
-        
+
         // --- Password strength (client-side guidance) ---
         function assessPasswordClient(password, { email = '', name = '', phone = '' } = {}) {
             const pwd = String(password || '').trim();
@@ -282,7 +341,7 @@
             if (!/[A-Z]/.test(pwd)) issues.push('أضف حرفاً كبيراً.');
             if (!/[0-9]/.test(pwd)) issues.push('أضف رقماً.');
             const lower = pwd.toLowerCase();
-            const commonList = ['password','123456','qwerty','111111','12345678','iloveyou','admin','letmein','football','soccer'];
+            const commonList = ['password', '123456', 'qwerty', '111111', '12345678', 'iloveyou', 'admin', 'letmein', 'football', 'soccer'];
             if (commonList.some(c => lower === c || lower.includes(c))) issues.push('كلمة مرور شائعة وغير آمنة.');
             const emailLocal = (email || '').split('@')[0]?.toLowerCase() || '';
             if (emailLocal && lower.includes(emailLocal) && emailLocal.length >= 3) issues.push('تجنّب استخدام بريدك الإلكتروني.');
@@ -333,7 +392,7 @@
 
         // Attach listeners for live feedback
         document.addEventListener('DOMContentLoaded', () => {
-            ['signup-name','signup-email','signup-phone','country-code','signup-password','signup-confirm-password'].forEach(id => {
+            ['signup-name', 'signup-email', 'signup-phone', 'country-code', 'signup-password', 'signup-confirm-password'].forEach(id => {
                 const el = document.getElementById(id);
                 if (el) el.addEventListener('input', updatePasswordGuidance);
             });
@@ -344,7 +403,7 @@
             const password = document.getElementById('signin-password').value;
             const signInBtn = document.getElementById('signin-btn');
             const originalBtnHtml = signInBtn.innerHTML;
-            
+
             signInBtn.disabled = true;
             signInBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin ml-2"></i> جاري تسجيل الدخول...`;
 
@@ -381,19 +440,19 @@
                     localStorage.setItem('userId', result.userId);
                     localStorage.setItem('userEmail', result.email);
                     localStorage.setItem('userName', result.userName);
-                    localStorage.setItem('isAdmin', result.isAdmin || false);
+                    localStorage.setItem('is_admin', result.is_admin || false);
 
                     showMessageBox('تسجيل الدخول', result.message, 'success', () => {
-                         // Redirect logic based on return URL or admin status
+                        // Redirect logic based on return URL or admin status
                         const urlParams = new URLSearchParams(window.location.search);
                         const returnUrl = urlParams.get('returnUrl');
-                        
+
                         if (returnUrl) {
                             window.location.href = decodeURIComponent(returnUrl);
-                        } else if (result.isAdmin) {
-                            window.location.href = 'admin-dashboard.html';
+                        } else if (result.is_admin) {
+                            window.location.href = '/admin';
                         } else {
-                            window.location.href = 'user-dashboard.html';
+                            window.location.href = '/user-dashboard';
                         }
                     });
                 } else {
@@ -407,14 +466,14 @@
                 signInBtn.innerHTML = originalBtnHtml;
             }
         }
-//
+        //
         async function handleSignUp() {
             const name = document.getElementById('signup-name').value;
             const email = document.getElementById('signup-email').value;
             const phone = document.getElementById('signup-phone').value;
             const countryCode = document.getElementById('country-code').value;
             const birthdate = document.getElementById('signup-birthdate').value;
-        const gender = document.getElementById('signup-gender').value;
+            const gender = document.getElementById('signup-gender').value;
             const password = document.getElementById('signup-password').value;
             const confirmPassword = document.getElementById('signup-confirm-password').value;
             const isAdmin = false;
@@ -430,10 +489,10 @@
                 showMessageBox('كلمة المرور ضعيفة', 'يرجى تعديل كلمة المرور: ' + strength.issues.join(' '), 'error');
                 return;
             }
-            
+
             const signupBtn = document.getElementById('signup-btn');
             const originalBtnHtml = signupBtn.innerHTML;
-            
+
             signupBtn.disabled = true;
             signupBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin ml-2"></i> جاري إنشاء الحساب...`;
 
@@ -523,4 +582,5 @@
         }
     </script>
 </body>
+
 </html>
