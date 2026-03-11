@@ -12,10 +12,20 @@ const saltRounds = 10;
 
 // API endpoint for user sign-up
 router.post('/signup', signupLimiter, requireCsrf, async (req, res) => {
-    const { name, email, phone, birthdate, gender, password } = req.body;
+    const { name, email, phone, birthdate, gender, city, address, profession, password } = req.body;
 
-    if (!name || !email || !phone || !birthdate || !gender || !password) {
+    if (!name || !email || !phone || !birthdate || !gender || !city || !address || !profession || !password) {
         return res.status(400).json({ error: 'يرجى توفير جميع الحقول المطلوبة.' });
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        return res.status(400).json({ error: 'البريد الإلكتروني غير صالح.' });
+    }
+
+    const phoneRegex = /^\+\d{10,14}$/;
+    if (!phoneRegex.test(phone)) {
+        return res.status(400).json({ error: 'رقم الهاتف غير صالح.' });
     }
 
     const strength = assessPasswordStrength(password, { email, name, phone });
@@ -28,11 +38,11 @@ router.post('/signup', signupLimiter, requireCsrf, async (req, res) => {
         const isAdminValue = 0;
 
         const sql = `
-            INSERT INTO users (name, email, phone_number, birthdate, gender, password, is_admin) 
-            VALUES ($1, $2, $3, $4, $5, $6, $7)
+            INSERT INTO users (name, email, phone_number, birthdate, gender, password, is_admin, city, address, profession) 
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
             RETURNING id
         `;
-        const params = [name, email, phone, birthdate, gender, hashedPassword, isAdminValue];
+        const params = [name, email, phone, birthdate, gender, hashedPassword, isAdminValue, city, address, profession];
 
         const { rows } = await pool.query(sql, params);
         const userId = rows[0].id;
@@ -71,7 +81,7 @@ router.post('/login', loginLimiter, requireCsrf, async (req, res) => {
                 id: user.id,
                 name: user.name,
                 email: user.email,
-                is_admin: user.is_admin === 1
+                is_admin: Boolean(user.is_admin)
             });
             const isProd = process.env.NODE_ENV === 'production';
             res.cookie('auth_token', token, {
@@ -87,7 +97,7 @@ router.post('/login', loginLimiter, requireCsrf, async (req, res) => {
                 userId: user.id,
                 userName: user.name,
                 email: user.email,
-                is_admin: user.is_admin === 1
+                is_admin: Boolean(user.is_admin)
             });
         } else {
             res.status(401).json({ error: 'البريد الإلكتروني أو كلمة المرور غير صحيحة.' });

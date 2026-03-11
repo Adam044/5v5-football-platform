@@ -160,15 +160,17 @@
                     </div>
                     <div class="mb-5 text-right">
                         <label for="signup-phone" class="block text-gray-700 font-semibold mb-2">رقم الهاتف</label>
-                        <div class="flex">
-                            <input type="tel" id="signup-phone"
-                                class="p-3 border border-gray-300 rounded-l-lg w-full focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-right bg-white"
-                                required>
+                        <div class="flex" dir="ltr">
                             <select id="country-code"
-                                class="p-3 border border-gray-300 rounded-r-lg bg-gray-100 text-gray-700 focus:outline-none">
+                                class="p-3 border border-gray-300 rounded-l-lg bg-gray-100 text-gray-700 focus:outline-none"
+                                dir="ltr">
                                 <option value="+970">+970</option>
                                 <option value="+972">+972</option>
                             </select>
+                            <input type="tel" id="signup-phone"
+                                class="p-3 border border-gray-300 rounded-r-lg w-full focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-left bg-white"
+                                placeholder="59xxxxxxxx" pattern="[0-9]*"
+                                oninput="this.value = this.value.replace(/[^0-9]/g, '');" required>
                         </div>
                     </div>
                     <div class="mb-5 text-right">
@@ -187,6 +189,42 @@
                             <option value="male">ذكر</option>
                             <option value="female">أنثى</option>
                         </select>
+                    </div>
+                    <div class="mb-5 text-right">
+                        <label for="signup-city" class="block text-gray-700 font-semibold mb-2">المدينة</label>
+                        <select id="signup-city"
+                            class="p-3 border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-right bg-white"
+                            required>
+                            <option value="">اختر المدينة</option>
+                            <option value="Jerusalem">القدس</option>
+                            <option value="Gaza">غزة</option>
+                            <option value="Ramallah">رام الله</option>
+                            <option value="Nablus">نابلس</option>
+                            <option value="Hebron">الخليل</option>
+                            <option value="Jenin">جنين</option>
+                            <option value="Tulkarm">طولكرم</option>
+                            <option value="Qalqilya">قلقيلية</option>
+                            <option value="Bethlehem">بيت لحم</option>
+                            <option value="Jericho">أريحا</option>
+                            <option value="Tubas">طوباس</option>
+                            <option value="Salfit">سلفيت</option>
+                            <option value="Khan Yunis">خانيونس</option>
+                            <option value="Rafah">رفح</option>
+                            <option value="Deir al-Balah">دير البلح</option>
+                            <option value="North Gaza">شمال غزة</option>
+                        </select>
+                    </div>
+                    <div class="mb-5 text-right">
+                        <label for="signup-address" class="block text-gray-700 font-semibold mb-2">العنوان</label>
+                        <input type="text" id="signup-address"
+                            class="p-3 border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-right bg-white"
+                            required>
+                    </div>
+                    <div class="mb-5 text-right">
+                        <label for="signup-profession" class="block text-gray-700 font-semibold mb-2">المهنة</label>
+                        <input type="text" id="signup-profession"
+                            class="p-3 border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-right bg-white"
+                            required>
                     </div>
                     <div class="mb-5 text-right">
                         <label for="signup-password" class="block text-gray-700 font-semibold mb-2">كلمة المرور</label>
@@ -474,9 +512,22 @@
             const countryCode = document.getElementById('country-code').value;
             const birthdate = document.getElementById('signup-birthdate').value;
             const gender = document.getElementById('signup-gender').value;
+            const city = document.getElementById('signup-city').value;
+            const address = document.getElementById('signup-address').value;
+            const profession = document.getElementById('signup-profession').value;
             const password = document.getElementById('signup-password').value;
             const confirmPassword = document.getElementById('signup-confirm-password').value;
             const isAdmin = false;
+
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                showMessageBox('خطأ', 'الرجاء إدخال بريد إلكتروني صالح (مثال: example@gmail.com).', 'error');
+                return;
+            }
+
+            if (!/^\d{9,10}$/.test(phone)) {
+                showMessageBox('خطأ', 'الرجاء إدخال رقم هاتف صالح (بين 9 و 10 أرقام).', 'error');
+                return;
+            }
 
             if (password !== confirmPassword) {
                 showMessageBox('خطأ في كلمة المرور', 'كلمة المرور وتأكيدها غير متطابقين.', 'error');
@@ -498,7 +549,7 @@
 
             try {
                 // First attempt: JSON POST
-                const payload = { name, email, phone: phoneNumber, birthdate, gender, password };
+                const payload = { name, email, phone: phoneNumber, birthdate, gender, city, address, profession, password };
                 const csrfToken = await ensureCsrfToken();
                 let response = await fetch('/api/signup', {
                     method: 'POST',
@@ -535,6 +586,9 @@
                     formData.append('phone', phoneNumber);
                     formData.append('birthdate', birthdate);
                     formData.append('gender', gender);
+                    formData.append('city', city);
+                    formData.append('address', address);
+                    formData.append('profession', profession);
                     formData.append('password', password);
                     // is_admin is decided by server; do not send from client
 

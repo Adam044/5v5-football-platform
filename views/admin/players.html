@@ -206,7 +206,7 @@
                     return;
                 }
                 const { user } = await meResp.json();
-                if (!user || !user.isAdmin) {
+                if (!user || !user.is_admin) {
                     showMessageBox('غير مصرح', 'ليس لديك صلاحيات للوصول إلى هذه الصفحة.', 'error');
                     setTimeout(() => window.location.href = 'index.html', 1500);
                     return;
@@ -292,7 +292,11 @@
                             </div>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            ${player.phone_number || 'غير محدد'}
+                            ${player.phone_number ?
+                        `<a href="https://wa.me/${player.phone_number.replace(/\\D/g, '')}" target="_blank" class="text-green-600 hover:text-green-800 font-bold hover:underline inline-flex items-center gap-2" dir="ltr">
+                                    <i class="fa-brands fa-whatsapp text-lg"></i> ${player.phone_number}
+                                </a>`
+                        : '<span class="text-gray-500">غير محدد</span>'}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                             ${birthdate}
