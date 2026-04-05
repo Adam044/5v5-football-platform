@@ -194,9 +194,9 @@
                             <label class="block text-green-700 mb-2 text-sm">1. SELECT PROTOCOL</label>
                             <select id="global-msg-type"
                                 class="w-full bg-black border border-green-800 p-2 text-green-500 focus:border-green-500 outline-none">
-                                <option value="page_locked">PROTOCOL 1: SIGNAL LOST (Standard)</option>
-                                <option value="unavailable">PROTOCOL 2: OVERRIDE (Administrative)</option>
-                                <option value="cyber">PROTOCOL 3: BREACH DETECTED (Critical)</option>
+                                <option value="page_locked">PROTOCOL 1: Maintenance Mode (Standard)</option>
+                                <option value="unavailable">PROTOCOL 2: System Pause (Administrative)</option>
+                                <option value="cyber">PROTOCOL 3: Access Restricted (Critical)</option>
                             </select>
                         </div>
 
@@ -204,7 +204,7 @@
                             <label class="block text-green-700 mb-2 text-sm">2. CUSTOM MESSAGE OVERRIDE</label>
                             <textarea id="global-custom-msg"
                                 class="w-full h-32 bg-black border border-green-800 p-2 text-green-500 focus:border-green-500 outline-none resize-none"
-                                placeholder="LEAVE EMPTY FOR DEFAULT PROTOCOL MESSAGE"></textarea>
+                                placeholder="Optional: leave blank to use the default message"></textarea>
                         </div>
 
                         <div class="p-4 border border-green-900/50 bg-green-900/10 text-xs text-green-400">
@@ -244,9 +244,9 @@
                                 <label class="block text-green-700 mb-2 text-sm">2. SELECT PROTOCOL</label>
                                 <select id="page-msg-type"
                                     class="w-full bg-black border border-green-800 p-2 text-green-500 focus:border-green-500 outline-none">
-                                    <option value="page_locked">PROTOCOL 1: SIGNAL LOST (Standard)</option>
-                                    <option value="unavailable">PROTOCOL 2: OVERRIDE (Administrative)</option>
-                                    <option value="cyber">PROTOCOL 3: BREACH DETECTED (Critical)</option>
+                                    <option value="page_locked">PROTOCOL 1: Maintenance Mode (Standard)</option>
+                                    <option value="unavailable">PROTOCOL 2: System Pause (Administrative)</option>
+                                    <option value="cyber">PROTOCOL 3: Access Restricted (Critical)</option>
                                 </select>
                             </div>
 
@@ -254,7 +254,7 @@
                                 <label class="block text-green-700 mb-2 text-sm">3. CUSTOM MESSAGE</label>
                                 <textarea id="page-custom-msg"
                                     class="w-full h-40 bg-black border border-green-800 p-2 text-green-500 focus:border-green-500 outline-none resize-none"
-                                    placeholder="LEAVE EMPTY FOR DEFAULT PROTOCOL MESSAGE"></textarea>
+                                    placeholder="Optional: leave blank to use the default message"></textarea>
                             </div>
                         </div>
                     </div>
@@ -272,7 +272,7 @@
                 class="h-full flex items-center justify-center border border-dashed border-green-900 opacity-50">
                 <div class="text-center">
                     <i class="fa-solid fa-terminal text-6xl mb-4"></i>
-                    <p>AWAITING OPERATION SELECTION...</p>
+                    <p>Select an operation to continue.</p>
                 </div>
             </div>
         </div>
