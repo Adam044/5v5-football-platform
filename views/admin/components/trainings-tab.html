@@ -1,0 +1,255 @@
+<div id="trainings-tab" class="tab-pane hidden animate-fade-in">
+    <!-- Header Section -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+        <div>
+            <h2 class="text-3xl font-black text-slate-800 tracking-tight flex items-center gap-3">
+                <i class="fa-solid fa-futbol text-orange-500"></i>
+                إدارة التمارين والاشتراكات
+            </h2>
+            <p class="text-slate-500 font-medium">إدارة المواعيد والاشتراكات الشهرية وتتبع حضور اللاعبين</p>
+        </div>
+        <div class="flex items-center gap-3">
+            <button onclick="openAddTrainingSlotModal()" 
+                class="bg-indigo-600 text-white px-6 py-3 rounded-2xl font-bold flex items-center gap-2 hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200">
+                <i class="fa-solid fa-calendar-plus"></i>
+                إضافة مواعيد تدريب
+            </button>
+            <button onclick="openAddSubscriberModal()" 
+                class="bg-orange-600 text-white px-6 py-3 rounded-2xl font-bold flex items-center gap-2 hover:bg-orange-700 transition-all shadow-lg shadow-orange-200">
+                <i class="fa-solid fa-user-plus"></i>
+                إضافة مشترك جديد
+            </button>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+            <div class="flex items-center gap-4 mb-4">
+                <div class="w-12 h-12 rounded-2xl bg-orange-50 flex items-center justify-center text-orange-600">
+                    <i class="fa-solid fa-users text-xl"></i>
+                </div>
+                <div>
+                    <p class="text-slate-400 text-xs font-bold uppercase tracking-widest">المشتركين النشطين</p>
+                    <h3 id="stat-active-subscribers" class="text-2xl font-black text-slate-800">0</h3>
+                </div>
+            </div>
+            <div class="h-1.5 w-full bg-slate-50 rounded-full overflow-hidden">
+                <div id="stat-active-subscribers-bar" class="h-full bg-orange-500 transition-all duration-1000" style="width: 0%"></div>
+            </div>
+        </div>
+
+        <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+            <div class="flex items-center gap-4 mb-4">
+                <div class="w-12 h-12 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-600">
+                    <i class="fa-solid fa-shekel-sign text-xl"></i>
+                </div>
+                <div>
+                    <p class="text-slate-400 text-xs font-bold uppercase tracking-widest">إيرادات الشهر</p>
+                    <h3 id="stat-monthly-revenue" class="text-2xl font-black text-slate-800">0 ILS</h3>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <div class="h-1 w-full bg-slate-50 rounded-full overflow-hidden">
+                    <div id="stat-monthly-revenue-bar" class="h-full bg-emerald-500 transition-all duration-1000" style="width: 0%"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+            <div class="flex items-center gap-4 mb-4">
+                <div class="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-600">
+                    <i class="fa-solid fa-calendar-check text-xl"></i>
+                </div>
+                <div>
+                    <p class="text-slate-400 text-xs font-bold uppercase tracking-widest">جلسات الشهر</p>
+                    <h3 id="stat-total-sessions" class="text-2xl font-black text-slate-800">0</h3>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <div class="h-1 w-full bg-slate-50 rounded-full overflow-hidden">
+                    <div id="stat-total-sessions-bar" class="h-full bg-blue-500 transition-all duration-1000" style="width: 0%"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+            <div class="flex items-center gap-4 mb-4">
+                <div class="w-12 h-12 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600">
+                    <i class="fa-solid fa-chart-line text-xl"></i>
+                </div>
+                <div>
+                    <p class="text-slate-400 text-xs font-bold uppercase tracking-widest">متوسط الحضور</p>
+                    <h3 id="stat-avg-attendance" class="text-2xl font-black text-slate-800">0%</h3>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <div class="h-1 w-full bg-slate-50 rounded-full overflow-hidden">
+                    <div id="stat-avg-attendance-bar" class="h-full bg-indigo-500 transition-all duration-1000" style="width: 0%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Training Schedule Management Section -->
+    <div class="bg-white rounded-3xl border border-slate-100 shadow-sm p-8 mb-8">
+        <div class="flex items-center justify-between mb-8">
+            <div>
+                <h4 class="text-xl font-black text-slate-800 flex items-center gap-2">
+                    <i class="fa-solid fa-calendar-days text-indigo-500"></i>
+                    أوقات التدريب (الجدول)
+                </h4>
+                <p class="text-slate-500 text-sm font-medium">إدارة أوقات التدريب المعلنة للجمهور</p>
+            </div>
+            <button onclick="openAddTrainingSlotModal()" 
+                class="bg-indigo-600 text-white px-6 py-3 rounded-2xl font-bold flex items-center gap-2 hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200">
+                <i class="fa-solid fa-calendar-plus"></i>
+                إضافة وقت تدريب
+            </button>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="training-schedules-grid">
+            <!-- Training schedules will be loaded here -->
+        </div>
+    </div>
+
+    <!-- Coaches Management Section -->
+    <div class="bg-white rounded-3xl border border-slate-100 shadow-sm p-8 mb-8">
+        <div class="flex items-center justify-between mb-8">
+            <div>
+                <h4 class="text-xl font-black text-slate-800 flex items-center gap-2">
+                    <i class="fa-solid fa-user-tie text-slate-700"></i>
+                    إدارة المدربين
+                </h4>
+                <p class="text-slate-500 text-sm font-medium">إنشاء وإدارة حسابات المدربين والوصول</p>
+            </div>
+            <button onclick="openAddCoachModal()" 
+                class="bg-slate-900 text-white px-6 py-3 rounded-2xl font-bold flex items-center gap-2 hover:bg-slate-800 transition-all">
+                <i class="fa-solid fa-user-tie"></i>
+                إضافة مدرب جديد
+            </button>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="coaches-grid">
+            <!-- Coaches list will be loaded here -->
+        </div>
+    </div>
+
+    <!-- Main Content Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Subscriptions Table -->
+        <div class="lg:col-span-2 space-y-6" id="subscriptions-section">
+            <div class="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
+                <div class="p-6 border-b border-slate-50 flex items-center justify-between">
+                    <h4 class="font-black text-slate-800 flex items-center gap-2">
+                        <i class="fa-solid fa-list-ul text-orange-500"></i>
+                        قائمة المشتركين
+                    </h4>
+                    <div class="relative">
+                        <input type="text" id="search-subscribers" placeholder="بحث عن مشترك..." 
+                            class="bg-slate-50 border-none rounded-xl py-2 px-4 pr-10 text-sm focus:ring-2 focus:ring-orange-500/20 w-64">
+                        <i class="fa-solid fa-magnifying-glass absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-right">
+                        <thead>
+                            <tr class="bg-slate-50/50 text-slate-400 text-[10px] font-black uppercase tracking-widest">
+                                <th class="px-6 py-4">اللاعب</th>
+                                <th class="px-6 py-4">الجلسات المتبقية</th>
+                                <th class="px-6 py-4">تاريخ الانتهاء</th>
+                                <th class="px-6 py-4">الحالة</th>
+                                <th class="px-6 py-4 text-center">الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="subscribers-table-body" class="divide-y divide-slate-50">
+                            <!-- Subscribers will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Attendance -->
+        <div class="space-y-6">
+            <div class="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
+                <h4 class="font-black text-slate-800 mb-6 flex items-center gap-2">
+                    <i class="fa-solid fa-clock-rotate-left text-blue-500"></i>
+                    آخر عمليات تسجيل الحضور
+                </h4>
+                <div id="recent-attendance-list" class="space-y-4">
+                    <!-- Attendance logs will be loaded here -->
+                </div>
+            </div>
+
+            <!-- Coaches Quick View -->
+            <div class="bg-gradient-to-br from-slate-800 to-slate-900 rounded-3xl p-6 text-white">
+                <h4 class="font-black mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-user-group text-orange-400"></i>
+                    المدربين النشطين
+                </h4>
+                <div id="coaches-list" class="space-y-3">
+                    <!-- Coaches will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Subscriber Modal (will be injected into modals.html or handled dynamically) -->
+<div id="add-subscriber-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-[2rem] shadow-2xl w-full max-w-lg overflow-hidden animate-scale-in">
+        <div class="bg-orange-600 p-8 text-white relative">
+            <button onclick="closeAddSubscriberModal()" class="absolute top-6 right-6 text-white/80 hover:text-white">
+                <i class="fa-solid fa-times text-xl"></i>
+            </button>
+            <h3 class="text-2xl font-black mb-2 flex items-center gap-3">
+                <i class="fa-solid fa-user-plus text-orange-200"></i>
+                إضافة مشترك جديد
+            </h3>
+            <p class="text-white/80 font-medium">اختر لاعباً لتفعيله في نظام التمارين</p>
+        </div>
+        <div class="p-8 space-y-6">
+            <div>
+                <label class="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">البحث عن لاعب</label>
+                <div class="relative">
+                    <input type="text" id="player-search-input" oninput="searchPlayersForSubscription(this.value)"
+                        placeholder="ابحث بالاسم أو رقم الهاتف..." 
+                        class="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl py-4 px-6 focus:border-orange-500 focus:ring-0 transition-all">
+                    <div id="player-search-results" class="absolute top-full left-0 right-0 bg-white border border-slate-100 rounded-2xl mt-2 shadow-xl z-10 hidden max-h-60 overflow-y-auto">
+                        <!-- Search results will be loaded here -->
+                    </div>
+                </div>
+            </div>
+
+            <div id="selected-player-info" class="hidden p-4 bg-orange-50 rounded-2xl border border-orange-100 flex items-center gap-4">
+                <div class="w-12 h-12 rounded-full bg-orange-200 flex items-center justify-center text-orange-600 font-black" id="selected-player-initials">
+                    JS
+                </div>
+                <div>
+                    <h5 class="font-black text-slate-800" id="selected-player-name">اسم اللاعب</h5>
+                    <p class="text-xs text-orange-600 font-bold" id="selected-player-phone">050-0000000</p>
+                </div>
+                <button onclick="clearSelectedPlayer()" class="mr-auto text-slate-400 hover:text-red-500">
+                    <i class="fa-solid fa-trash-can"></i>
+                </button>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">تاريخ البدء</label>
+                    <input type="date" id="sub-start-date" class="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl py-4 px-6 focus:border-orange-500 transition-all">
+                </div>
+                <div>
+                    <label class="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">عدد الجلسات</label>
+                    <input type="number" id="sub-credits" value="8" class="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl py-4 px-6 focus:border-orange-500 transition-all">
+                </div>
+            </div>
+
+            <div class="pt-4">
+                <button onclick="confirmSubscription()" id="confirm-sub-btn" disabled
+                    class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black text-lg hover:bg-slate-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                    تأكيد الاشتراك ودفع 200 ILS
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

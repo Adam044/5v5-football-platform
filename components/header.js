@@ -192,7 +192,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </button>
                 
                 <!-- Logo (Left side in RTL) -->
-                <a href="index.html" class="flex items-center transform hover:scale-105 transition-transform">
+                <a href="/" class="flex items-center transform hover:scale-105 transition-transform">
                     <img src="/images/logo.jpg" alt="5ع5 Logo" class="h-10 w-auto rounded-full shadow-md border-2 border-white"/>
                 </a>
             </div>
@@ -218,42 +218,45 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="py-4">
                     <div class="nav-section-title">التنقل السريع</div>
                     <nav>
-                        <a href="index.html" class="nav-link ${isActive('index.html') ? 'active' : ''}">
+                        <a href="/" class="nav-link ${isActive('/') ? 'active' : ''}">
                             <i class="fa-solid fa-house"></i> الرئيسية
                         </a>
-                        <a href="fields.html" class="nav-link ${isActive('fields.html') ? 'active' : ''}">
+                        <a href="/fields" class="nav-link ${isActive('/fields') ? 'active' : ''}">
                             <i class="fa-solid fa-futbol"></i> قائمة الملاعب
                         </a>
-                        <a href="available-slots.html" class="nav-link ${isActive('available-slots.html') ? 'active' : ''}">
-                            <i class="fa-solid fa-calendar-check"></i> احجز ملعبك الآن
+                        <a href="/available-slots" class="nav-link ${isActive('/available-slots') ? 'active' : ''}">
+                            <i class="fa-solid fa-calendar-days"></i> احجز ملعبك الآن
                         </a>
-                        <a href="tournaments.html" class="nav-link ${isActive('tournaments.html') ? 'active' : ''}">
+                        <a href="/tournaments" class="nav-link ${isActive('/tournaments') ? 'active' : ''}">
                             <i class="fa-solid fa-trophy"></i> البطولات الكبرى
+                        </a>
+                        <a href="/trainings" class="nav-link ${isActive('/trainings') ? 'active' : ''}">
+                            <i class="fa-solid fa-futbol"></i> أكاديمية التدريب
                         </a>
                     </nav>
 
                     <div class="nav-section-title">التسوق والمجتمع</div>
                     <nav>
-                        <a href="5v5-fashion.html" class="nav-link fashion-link ${isActive('5v5-fashion.html') ? 'active' : ''}">
+                        <a href="/fashion" class="nav-link fashion-link ${isActive('/fashion') ? 'active' : ''}">
                             <i class="fa-solid fa-shirt"></i> متجر 5v5 Fashion
                         </a>
-                        <a href="giveaways.html" class="nav-link ${isActive('giveaways.html') ? 'active' : ''}">
+                        <a href="/giveaways" class="nav-link ${isActive('/giveaways') ? 'active' : ''}">
                             <i class="fa-solid fa-gift"></i> مسابقات وجوائز
                         </a>
-                        <a href="gallery.html" class="nav-link ${isActive('gallery.html') ? 'active' : ''}">
+                        <a href="/gallery" class="nav-link ${isActive('/gallery') ? 'active' : ''}">
                             <i class="fa-solid fa-images"></i> معرض الصور
                         </a>
                     </nav>
 
                     <div class="nav-section-title">معلومات قانونية</div>
                     <nav>
-                        <a href="about.html" class="nav-link ${isActive('about.html') ? 'active' : ''}">
+                        <a href="/about" class="nav-link ${isActive('/about') ? 'active' : ''}">
                             <i class="fa-solid fa-circle-info"></i> عن المنصة
                         </a>
-                        <a href="terms-of-use.html" class="nav-link ${isActive('terms-of-use.html') ? 'active' : ''}">
+                        <a href="/terms-of-use" class="nav-link ${isActive('/terms-of-use') ? 'active' : ''}">
                             <i class="fa-solid fa-scroll"></i> شروط الاستخدام
                         </a>
-                        <a href="privacy-policy.html" class="nav-link ${isActive('privacy-policy.html') ? 'active' : ''}">
+                        <a href="/privacy-policy" class="nav-link ${isActive('/privacy-policy') ? 'active' : ''}">
                             <i class="fa-solid fa-user-lock"></i> سياسة الخصوصية
                         </a>
                     </nav>

@@ -19,7 +19,31 @@ async function initSchema() {
                 gender TEXT,
                 password TEXT NOT NULL,
                 is_admin INTEGER DEFAULT 0,
+                role TEXT DEFAULT 'player', -- 'player', 'coach', 'admin'
                 created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+            );
+        `);
+
+        // TRAINING_SUBSCRIPTIONS Table
+        await client.query(`
+            CREATE TABLE IF NOT EXISTS training_subscriptions (
+                id SERIAL PRIMARY KEY,
+                user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+                credits INTEGER DEFAULT 8,
+                start_date DATE NOT NULL,
+                end_date DATE NOT NULL,
+                status TEXT DEFAULT 'active', -- 'active', 'expired', 'cancelled'
+                created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+            );
+        `);
+
+        // TRAINING_ATTENDANCE Table
+        await client.query(`
+            CREATE TABLE IF NOT EXISTS training_attendance (
+                id SERIAL PRIMARY KEY,
+                subscription_id INTEGER REFERENCES training_subscriptions(id) ON DELETE CASCADE,
+                coach_id INTEGER REFERENCES users(id),
+                attended_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
             );
         `);
 
@@ -248,6 +272,19 @@ async function initSchema() {
                 image_url TEXT,
                 stock INTEGER DEFAULT 0,
                 description TEXT,
+                created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+            );
+        `);
+
+        // TRAINING_SCHEDULES Table
+        await client.query(`
+            CREATE TABLE IF NOT EXISTS training_schedules (
+                id SERIAL PRIMARY KEY,
+                field_id INTEGER REFERENCES fields(id) ON DELETE CASCADE,
+                day_of_week INTEGER, -- 0-6 (Sun-Sat)
+                specific_date DATE, -- Optional: for one-off trainings
+                start_time TEXT NOT NULL,
+                end_time TEXT NOT NULL,
                 created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
             );
         `);

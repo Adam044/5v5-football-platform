@@ -25,6 +25,7 @@ router.get('/team-signup', serveFile('team-signup.html'));
 router.get('/gallery', serveFile('gallery.html'));
 router.get('/giveaways', serveFile('giveaways.html'));
 router.get('/tournaments', serveFile('tournaments.html'));
+router.get('/trainings', serveFile('trainings.html'));
 router.get('/tournament-team-hub', serveFile('tournament-team-hub.html'));
 
 // Matchmaking & Team Building Pages
@@ -39,6 +40,7 @@ router.get('/terms-of-use', serveFile('terms-of-use.html'));
 
 // Admin & Owner Pages
 router.get('/admin', serveFile('admin/index.html'));
+router.get('/coach-dashboard', serveFile('coach-dashboard.html'));
 router.get('/owner-panel', serveFile('owner-panel.html'));
 
 module.exports = router;

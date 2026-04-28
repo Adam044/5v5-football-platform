@@ -115,10 +115,10 @@
                 </h2>
                 <form onsubmit="event.preventDefault(); handleSignIn();">
                     <div class="mb-5 text-right">
-                        <label for="signin-email" class="block text-gray-700 font-semibold mb-2">البريد
-                            الإلكتروني</label>
-                        <input type="email" id="signin-email"
+                        <label for="signin-identifier" class="block text-gray-700 font-semibold mb-2">البريد الإلكتروني أو رقم الهاتف</label>
+                        <input type="text" id="signin-identifier"
                             class="p-3 border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 text-right bg-white"
+                            placeholder="example@mail.com أو 05xxxxxxxx"
                             required>
                     </div>
                     <div class="mb-8 text-right">
@@ -437,7 +437,7 @@
         });
 
         async function handleSignIn() {
-            const email = document.getElementById('signin-email').value;
+            const identifier = document.getElementById('signin-identifier').value;
             const password = document.getElementById('signin-password').value;
             const signInBtn = document.getElementById('signin-btn');
             const originalBtnHtml = signInBtn.innerHTML;
@@ -455,7 +455,7 @@
                         'X-CSRF-Token': csrfToken || ''
                     },
                     credentials: 'include',
-                    body: JSON.stringify({ email, password }),
+                    body: JSON.stringify({ identifier, password }),
                 });
 
                 // Safely parse JSON; fall back to text for non-JSON responses
@@ -479,9 +479,10 @@
                     localStorage.setItem('userEmail', result.email);
                     localStorage.setItem('userName', result.userName);
                     localStorage.setItem('is_admin', result.is_admin || false);
+                    localStorage.setItem('userRole', result.role);
 
                     showMessageBox('تسجيل الدخول', result.message, 'success', () => {
-                        // Redirect logic based on return URL or admin status
+                        // Redirect logic based on return URL or role
                         const urlParams = new URLSearchParams(window.location.search);
                         const returnUrl = urlParams.get('returnUrl');
 
@@ -489,6 +490,8 @@
                             window.location.href = decodeURIComponent(returnUrl);
                         } else if (result.is_admin) {
                             window.location.href = '/admin';
+                        } else if (result.role === 'coach') {
+                            window.location.href = '/coach-dashboard';
                         } else {
                             window.location.href = '/user-dashboard';
                         }

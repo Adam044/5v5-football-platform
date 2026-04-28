@@ -4,6 +4,25 @@ const pool = require('../database');
 const { requireAuth } = require('../middleware/auth');
 
 /**
+ * API endpoint to get all training schedules.
+ */
+router.get('/training-schedules', async (req, res) => {
+    console.log('Hitting /training-schedules endpoint');
+    try {
+        const { rows } = await pool.query(`
+            SELECT ts.*, f.name as field_name 
+            FROM training_schedules ts
+            JOIN fields f ON ts.field_id = f.id
+            ORDER BY ts.day_of_week ASC, ts.start_time ASC
+        `);
+        res.json({ schedules: rows });
+    } catch (err) {
+        console.error('Error in /training-schedules:', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+/**
  * API endpoint to get all fields.
  */
 router.get('/', async (req, res) => {
@@ -25,12 +44,34 @@ router.get('/', async (req, res) => {
 });
 
 /**
+ * API endpoint to get all available slots across all fields (for trainings page).
+ */
+router.get('/all-slots', async (req, res) => {
+    try {
+        const { rows } = await pool.query(`
+            SELECT asl.*, f.name as field_name 
+            FROM availability_slots asl
+            JOIN fields f ON asl.field_id = f.id
+            WHERE asl.is_booked = false
+              AND asl.is_recurring = true
+              AND (asl.slot_date > CURRENT_DATE OR (asl.slot_date = CURRENT_DATE AND asl.start_time > CURRENT_TIME))
+            ORDER BY asl.slot_date ASC, asl.start_time ASC
+        `);
+        res.json({ slots: rows });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+/**
  * API endpoint to get a single field's details.
  */
 router.get('/:fieldId', async (req, res) => {
     const { fieldId } = req.params;
+    console.log(`Hitting /:fieldId endpoint with id: ${fieldId}`);
     const id = parseInt(String(fieldId), 10);
     if (!Number.isInteger(id) || id <= 0) {
+        console.warn(`Invalid field id: ${fieldId}`);
         return res.status(400).json({ error: 'Invalid field id.' });
     }
     const sql = `SELECT * FROM fields WHERE id = $1`;

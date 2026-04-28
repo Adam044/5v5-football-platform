@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>التمارين | 5ع5</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="/components/styles.css" />
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap');
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: #f8fafc;
+        }
+
+        .hero-gradient {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+        }
+
+        .training-card {
+            background: white;
+            border-radius: 1.5rem;
+            border: 1px solid #e2e8f0;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .training-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+            border-color: #6366f1;
+        }
+
+        .price-tag {
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+        }
+
+        .whatsapp-btn {
+            background: #25D366;
+            transition: all 0.3s ease;
+        }
+
+        .whatsapp-btn:hover {
+            background: #128C7E;
+            transform: scale(1.02);
+        }
+
+        .fade-up {
+            opacity: 0;
+            animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+
+<body class="min-h-screen flex flex-col">
+
+    <div id="global-header"></div>
+
+    <!-- ===== HERO SECTION ===== -->
+    <section class="hero-gradient text-white py-20 relative overflow-hidden">
+        <div class="absolute inset-0 opacity-10">
+            <div class="absolute top-0 left-0 w-64 h-64 bg-indigo-500 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2"></div>
+            <div class="absolute bottom-0 right-0 w-96 h-96 bg-blue-500 rounded-full blur-3xl translate-x-1/2 translate-y-1/2"></div>
+        </div>
+        
+        <div class="container mx-auto px-4 md:px-6 relative z-10 text-center">
+            <div class="inline-flex items-center gap-2 bg-indigo-500/20 border border-indigo-500/30 px-4 py-2 rounded-full text-indigo-300 text-sm font-bold mb-6 fade-up">
+                <i class="fa-solid fa-futbol"></i>
+                أكاديمية التدريب المحترفة
+            </div>
+            <h1 class="text-4xl md:text-6xl font-black mb-6 leading-tight fade-up" style="animation-delay: 0.1s">
+                طور مهاراتك مع <span class="text-indigo-400">أفضل المدربين</span>
+            </h1>
+            <p class="text-slate-400 text-lg md:text-xl max-w-2xl mx-auto mb-10 leading-relaxed fade-up" style="animation-delay: 0.2s">
+                انضم إلينا في حصص تدريبية احترافية مصممة لتحسين أدائك البدني والمهاري في كرة القدم، تحت إشراف طاقم تدريبي متميز وملاعب مجهزة.
+            </p>
+            
+            <div class="flex flex-wrap justify-center gap-4 fade-up" style="animation-delay: 0.3s">
+                <a href="https://wa.me/972584615215" target="_blank" class="whatsapp-btn text-white px-8 py-4 rounded-2xl font-black flex items-center gap-3 text-lg shadow-xl shadow-green-500/20">
+                    <i class="fa-brands fa-whatsapp text-2xl"></i>
+                    سجل الآن عبر واتساب
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== PRICING & INFO ===== -->
+    <section class="py-16 container mx-auto px-4 md:px-6 max-w-7xl">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
+            <!-- Monthly Subscription -->
+            <div class="training-card p-8 flex flex-col items-center text-center fade-up">
+                <div class="w-16 h-16 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-3xl mb-6">
+                    <i class="fa-solid fa-calendar-check"></i>
+                </div>
+                <h3 class="text-2xl font-black text-slate-800 mb-2">الاشتراك الشهري</h3>
+                <p class="text-slate-500 font-medium mb-6">الخيار الأفضل للاستمرارية وتطوير المستوى</p>
+                <div class="text-4xl font-black text-indigo-600 mb-6">
+                    200 <span class="text-lg">شيكل / شهر</span>
+                </div>
+                <ul class="text-right w-full space-y-4 mb-8">
+                    <li class="flex items-center gap-3 text-slate-600 font-bold">
+                        <i class="fa-solid fa-circle-check text-emerald-500"></i>
+                        حصص تدريبية منتظمة طوال الشهر
+                    </li>
+                    <li class="flex items-center gap-3 text-slate-600 font-bold">
+                        <i class="fa-solid fa-circle-check text-emerald-500"></i>
+                        أولوية الحجز في المواعيد المفضلة
+                    </li>
+                    <li class="flex items-center gap-3 text-slate-600 font-bold">
+                        <i class="fa-solid fa-circle-check text-emerald-500"></i>
+                        متابعة دورية لمستوى اللاعب
+                    </li>
+                </ul>
+                <a href="https://wa.me/972584615215" target="_blank" class="w-full py-4 rounded-xl bg-slate-900 text-white font-black hover:bg-slate-800 transition-all text-center">
+                    اشترك الآن
+                </a>
+            </div>
+
+            <!-- Single Session -->
+            <div class="training-card p-8 flex flex-col items-center text-center fade-up" style="animation-delay: 0.1s">
+                <div class="w-16 h-16 rounded-2xl bg-orange-50 text-orange-600 flex items-center justify-center text-3xl mb-6">
+                    <i class="fa-solid fa-bolt"></i>
+                </div>
+                <h3 class="text-2xl font-black text-slate-800 mb-2">تدريب لمرة واحدة</h3>
+                <p class="text-slate-500 font-medium mb-6">مثالي لمن يريد تجربة التدريبات أو لا يملك وقتاً ثابتاً</p>
+                <div class="text-4xl font-black text-orange-600 mb-6">
+                    30 <span class="text-lg">شيكل / حصة</span>
+                </div>
+                <ul class="text-right w-full space-y-4 mb-8">
+                    <li class="flex items-center gap-3 text-slate-600 font-bold">
+                        <i class="fa-solid fa-circle-check text-emerald-500"></i>
+                        الدفع حسب الحضور فقط
+                    </li>
+                    <li class="flex items-center gap-3 text-slate-600 font-bold">
+                        <i class="fa-solid fa-circle-check text-emerald-500"></i>
+                        لا يتطلب التزام شهري طويل
+                    </li>
+                    <li class="flex items-center gap-3 text-slate-600 font-bold">
+                        <i class="fa-solid fa-circle-check text-emerald-500"></i>
+                        متاح في جميع المواعيد المعلنة
+                    </li>
+                </ul>
+                <a href="https://wa.me/972584615215" target="_blank" class="w-full py-4 rounded-xl bg-slate-900 text-white font-black hover:bg-slate-800 transition-all text-center">
+                    احجز حصتك
+                </a>
+            </div>
+        </div>
+
+        <!-- ===== SCHEDULE SECTION ===== -->
+        <div class="fade-up" style="animation-delay: 0.2s">
+            <div class="flex items-center justify-between mb-8">
+                <div>
+                    <h2 class="text-3xl font-black text-slate-800">جدول التدريبات القادمة</h2>
+                    <p class="text-slate-500 font-medium">اختر الموعد المناسب لك وانضم إلينا</p>
+                </div>
+                <div class="hidden md:flex items-center gap-2 text-slate-400 font-bold text-sm">
+                    <i class="fa-solid fa-circle-info"></i>
+                    يتم تحديث المواعيد دورياً
+                </div>
+            </div>
+
+            <div id="training-schedule" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Training slots will be loaded here -->
+                <div class="col-span-full py-20 text-center text-slate-400 bg-white rounded-3xl border border-dashed border-slate-200">
+                    <i class="fa-solid fa-spinner fa-spin text-3xl mb-4 text-indigo-500"></i>
+                    <p class="text-lg font-bold">جاري تحميل جدول التمارين...</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== CTA SECTION ===== -->
+    <section class="py-20 bg-white border-t border-slate-100">
+        <div class="container mx-auto px-4 text-center">
+            <h2 class="text-3xl md:text-4xl font-black text-slate-800 mb-6">لديك أي استفسارات؟</h2>
+            <p class="text-slate-500 text-lg mb-10 max-w-xl mx-auto">نحن هنا للإجابة على جميع أسئلتك حول نظام التدريب، الأسعار، أو المواعيد.</p>
+            <a href="https://wa.me/972584615215" target="_blank" class="whatsapp-btn inline-flex items-center gap-3 text-white px-10 py-5 rounded-2xl font-black text-xl shadow-xl shadow-green-500/20">
+                <i class="fa-brands fa-whatsapp text-2xl"></i>
+                تواصل معنا مباشرة
+            </a>
+        </div>
+    </section>
+
+    <div id="global-footer"></div>
+
+    <script src="/components/header.js"></script>
+    <script src="/components/footer.js"></script>
+    <script src="/components/loader.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchTrainingSchedule();
+        });
+
+        async function fetchTrainingSchedule() {
+            try {
+                const response = await fetch('/api/fields/training-schedules');
+                if (!response.ok) throw new Error('Failed to fetch schedule');
+                
+                const data = await response.json();
+                renderSchedule(data.schedules);
+            } catch (error) {
+                console.error('Fetch schedule failed:', error);
+                document.getElementById('training-schedule').innerHTML = `
+                    <div class="col-span-full py-20 text-center text-red-400 bg-red-50 rounded-3xl border border-dashed border-red-200">
+                        <i class="fa-solid fa-circle-exclamation text-3xl mb-4"></i>
+                        <p class="text-lg font-bold">عذراً، تعذر تحميل الجدول حالياً. يرجى المحاولة لاحقاً.</p>
+                    </div>
+                `;
+            }
+        }
+
+        function renderSchedule(schedules) {
+            const container = document.getElementById('training-schedule');
+            
+            if (!schedules || schedules.length === 0) {
+                container.innerHTML = `
+                    <div class="col-span-full py-20 text-center text-slate-400 bg-white rounded-3xl border border-dashed border-slate-200">
+                        <i class="fa-solid fa-calendar-xmark text-3xl mb-4 opacity-20"></i>
+                        <p class="text-lg font-bold">لا توجد تمارين معلنة حالياً. تواصل معنا للمزيد من التفاصيل.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const days = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+
+            container.innerHTML = schedules.map(schedule => {
+                const isWeekly = schedule.day_of_week !== null;
+                const timeStr = `${schedule.start_time} - ${schedule.end_time}`;
+                const dayStr = isWeekly ? days[schedule.day_of_week] : new Date(schedule.specific_date).toLocaleDateString('ar-EG', { day: 'numeric', month: 'long', year: 'numeric' });
+                const typeBadge = isWeekly ? 'أسبوعي' : 'موعد خاص';
+                
+                return `
+                    <div class="training-card p-6 border-r-4 border-r-indigo-500 flex flex-col h-full">
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="bg-indigo-50 text-indigo-600 px-3 py-1 rounded-lg text-xs font-black">${typeBadge}</span>
+                            <span class="text-slate-400 text-xs font-bold">${isWeekly ? 'كل أسبوع' : 'مرة واحدة'}</span>
+                        </div>
+                        
+                        <h4 class="text-xl font-black text-slate-800 mb-2">${dayStr}</h4>
+                        <p class="text-indigo-500 font-bold text-sm mb-4 flex items-center gap-2">
+                            <i class="fa-solid fa-location-dot"></i>
+                            ${schedule.field_name}
+                        </p>
+                        
+                        <div class="flex items-center gap-4 text-slate-500 text-sm font-bold mb-8">
+                            <div class="flex items-center gap-1.5">
+                                <i class="fa-solid fa-clock text-indigo-400"></i>
+                                ${timeStr}
+                            </div>
+                        </div>
+
+                        <div class="mt-auto">
+                            <a href="https://wa.me/972584615215?text=${encodeURIComponent(`مرحباً، أود الاستفسار عن التدريب في ${schedule.field_name} يوم ${dayStr} الساعة ${schedule.start_time}`)}" 
+                               target="_blank" 
+                               class="flex items-center justify-center gap-2 w-full py-3 rounded-xl border-2 border-slate-100 text-slate-600 font-black hover:bg-indigo-500 hover:text-white hover:border-indigo-500 transition-all">
+                                حجز مكان
+                                <i class="fa-solid fa-chevron-left text-[10px]"></i>
+                            </a>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+    </script>
+</body>
+
+</html>

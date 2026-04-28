@@ -167,4 +167,64 @@ router.get('/:userId/tournament-teams', requireAuth, async (req, res) => {
     }
 });
 
+/**
+ * Get a user's training subscription.
+ */
+router.get('/:userId/training-subscription', requireAuth, async (req, res) => {
+    const { userId } = req.params;
+    const requesterId = String(req.user?.id || '');
+    const isAdmin = !!req.user?.is_admin;
+
+    if (!userId) return res.status(400).json({ error: 'User ID is required.' });
+    if (!isAdmin && String(userId) !== requesterId) {
+        return res.status(403).json({ error: 'Forbidden.' });
+    }
+
+    try {
+        const { rows } = await pool.query(`
+            SELECT * FROM training_subscriptions 
+            WHERE user_id = $1 AND status = 'active'
+            ORDER BY created_at DESC 
+            LIMIT 1
+        `, [userId]);
+        
+        if (rows.length === 0) {
+            return res.json({ subscription: null });
+        }
+        
+        res.json({ subscription: rows[0] });
+    } catch (err) {
+        return res.status(500).json({ error: err.message });
+    }
+});
+
+/**
+ * Get a user's training attendance history.
+ */
+router.get('/:userId/training-attendance', requireAuth, async (req, res) => {
+    const { userId } = req.params;
+    const requesterId = String(req.user?.id || '');
+    const isAdmin = !!req.user?.is_admin;
+
+    if (!userId) return res.status(400).json({ error: 'User ID is required.' });
+    if (!isAdmin && String(userId) !== requesterId) {
+        return res.status(403).json({ error: 'Forbidden.' });
+    }
+
+    try {
+        const { rows } = await pool.query(`
+            SELECT ta.attended_at, u.name as coach_name 
+            FROM training_attendance ta
+            JOIN training_subscriptions ts ON ta.subscription_id = ts.id
+            LEFT JOIN users u ON ta.coach_id = u.id
+            WHERE ts.user_id = $1
+            ORDER BY ta.attended_at DESC
+        `, [userId]);
+        
+        res.json({ attendance: rows });
+    } catch (err) {
+        return res.status(500).json({ error: err.message });
+    }
+});
+
 module.exports = router;

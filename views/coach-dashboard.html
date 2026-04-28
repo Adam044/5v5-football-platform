@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة المدرب | منصة 5v5</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@200..1000&display=swap" rel="stylesheet">
+    <script src="/components/loader.js"></script>
+    <style>
+        body { font-family: 'Cairo', sans-serif; }
+        .fifa-card {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border: 2px solid #fb923c;
+            position: relative;
+            overflow: hidden;
+        }
+        .fifa-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(251,146,60,0.1) 0%, transparent 70%);
+            pointer-events: none;
+        }
+        .energy-bar {
+            height: 6px;
+            background: #334155;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        .energy-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #fb923c, #f97316);
+            transition: width 0.5s ease-out;
+        }
+        @keyframes pulse-orange {
+            0% { box-shadow: 0 0 0 0 rgba(251, 146, 60, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(251, 146, 60, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(251, 146, 60, 0); }
+        }
+        .pulse-btn {
+            animation: pulse-orange 2s infinite;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 antialiased">
+    <div id="modals-placeholder"></div>
+    
+    <!-- Navbar -->
+    <nav class="bg-white border-b border-slate-100 px-6 py-4 flex items-center justify-between sticky top-0 z-40">
+        <div class="flex items-center gap-4">
+            <div class="w-10 h-10 bg-orange-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-orange-200">
+                <i class="fa-solid fa-user-tie text-xl"></i>
+            </div>
+            <div>
+                <h1 class="font-black text-slate-800 text-lg leading-tight">لوحة المدرب</h1>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">نظام تتبع التمارين</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-3">
+            <span id="coach-name" class="font-bold text-slate-600 text-sm hidden sm:block">جاري التحميل...</span>
+            <button onclick="logout()" class="w-10 h-10 rounded-xl bg-slate-50 text-slate-400 flex items-center justify-center hover:bg-red-50 hover:text-red-500 transition-all">
+                <i class="fa-solid fa-right-from-bracket"></i>
+            </button>
+        </div>
+    </nav>
+
+    <main class="max-w-4xl mx-auto p-6 space-y-8">
+        <!-- Active Players List Section -->
+        <div class="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-black text-slate-800 flex items-center gap-3">
+                    <i class="fa-solid fa-users text-orange-500"></i>
+                    اللاعبين المشتركين
+                </h2>
+                <div class="relative w-64">
+                    <input type="text" id="player-list-search" oninput="filterPlayersList(this.value)"
+                        placeholder="بحث في القائمة..." 
+                        class="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl py-2 px-4 pr-10 text-sm font-bold focus:border-orange-500 focus:ring-0 transition-all text-right">
+                    <i class="fa-solid fa-magnifying-glass absolute right-3 top-1/2 -translate-y-1/2 text-slate-300"></i>
+                </div>
+            </div>
+            
+            <div id="active-players-list" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Players will be loaded here -->
+                <div class="col-span-full py-12 text-center text-slate-400 font-bold">
+                    <i class="fa-solid fa-spinner fa-spin text-2xl mb-2"></i>
+                    <p>جاري تحميل اللاعبين...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Activity for Coach -->
+        <div class="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100">
+            <h3 class="text-xl font-black text-slate-800 mb-6 flex items-center gap-2">
+                <i class="fa-solid fa-history text-orange-500"></i>
+                آخر عملياتك
+            </h3>
+            <div id="coach-recent-activity" class="space-y-4">
+                <!-- Activity logs -->
+                <p class="text-center text-slate-400 font-bold py-8">لا يوجد نشاط مؤخراً</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Player Badge Modal -->
+    <div id="player-badge-modal" class="hidden fixed inset-0 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in">
+        <div class="w-full max-w-2xl relative animate-scale-in-up">
+            <button onclick="closeBadgeModal()" class="absolute -top-12 right-0 text-white hover:text-orange-400 transition-colors text-2xl">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            
+            <div class="fifa-card rounded-[3rem] p-8 text-white shadow-2xl relative border-4 border-orange-500/30">
+                <div class="flex flex-col md:flex-row items-center gap-8">
+                    <!-- Player Avatar/Initials -->
+                    <div class="relative">
+                        <div id="card-initials" class="w-32 h-32 md:w-40 md:h-40 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-4xl md:text-6xl font-black border-4 border-white/20 shadow-2xl">
+                            ??
+                        </div>
+                        <div class="absolute -bottom-2 -right-2 bg-emerald-500 w-8 h-8 rounded-full border-4 border-[#0f172a] flex items-center justify-center">
+                            <i class="fa-solid fa-check text-[10px]"></i>
+                        </div>
+                    </div>
+
+                    <!-- Player Details -->
+                    <div class="flex-grow text-center md:text-right space-y-4">
+                        <div>
+                            <span class="text-[10px] font-black uppercase tracking-widest text-orange-400">لاعب مشترك</span>
+                            <h3 id="card-name" class="text-3xl md:text-4xl font-black mt-1">اسم اللاعب</h3>
+                            <p id="card-phone" class="text-slate-400 font-bold">050-0000000</p>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4 max-w-xs mx-auto md:mx-0">
+                            <div class="bg-white/5 rounded-2xl p-4 border border-white/10">
+                                <p class="text-[10px] font-black text-slate-400 uppercase">الجلسات المتبقية</p>
+                                <p id="card-credits" class="text-2xl font-black text-orange-400">8/8</p>
+                            </div>
+                            <div class="bg-white/5 rounded-2xl p-4 border border-white/10">
+                                <p class="text-[10px] font-black text-slate-400 uppercase">الحالة</p>
+                                <p id="card-status" class="text-sm font-black text-emerald-400 mt-2">نشط</p>
+                            </div>
+                        </div>
+
+                        <div class="space-y-2">
+                            <div class="flex justify-between text-[10px] font-black uppercase text-slate-400">
+                                <span>مستوى الرصيد</span>
+                                <span id="card-percent">100%</span>
+                            </div>
+                            <div class="energy-bar">
+                                <div id="card-energy-fill" class="energy-fill" style="width: 100%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Button -->
+                <div class="mt-8 pt-8 border-t border-white/10 flex justify-center">
+                    <button id="deduct-btn" onclick="deductCredit()" 
+                        class="pulse-btn bg-orange-500 hover:bg-orange-600 text-white px-12 py-5 rounded-2xl font-black text-xl transition-all flex items-center gap-3">
+                        <i class="fa-solid fa-calendar-minus"></i>
+                        تسجيل حضور (خصم جلسة)
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/coach-dashboard.js"></script>
+</body>
+</html>

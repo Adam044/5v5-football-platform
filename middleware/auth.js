@@ -28,6 +28,18 @@ const checkAdmin = async (req, res, next) => {
 };
 
 /**
+ * Middleware to require admin or coach privileges.
+ */
+const checkCoachOrAdmin = async (req, res, next) => {
+    requireAuth(req, res, () => {
+        if (!req.user || (!req.user.is_admin && req.user.role !== 'coach')) {
+            return res.status(403).json({ error: 'Forbidden. Admin or Coach access required.' });
+        }
+        next();
+    });
+};
+
+/**
  * Middleware to require owner privileges via owner_token.
  */
 const checkOwner = (req, res, next) => {
@@ -46,5 +58,6 @@ const checkOwner = (req, res, next) => {
 module.exports = {
     requireAuth,
     checkAdmin,
+    checkCoachOrAdmin,
     checkOwner
 };

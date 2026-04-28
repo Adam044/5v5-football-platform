@@ -64,7 +64,41 @@
         <h3 class="text-5xl font-extrabold text-center mb-16 text-gray-900 leading-tight">
             مرحباً بك، <span id="user-name" class="text-green-600">...</span>!
         </h3>
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-10 mb-12">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+            <!-- Summary Card: Training Subscription -->
+            <div id="training-card" class="hidden bg-gradient-to-br from-orange-500 to-orange-600 text-white rounded-3xl shadow-xl p-8 flex flex-col justify-between h-48 transform hover:scale-105 hover:-translate-y-2 transition-all duration-500 relative overflow-hidden group">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-white bg-opacity-10 rounded-full -mr-16 -mt-16 group-hover:scale-110 transition-transform duration-700"></div>
+                <div class="absolute bottom-0 left-0 w-24 h-24 bg-white bg-opacity-10 rounded-full -ml-12 -mb-12 group-hover:scale-110 transition-transform duration-700"></div>
+                
+                <div class="flex justify-between items-center mb-2 relative z-10">
+                    <div>
+                        <span class="text-[10px] font-black uppercase tracking-widest text-orange-200 opacity-80">اشتراك نشط</span>
+                        <h4 class="text-2xl font-black">تمارين كرة القدم</h4>
+                    </div>
+                    <div class="bg-white/20 p-3 rounded-2xl backdrop-blur-md border border-white/20">
+                        <i class="fa-solid fa-futbol text-white text-2xl"></i>
+                    </div>
+                </div>
+
+                <div class="relative z-10">
+                    <div class="flex items-end gap-2">
+                        <p id="training-credits" class="text-5xl font-black text-white">0/8</p>
+                        <p class="text-orange-200 text-sm font-bold mb-1">جلسة</p>
+                    </div>
+                    <p id="training-status-text" class="text-orange-100 text-[10px] font-bold mt-1 opacity-80">جاري التحميل...</p>
+                </div>
+
+                <div class="space-y-2 relative z-10">
+                    <div class="flex justify-between text-[8px] font-black uppercase text-orange-100/60">
+                        <span>التقدم</span>
+                        <span id="training-percent-text">0%</span>
+                    </div>
+                    <div class="bg-white/20 h-2 rounded-full overflow-hidden border border-white/10">
+                        <div id="training-progress" class="h-full bg-white shadow-[0_0_15px_rgba(255,255,255,0.5)] transition-all duration-1000" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Summary Card: Upcoming Reservations -->
             <div
                 class="bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-2xl shadow-xl p-8 flex flex-col justify-between h-48 transform hover:scale-105 hover:-translate-y-2 transition-all duration-500 relative overflow-hidden">
@@ -73,7 +107,7 @@
                 <div class="flex justify-between items-center mb-4 relative z-10">
                     <h4 class="text-2xl font-bold">حجوزاتي القادمة</h4>
                     <div class="bg-white bg-opacity-20 p-3 rounded-2xl backdrop-blur-sm">
-                        <i class="fa-solid fa-calendar-check text-white text-2xl"></i>
+                        <i class="fa-solid fa-book-open-reader text-white text-2xl"></i>
                     </div>
                 </div>
                 <p id="upcoming-reservations" class="text-5xl font-extrabold text-white mb-2 relative z-10">...</p>
@@ -144,7 +178,7 @@
                     class="bg-gradient-to-br from-green-500 to-green-600 text-white p-4 rounded-xl hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 text-center group">
                     <div
                         class="bg-white bg-opacity-20 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform duration-300">
-                        <i class="fa-solid fa-calendar-check text-xl"></i>
+                        <i class="fa-solid fa-book-open-reader text-xl"></i>
                     </div>
                     <p class="font-semibold text-sm">حجوزاتي</p>
                 </button>
@@ -156,6 +190,15 @@
                     </div>
                     <p class="font-semibold text-sm">البطولات</p>
                 </a>
+                <!-- Coach Dashboard Link -->
+                <a id="coach-link" href="/coach-dashboard"
+                    class="hidden bg-gradient-to-br from-orange-600 to-orange-700 text-white p-4 rounded-xl hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 text-center group">
+                    <div
+                        class="bg-white bg-opacity-20 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform duration-300">
+                        <i class="fa-solid fa-user-tie text-xl"></i>
+                    </div>
+                    <p class="font-semibold text-sm">لوحة المدرب</p>
+                </a>
                 <button onclick="scrollToProfile()"
                     class="bg-gradient-to-br from-orange-500 to-orange-600 text-white p-4 rounded-xl hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 text-center group">
                     <div
@@ -166,6 +209,25 @@
                 </button>
             </div>
         </div>
+
+        <!-- Training Attendance History -->
+        <section id="training-attendance-section" class="hidden bg-white rounded-2xl shadow-xl p-8 mb-12 border-t-4 border-orange-500 relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-orange-50 rounded-full -mr-16 -mt-16 opacity-50"></div>
+            <div class="relative z-10">
+                <h4 class="text-3xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+                    <div class="bg-orange-100 p-3 rounded-full">
+                        <i class="fa-solid fa-clock-rotate-left text-orange-600 text-xl"></i>
+                    </div>
+                    سجل حضور التمارين
+                </h4>
+                <div id="training-attendance-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- Attendance items will be loaded here -->
+                </div>
+                <div id="no-attendance" class="hidden text-center py-8 text-gray-500">
+                    لم يتم تسجيل حضور أي تمارين بعد.
+                </div>
+            </div>
+        </section>
 
 
 
@@ -270,7 +332,7 @@
             <div class="relative z-10">
                 <h4 class="text-3xl font-bold text-gray-900 mb-8 flex items-center gap-3">
                     <div class="bg-green-100 p-3 rounded-full">
-                        <i class="fa-solid fa-calendar-alt text-green-600 text-xl"></i>
+                        <i class="fa-solid fa-book-open-reader text-green-600 text-xl"></i>
                     </div>
                     آخر حجوزاتك
                     <div class="bg-green-500 text-white px-3 py-1 rounded-full text-sm font-medium ml-auto">
@@ -496,12 +558,90 @@
                     document.getElementById('phone').value = user.phone_number;
                     document.getElementById('birthdate').value = user.birthdate;
                     document.getElementById('gender').value = user.gender === 'male' ? 'ذكر' : user.gender === 'female' ? 'أنثى' : '';
+                    
+                    // Show coach link if user is coach or admin
+                    // Note: API returns is_admin as boolean here (standardized in users.js)
+                    if (user.role === 'coach' || user.is_admin) {
+                        const coachLink = document.getElementById('coach-link');
+                        if (coachLink) coachLink.classList.remove('hidden');
+                    }
                 } else {
                     showMessageBox('خطأ في البيانات', 'تعذر تحميل بيانات المستخدم.', 'error');
                 }
             } catch (error) {
                 console.error('Failed to fetch user data:', error);
                 showMessageBox('خطأ في الاتصال', 'فشل تحميل بيانات المستخدم. يرجى التأكد من تشغيل الخادم.', 'error');
+            }
+        }
+
+        async function fetchUserTrainingSubscription() {
+            try {
+                // Fetch Subscription
+                const subResponse = await fetch(`/api/user/${currentUserId}/training-subscription`, { credentials: 'include' });
+                const subData = await subResponse.json();
+                
+                const card = document.getElementById('training-card');
+                const creditsText = document.getElementById('training-credits');
+                const statusText = document.getElementById('training-status-text');
+                const progressBar = document.getElementById('training-progress');
+                const percentText = document.getElementById('training-percent-text');
+
+                if (subData.subscription) {
+                    card.classList.remove('hidden');
+                    creditsText.innerText = `${subData.subscription.credits}/8`;
+                    statusText.innerText = `تنتهي في ${new Date(subData.subscription.end_date).toLocaleDateString('he-IL')}`;
+                    
+                    const percent = (subData.subscription.credits / 8) * 100;
+                    percentText.innerText = `${Math.round(percent)}%`;
+                    setTimeout(() => {
+                        progressBar.style.width = `${percent}%`;
+                    }, 100);
+
+                    // Fetch Attendance History
+                    fetchUserTrainingAttendance();
+                } else {
+                    card.classList.add('hidden');
+                }
+            } catch (error) {
+                console.error('Error fetching training subscription:', error);
+            }
+        }
+
+        async function fetchUserTrainingAttendance() {
+            try {
+                const response = await fetch(`/api/user/${currentUserId}/training-attendance`, { credentials: 'include' });
+                const data = await response.json();
+                
+                const section = document.getElementById('training-attendance-section');
+                const list = document.getElementById('training-attendance-list');
+                const noAttendance = document.getElementById('no-attendance');
+
+                if (data.attendance && data.attendance.length > 0) {
+                    section.classList.remove('hidden');
+                    noAttendance.classList.add('hidden');
+                    list.innerHTML = data.attendance.map(item => `
+                        <div class="p-4 bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-between hover:border-orange-200 transition-colors">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center">
+                                    <i class="fa-solid fa-check"></i>
+                                </div>
+                                <div>
+                                    <div class="font-bold text-gray-900">${new Date(item.attended_at).toLocaleDateString('he-IL')}</div>
+                                    <div class="text-[10px] text-gray-500 font-bold">${new Date(item.attended_at).toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })}</div>
+                                </div>
+                            </div>
+                            <div class="text-left">
+                                <span class="text-[10px] font-black text-slate-400 uppercase">المدرب: ${item.coach_name || 'مدير'}</span>
+                            </div>
+                        </div>
+                    `).join('');
+                } else if (data.attendance) {
+                    section.classList.remove('hidden');
+                    noAttendance.classList.remove('hidden');
+                    list.innerHTML = '';
+                }
+            } catch (error) {
+                console.error('Error fetching training attendance:', error);
             }
         }
 
@@ -1107,6 +1247,7 @@
                     await fetchUserReservationsWithNotifications();
                     await fetchUserMatchmaking();
                     await fetchUserTournamentTeams();
+                    await fetchUserTrainingSubscription();
                     showWelcomeNotification();
                 } catch (e) {
                     console.error('Failed to init dashboard:', e);

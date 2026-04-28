@@ -38,8 +38,8 @@ function toggleSidebar() {
     if (overlay) overlay.classList.toggle('show');
 }
 
-function switchTab(tabId, event) {
-    setActiveTab(tabId, event);
+function switchTab(tabId, event, sectionId = null) {
+    setActiveTab(tabId, event, sectionId);
 }
 
 // --- CSRF helpers and secure fetch ---
@@ -98,6 +98,34 @@ function getRequestType(type) {
         'team_vs_team': 'فريق ضد فريق',
     };
     return typeMap[type] || type;
+}
+
+function animateCounter(id, target, suffix = '') {
+    const el = document.getElementById(id);
+    if (!el) return;
+    
+    let current = 0;
+    const duration = 1500;
+    const step = target / (duration / 16);
+    
+    const update = () => {
+        current += step;
+        if (current >= target) {
+            el.textContent = target + suffix;
+        } else {
+            el.textContent = Math.floor(current) + suffix;
+            requestAnimationFrame(update);
+        }
+    };
+    update();
+}
+
+function updateProgressBar(id, percentage) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    setTimeout(() => {
+        el.style.width = percentage + '%';
+    }, 100);
 }
 
 function showMessageBox(title, content, type = 'error', callback = null, isConfirmation = false) {
@@ -164,13 +192,13 @@ function closeMessageBox() {
 const tabs = document.querySelectorAll('.tab-button');
 const tabPanes = document.querySelectorAll('.tab-pane');
 
-function setActiveTab(tabId, event) {
+function setActiveTab(tabId, event, sectionId = null) {
     const tabs = document.querySelectorAll('.tab-button');
     const tabPanes = document.querySelectorAll('.tab-pane');
 
     // Remove active classes from all buttons and hide all panes
     tabs.forEach(t => {
-        t.classList.remove('active', 'bg-purple-100', 'bg-blue-100', 'bg-emerald-100', 'bg-green-100', 'bg-amber-100', 'bg-indigo-100', 'bg-rose-100', 'bg-pink-100');
+        t.classList.remove('active', 'bg-purple-100', 'bg-blue-100', 'bg-emerald-100', 'bg-green-100', 'bg-amber-100', 'bg-indigo-100', 'bg-rose-100', 'bg-pink-100', 'bg-orange-50', 'text-orange-600', 'bg-emerald-50', 'text-emerald-600', 'bg-blue-50', 'text-blue-600', 'bg-purple-50', 'text-purple-600');
     });
     tabPanes.forEach(p => p.classList.add('hidden'));
 
@@ -185,8 +213,20 @@ function setActiveTab(tabId, event) {
         if (tabId === 'matchmaking-requests-tab') activeTabButton.classList.add('bg-blue-50', 'text-blue-600');
         if (tabId === 'reservations-tab') activeTabButton.classList.add('bg-emerald-50', 'text-emerald-600');
         if (tabId === 'availability-tab') activeTabButton.classList.add('bg-purple-50', 'text-purple-600');
+        if (tabId === 'trainings-tab') activeTabButton.classList.add('bg-orange-50', 'text-orange-600');
     }
-    if (activeTabPane) activeTabPane.classList.remove('hidden');
+    
+    if (activeTabPane) {
+        activeTabPane.classList.remove('hidden');
+        if (sectionId) {
+            setTimeout(() => {
+                const section = document.getElementById(sectionId);
+                if (section) {
+                    section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            }, 100);
+        }
+    }
 
     // Close sidebar on mobile after selection
     if (window.innerWidth < 1024) {
@@ -205,6 +245,7 @@ function setActiveTab(tabId, event) {
             fetchData();
             loadBatchFields();
             break;
+        case 'trainings-tab': fetchTrainingData(); break;
         case 'fields-tab': fetchData(); break;
         case 'tournaments-tab': fetchTournaments(); break;
         case 'players-tab': fetchPlayers(); break;
@@ -1130,16 +1171,555 @@ function initDashboardEvents() {
     console.log('Admin dashboard events initialized.');
 }
 
+// --- Training Management Functions ---
+async function fetchTrainingData() {
+    try {
+        if (window.GlobalLoader) window.GlobalLoader.show();
+        
+        const response = await fetch('/api/admin/trainings', { credentials: 'include' });
+        if (!response.ok) throw new Error('Failed to fetch training data');
+        
+        const data = await response.json();
+        
+        // Fetch Training Schedules
+        const schedulesResponse = await fetch('/api/admin/training-schedules', { credentials: 'include' });
+        const schedulesData = await schedulesResponse.json();
+        
+        // Update Stats with animations
+        animateCounter('stat-active-subscribers', data.stats.activeSubscribers);
+        animateCounter('stat-monthly-revenue', data.stats.monthlyRevenue, ' ILS');
+        animateCounter('stat-total-sessions', data.stats.totalSessions);
+        animateCounter('stat-avg-attendance', data.stats.avgAttendance, '%');
+
+        // Update Progress Bars
+        updateProgressBar('stat-active-subscribers-bar', Math.min(100, (data.stats.activeSubscribers / 50) * 100)); // Goal 50
+        updateProgressBar('stat-monthly-revenue-bar', Math.min(100, (data.stats.monthlyRevenue / 10000) * 100)); // Goal 10000
+        updateProgressBar('stat-total-sessions-bar', Math.min(100, (data.stats.totalSessions / 200) * 100)); // Goal 200
+        updateProgressBar('stat-avg-attendance-bar', data.stats.avgAttendance);
+        
+        renderTrainingSubscriptions(data.subscriptions);
+        renderTrainingAttendance(data.attendance);
+        renderCoachesList(data.coaches);
+        renderTrainingSchedules(schedulesData.schedules);
+        
+    } catch (error) {
+        console.error('Training data fetch failed:', error);
+    } finally {
+        if (window.GlobalLoader) window.GlobalLoader.hide();
+    }
+}
+
+function renderTrainingSubscriptions(subscriptions) {
+    const tbody = document.getElementById('subscribers-table-body');
+    if (!tbody) return;
+    
+    if (!subscriptions || subscriptions.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="py-12 text-center text-slate-400 font-bold">لا يوجد مشتركين نشطين</td></tr>';
+        return;
+    }
+    
+    tbody.innerHTML = subscriptions.map(sub => {
+        const initials = sub.user_name.split(' ').map(n => n[0]).join('').toUpperCase();
+        const creditsPercent = (sub.credits / 8) * 100;
+        const statusColor = sub.status === 'active' ? 'bg-emerald-100 text-emerald-600' : 'bg-red-100 text-red-600';
+        const statusText = sub.status === 'active' ? 'نشط' : 'منتهي';
+        
+        return `
+            <tr class="hover:bg-slate-50/50 transition-colors group">
+                <td class="px-6 py-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 font-black text-xs">
+                            ${initials}
+                        </div>
+                        <div>
+                            <div class="font-black text-slate-800 text-sm">${sub.user_name}</div>
+                            <div class="text-[10px] font-bold text-slate-400">${sub.phone_number || 'بدون هاتف'}</div>
+                        </div>
+                    </div>
+                </td>
+                <td class="px-6 py-4">
+                    <div class="flex items-center gap-3">
+                        <div class="flex-grow bg-slate-100 h-1.5 rounded-full overflow-hidden max-w-[100px]">
+                            <div class="h-full bg-orange-500" style="width: ${creditsPercent}%"></div>
+                        </div>
+                        <span class="font-black text-slate-700 text-sm">${sub.credits}/8</span>
+                    </div>
+                </td>
+                <td class="px-6 py-4 font-bold text-slate-600 text-sm">${new Date(sub.end_date).toLocaleDateString('he-IL')}</td>
+                <td class="px-6 py-4">
+                    <span class="${statusColor} px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">${statusText}</span>
+                </td>
+                <td class="px-6 py-4">
+                    <div class="flex items-center justify-center gap-2">
+                        <button onclick="editSubscription(${sub.id})" class="w-8 h-8 rounded-lg bg-slate-100 text-slate-400 flex items-center justify-center hover:bg-blue-50 hover:text-blue-600 transition-all">
+                            <i class="fa-solid fa-pen-to-square text-xs"></i>
+                        </button>
+                        <button onclick="cancelSubscription(${sub.id})" class="w-8 h-8 rounded-lg bg-slate-100 text-slate-400 flex items-center justify-center hover:bg-red-50 hover:text-red-600 transition-all">
+                            <i class="fa-solid fa-trash-can text-xs"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `;
+    }).join('');
+}
+
+function renderTrainingAttendance(attendance) {
+    const list = document.getElementById('recent-attendance-list');
+    if (!list) return;
+    
+    if (!attendance || attendance.length === 0) {
+        list.innerHTML = '<p class="text-center text-slate-400 font-bold py-4">لا يوجد سجلات حضور مؤخراً</p>';
+        return;
+    }
+    
+    list.innerHTML = attendance.map(log => `
+        <div class="flex items-center gap-4 p-3 rounded-2xl border border-slate-50 hover:bg-slate-50 transition-colors">
+            <div class="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600">
+                <i class="fa-solid fa-check"></i>
+            </div>
+            <div class="flex-grow">
+                <h6 class="font-black text-slate-800 text-sm">${log.user_name}</h6>
+                <p class="text-[10px] font-bold text-slate-400">${new Date(log.attended_at).toLocaleString('he-IL')}</p>
+            </div>
+            <div class="text-right">
+                <span class="text-[9px] font-black text-blue-500 uppercase">بواسطة: ${log.coach_name || 'مدير'}</span>
+            </div>
+        </div>
+    `).join('');
+}
+
+function renderCoachesList(coaches) {
+    const grid = document.getElementById('coaches-grid');
+    if (!grid) return;
+    
+    if (!coaches || coaches.length === 0) {
+        grid.innerHTML = '<div class="col-span-full py-12 text-center text-slate-400 font-bold">لا يوجد مدربين مضافين</div>';
+        return;
+    }
+    
+    grid.innerHTML = coaches.map(coach => {
+        const initials = coach.name.split(' ').map(n => n[0]).join('').toUpperCase();
+        return `
+            <div class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm hover:shadow-xl hover:border-indigo-100 transition-all group relative">
+                <div class="flex items-center gap-4 mb-6">
+                    <div class="w-14 h-14 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600 font-black text-lg group-hover:bg-indigo-600 group-hover:text-white transition-all">
+                        <i class="fa-solid fa-user-tie text-xl"></i>
+                    </div>
+                    <div>
+                        <h5 class="font-black text-slate-800">${coach.name}</h5>
+                        <p class="text-xs font-bold text-slate-400">${coach.phone_number}</p>
+                    </div>
+                </div>
+                
+                <div class="flex items-center gap-2">
+                    <button onclick="regenerateCoachPassword(${coach.id})" 
+                        class="flex-grow bg-slate-50 text-slate-600 py-3 rounded-xl font-bold text-xs hover:bg-indigo-50 hover:text-indigo-600 transition-all flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-key"></i>
+                        تغيير كلمة المرور
+                    </button>
+                    <button onclick="deleteCoach(${coach.id})" 
+                        class="w-11 h-11 bg-slate-50 text-slate-400 rounded-xl hover:bg-red-50 hover:text-red-600 transition-all flex items-center justify-center">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function renderTrainingSchedules(schedules) {
+    const grid = document.getElementById('training-schedules-grid');
+    if (!grid) return;
+
+    if (!schedules || schedules.length === 0) {
+        grid.innerHTML = '<div class="col-span-full py-12 text-center text-slate-400 font-bold">لا يوجد أوقات تدريب مضافة</div>';
+        return;
+    }
+
+    const days = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+
+    grid.innerHTML = schedules.map(schedule => {
+        const isWeekly = schedule.day_of_week !== null;
+        const timeStr = `${schedule.start_time} - ${schedule.end_time}`;
+        const dayStr = isWeekly ? days[schedule.day_of_week] : new Date(schedule.specific_date).toLocaleDateString('he-IL');
+        const typeBadge = isWeekly ? 'أسبوعي' : 'يوم محدد';
+        const typeClass = isWeekly ? 'bg-indigo-100 text-indigo-600' : 'bg-amber-100 text-amber-600';
+
+        return `
+            <div class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm hover:shadow-xl transition-all group">
+                <div class="flex items-start justify-between mb-4">
+                    <div class="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-all">
+                        <i class="fa-solid ${isWeekly ? 'fa-calendar-week' : 'fa-calendar-day'} text-xl"></i>
+                    </div>
+                    <span class="${typeClass} px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">${typeBadge}</span>
+                </div>
+                
+                <div class="mb-6">
+                    <h5 class="font-black text-slate-800 text-lg mb-1">${dayStr}</h5>
+                    <p class="text-sm font-bold text-slate-500 flex items-center gap-2">
+                        <i class="fa-solid fa-clock text-xs"></i>
+                        ${timeStr}
+                    </p>
+                    <p class="text-xs font-bold text-indigo-500 mt-2 flex items-center gap-2">
+                        <i class="fa-solid fa-location-dot text-xs"></i>
+                        ${schedule.field_name}
+                    </p>
+                </div>
+
+                <button onclick="deleteTrainingSchedule(${schedule.id})" 
+                    class="w-full bg-slate-50 text-slate-400 py-3 rounded-xl font-bold text-xs hover:bg-red-50 hover:text-red-600 transition-all flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-trash-can"></i>
+                    حذف الوقت
+                </button>
+            </div>
+        `;
+    }).join('');
+}
+
+function openAddCoachModal() {
+    document.getElementById('add-coach-modal').classList.remove('hidden');
+    document.getElementById('add-coach-form').reset();
+}
+
+function closeAddCoachModal() {
+    document.getElementById('add-coach-modal').classList.add('hidden');
+}
+
+function generateRandomPassword() {
+    const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*';
+    let password = '';
+    for (let i = 0; i < 10; i++) {
+        password += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    document.getElementById('coach-password-input').value = password;
+}
+
+async function handleAddCoach() {
+    const name = document.getElementById('coach-name-input').value;
+    const phone = document.getElementById('coach-phone-input').value;
+    const password = document.getElementById('coach-password-input').value;
+
+    if (!name || !phone || !password) return;
+
+    try {
+        const response = await fetch('/api/admin/coaches', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, phone, password }),
+            credentials: 'include'
+        });
+
+        if (response.ok) {
+            showMessageBox('تم بنجاح', 'تم إنشاء حساب المدرب بنجاح.', 'success');
+            closeAddCoachModal();
+            fetchTrainingData();
+        } else {
+            const err = await response.json();
+            showMessageBox('خطأ', err.error || 'فشل إنشاء الحساب', 'error');
+        }
+    } catch (error) {
+        console.error('Add coach failed:', error);
+        showMessageBox('خطأ', 'فشل الاتصال بالخادم', 'error');
+    }
+}
+
+async function regenerateCoachPassword(id) {
+    const newPassword = prompt('أدخل كلمة المرور الجديدة:');
+    if (!newPassword) return;
+
+    try {
+        const response = await fetch(`/api/admin/coaches/${id}/password`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ password: newPassword }),
+            credentials: 'include'
+        });
+
+        if (response.ok) {
+            showMessageBox('تم بنجاح', 'تم تحديث كلمة المرور بنجاح.', 'success');
+        } else {
+            const err = await response.json();
+            showMessageBox('خطأ', err.error || 'فشل تحديث كلمة المرور', 'error');
+        }
+    } catch (error) {
+        console.error('Password reset failed:', error);
+        showMessageBox('خطأ', 'فشل الاتصال بالخادم', 'error');
+    }
+}
+
+async function deleteCoach(id) {
+    if (!confirm('هل أنت متأكد من حذف هذا المدرب؟')) return;
+
+    try {
+        const response = await fetch(`/api/admin/coaches/${id}`, {
+            method: 'DELETE',
+            credentials: 'include'
+        });
+
+        if (response.ok) {
+            showMessageBox('تم بنجاح', 'تم حذف المدرب بنجاح.', 'success');
+            fetchTrainingData();
+        } else {
+            const err = await response.json();
+            showMessageBox('خطأ', err.error || 'فشل حذف المدرب', 'error');
+        }
+    } catch (error) {
+        console.error('Delete coach failed:', error);
+        showMessageBox('خطأ', 'فشل الاتصال بالخادم', 'error');
+    }
+}
+
+function openAddSubscriberModal() {
+    document.getElementById('add-subscriber-modal').classList.remove('hidden');
+    document.getElementById('sub-start-date').valueAsDate = new Date();
+}
+
+function closeAddSubscriberModal() {
+    document.getElementById('add-subscriber-modal').classList.add('hidden');
+}
+
+// --- Training Schedule Management ---
+function openAddTrainingSlotModal() {
+    document.getElementById('add-training-slot-modal').classList.remove('hidden');
+    document.getElementById('add-training-slot-form').reset();
+    toggleScheduleType(); // Reset visibility
+}
+
+function closeAddTrainingSlotModal() {
+    document.getElementById('add-training-slot-modal').classList.add('hidden');
+}
+
+function toggleScheduleType() {
+    const type = document.querySelector('input[name="schedule-type"]:checked').value;
+    const dateContainer = document.getElementById('specific-date-container');
+    const dayContainer = document.getElementById('weekly-day-container');
+    
+    if (type === 'date') {
+        dateContainer.classList.remove('hidden');
+        dayContainer.classList.add('hidden');
+    } else {
+        dateContainer.classList.add('hidden');
+        dayContainer.classList.remove('hidden');
+    }
+}
+
+async function handleAddTrainingSchedule() {
+    const fieldId = document.getElementById('training-field-select').value;
+    const type = document.querySelector('input[name="schedule-type"]:checked').value;
+    const startTime = document.getElementById('training-start-time').value;
+    const endTime = document.getElementById('training-end-time').value;
+    
+    let payload = {
+        fieldId,
+        startTime,
+        endTime,
+        dayOfWeek: null,
+        specificDate: null
+    };
+
+    if (type === 'date') {
+        payload.specificDate = document.getElementById('training-date').value;
+        if (!payload.specificDate) return showMessageBox('خطأ', 'يرجى اختيار التاريخ', 'error');
+    } else {
+        payload.dayOfWeek = parseInt(document.getElementById('training-day').value);
+    }
+
+    if (!fieldId || !startTime || !endTime) {
+        return showMessageBox('خطأ', 'يرجى إكمال جميع الحقول', 'error');
+    }
+
+    try {
+        const response = await fetch('/api/admin/training-schedules', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+            credentials: 'include'
+        });
+
+        if (response.ok) {
+            showMessageBox('تم بنجاح', 'تم إضافة وقت التدريب بنجاح.', 'success');
+            closeAddTrainingSlotModal();
+            fetchTrainingData();
+        } else {
+            const err = await response.json();
+            showMessageBox('خطأ', err.error || 'فشل إضافة الوقت', 'error');
+        }
+    } catch (error) {
+        console.error('Add training schedule failed:', error);
+        showMessageBox('خطأ', 'فشل الاتصال بالخادم', 'error');
+    }
+}
+
+async function deleteTrainingSchedule(id) {
+    if (!confirm('هل أنت متأكد من حذف وقت التدريب هذا؟')) return;
+
+    try {
+        const response = await fetch(`/api/admin/training-schedules/${id}`, {
+            method: 'DELETE',
+            credentials: 'include'
+        });
+
+        if (response.ok) {
+            fetchTrainingData();
+        } else {
+            const err = await response.json();
+            showMessageBox('خطأ', err.error || 'فشل الحذف', 'error');
+        }
+    } catch (error) {
+        console.error('Delete training schedule failed:', error);
+    }
+}
+
+async function searchPlayersForSubscription(query) {
+    const resultsDiv = document.getElementById('player-search-results');
+    if (!query || query.length < 2) {
+        resultsDiv.classList.add('hidden');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/api/admin/players/search?query=${encodeURIComponent(query)}`, { credentials: 'include' });
+        const data = await response.json();
+        const players = data.players || [];
+        
+        if (players.length === 0) {
+            resultsDiv.innerHTML = '<div class="p-4 text-slate-400 text-sm text-center">لا يوجد نتائج</div>';
+        } else {
+            resultsDiv.innerHTML = players.map(p => `
+                <div onclick="selectPlayerForSubscription(${p.id}, '${p.name}', '${p.phone_number || ''}')" 
+                    class="p-4 hover:bg-slate-50 cursor-pointer border-b border-slate-50 last:border-0 flex items-center justify-between group">
+                    <div>
+                        <div class="font-black text-slate-800">${p.name}</div>
+                        <div class="text-xs text-slate-400 font-bold">${p.phone_number || 'بدون هاتف'}</div>
+                    </div>
+                    <i class="fa-solid fa-plus text-slate-300 group-hover:text-orange-500 transition-colors"></i>
+                </div>
+            `).join('');
+        }
+        resultsDiv.classList.remove('hidden');
+    } catch (error) {
+        console.error('Player search failed:', error);
+    }
+}
+
+function selectPlayerForSubscription(id, name, phone) {
+    window.selectedPlayerForSub = { id, name, phone };
+    document.getElementById('selected-player-name').textContent = name;
+    document.getElementById('selected-player-phone').textContent = phone || 'بدون هاتف';
+    document.getElementById('selected-player-initials').textContent = name.split(' ').map(n => n[0]).join('').toUpperCase();
+    
+    document.getElementById('selected-player-info').classList.remove('hidden');
+    document.getElementById('player-search-results').classList.add('hidden');
+    document.getElementById('player-search-input').value = '';
+    document.getElementById('confirm-sub-btn').disabled = false;
+}
+
+function clearSelectedPlayer() {
+    window.selectedPlayerForSub = null;
+    document.getElementById('selected-player-info').classList.add('hidden');
+    document.getElementById('confirm-sub-btn').disabled = true;
+    document.getElementById('player-search-input').value = '';
+}
+
+async function confirmSubscription() {
+    if (!window.selectedPlayerForSub) return;
+    
+    const startDate = document.getElementById('sub-start-date').value;
+    const credits = document.getElementById('sub-credits').value;
+    
+    try {
+        const response = await fetch('/api/admin/trainings/subscribe', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                userId: window.selectedPlayerForSub.id,
+                startDate,
+                credits
+            }),
+            credentials: 'include'
+        });
+        
+        if (response.ok) {
+            showMessageBox('تم التفعيل', 'تم إضافة اللاعب لنظام التمارين بنجاح.', 'success');
+            closeAddSubscriberModal();
+            fetchTrainingData();
+        } else {
+            const err = await response.json();
+            showMessageBox('فشل التفعيل', err.error || 'حدث خطأ ما', 'error');
+        }
+    } catch (error) {
+        console.error('Subscription failed:', error);
+        showMessageBox('خطأ', 'فشل الاتصال بالخادم', 'error');
+    }
+}
+
+async function cancelSubscription(id) {
+    if (!confirm('هل أنت متأكد من حذف هذا الاشتراك؟ سيتم مسح جميع بياناته.')) return;
+
+    try {
+        const response = await fetch(`/api/admin/trainings/subscriptions/${id}`, {
+            method: 'DELETE',
+            credentials: 'include'
+        });
+
+        if (response.ok) {
+            showMessageBox('تم الحذف', 'تم حذف الاشتراك بنجاح', 'success');
+            fetchTrainingData();
+        } else {
+            const err = await response.json();
+            alert(err.error || 'فشل الحذف');
+        }
+    } catch (error) {
+        console.error('Cancel failed:', error);
+        alert('خطأ في الاتصال');
+    }
+}
+
+async function editSubscription(id) {
+    // For simplicity, we can use a prompt to edit credits
+    const newCredits = prompt('أدخل عدد الجلسات الجديد:', '8');
+    if (newCredits === null) return;
+
+    const newStatus = confirm('هل الاشتراك لا يزال نشطاً؟ (إلغاء للإغلاق)') ? 'active' : 'expired';
+    
+    try {
+        const response = await fetch(`/api/admin/trainings/subscriptions/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                credits: parseInt(newCredits),
+                status: newStatus,
+                end_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] // Extend by 30 days or keep current
+            }),
+            credentials: 'include'
+        });
+
+        if (response.ok) {
+            showMessageBox('تم التحديث', 'تم تحديث بيانات الاشتراك', 'success');
+            fetchTrainingData();
+        } else {
+            const err = await response.json();
+            alert(err.error || 'فشل التحديث');
+        }
+    } catch (error) {
+        console.error('Edit failed:', error);
+        alert('خطأ في الاتصال');
+    }
+}
+
 function populateFieldDropdowns(fields) {
     const availabilitySelect = document.getElementById('availability-field-select');
     const masterFieldSelect = document.getElementById('master-field-select');
     const resFilterField = document.getElementById('res-filter-field');
     const tournamentSelect = document.getElementById('tournament-field');
+    const trainingSelect = document.getElementById('training-field-select');
 
     if (availabilitySelect) availabilitySelect.innerHTML = '<option value="">كل الملاعب</option>';
     if (masterFieldSelect) masterFieldSelect.innerHTML = '<option value="">كل الملاعب</option>';
     if (resFilterField) resFilterField.innerHTML = '<option value="">جميع الملاعب</option>';
     if (tournamentSelect) tournamentSelect.innerHTML = '';
+    if (trainingSelect) trainingSelect.innerHTML = '<option value="">اختر الملعب...</option>';
 
     fields.forEach(field => {
         const option = document.createElement('option');
@@ -1149,6 +1729,7 @@ function populateFieldDropdowns(fields) {
         if (availabilitySelect) availabilitySelect.appendChild(option.cloneNode(true));
         if (masterFieldSelect) masterFieldSelect.appendChild(option.cloneNode(true));
         if (resFilterField) resFilterField.appendChild(option.cloneNode(true));
+        if (trainingSelect) trainingSelect.appendChild(option.cloneNode(true));
 
         if (tournamentSelect) {
             const optionTourn = document.createElement('option');
@@ -1321,11 +1902,13 @@ async function loadAnalytics() {
 
         const recentContainer = document.getElementById('recent-reservations');
         if (data.recentReservations && data.recentReservations.length > 0) {
-            recentContainer.innerHTML = data.recentReservations.map(reservation => `
+            recentContainer.innerHTML = data.recentReservations.map(reservation => {
+                const initials = reservation.user_name ? reservation.user_name.split(' ').map(n => n[0]).join('').toUpperCase() : '??';
+                return `
                         <div class="flex items-center justify-between p-5 bg-slate-50 rounded-2xl border border-slate-100 hover:bg-white hover:shadow-lg hover:shadow-slate-200/50 transition-all duration-300 group">
                             <div class="flex items-center gap-4">
-                                <div class="w-12 h-12 rounded-xl bg-white flex items-center justify-center text-slate-400 border border-slate-100 group-hover:text-emerald-500 transition-colors">
-                                    <i class="fa-solid fa-calendar-check text-xl"></i>
+                                <div class="w-12 h-12 rounded-xl bg-white flex items-center justify-center text-slate-400 border border-slate-100 group-hover:text-emerald-500 transition-colors font-black text-sm">
+                                    ${initials}
                                 </div>
                                 <div>
                                     <p class="font-black text-slate-800">${reservation.user_name}</p>
@@ -1337,7 +1920,8 @@ async function loadAnalytics() {
                                 <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">مدفوع</p>
                             </div>
                         </div>
-                    `).join('');
+                    `;
+            }).join('');
         } else {
             recentContainer.innerHTML = `
                                 <div class="py-12 text-center text-slate-400 bg-slate-50 rounded-2xl border border-dashed border-slate-200">

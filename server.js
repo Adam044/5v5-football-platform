@@ -70,7 +70,7 @@ app.use(helmet.contentSecurityPolicy({
             "https://cdnjs.cloudflare.com",
             "https://site-assets.fontawesome.com"
         ],
-        "connect-src": ["'self'", "https:"]
+        "connect-src": ["'self'", "https:", "https://cdnjs.cloudflare.com"]
     }
 }));
 
