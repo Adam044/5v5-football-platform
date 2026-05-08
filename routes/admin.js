@@ -5,6 +5,54 @@ const pool = require('../database');
 const { checkAdmin, checkCoachOrAdmin } = require('../middleware/auth');
 const { uploadImageToStorage, deleteImageFromStorage } = require('../config/supabase');
 
+// --- Spain Camp Management ---
+
+router.get('/spain-camp/applications', checkAdmin, async (req, res) => {
+    try {
+        const { rows } = await pool.query(`
+            SELECT a.*, u.name as user_account_name, u.email as user_account_email
+            FROM spain_camp_applications a
+            JOIN users u ON a.user_id = u.id
+            ORDER BY a.created_at DESC
+        `);
+        res.json({ applications: rows });
+    } catch (err) {
+        console.error('Error fetching spain camp applications:', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+router.put('/spain-camp/applications/:id/status', checkAdmin, async (req, res) => {
+    const { id } = req.params;
+    const { status } = req.body;
+    
+    if (!['pending', 'reviewed', 'accepted', 'rejected'].includes(status)) {
+        return res.status(400).json({ error: 'Invalid status' });
+    }
+
+    try {
+        const { rowCount } = await pool.query(
+            'UPDATE spain_camp_applications SET status = $1 WHERE id = $2',
+            [status, id]
+        );
+        if (rowCount === 0) return res.status(404).json({ error: 'Application not found' });
+        res.json({ message: 'Status updated successfully' });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+router.delete('/spain-camp/applications/:id', checkAdmin, async (req, res) => {
+    const { id } = req.params;
+    try {
+        const { rowCount } = await pool.query('DELETE FROM spain_camp_applications WHERE id = $1', [id]);
+        if (rowCount === 0) return res.status(404).json({ error: 'Application not found' });
+        res.json({ message: 'Application deleted successfully' });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // --- Fields Management ---
 
 router.get('/fields', checkAdmin, async (req, res) => {

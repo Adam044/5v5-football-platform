@@ -214,6 +214,7 @@ function setActiveTab(tabId, event, sectionId = null) {
         if (tabId === 'reservations-tab') activeTabButton.classList.add('bg-emerald-50', 'text-emerald-600');
         if (tabId === 'availability-tab') activeTabButton.classList.add('bg-purple-50', 'text-purple-600');
         if (tabId === 'trainings-tab') activeTabButton.classList.add('bg-orange-50', 'text-orange-600');
+        if (tabId === 'spain-camp-tab') activeTabButton.classList.add('bg-emerald-50', 'text-emerald-600');
     }
     
     if (activeTabPane) {
@@ -251,6 +252,7 @@ function setActiveTab(tabId, event, sectionId = null) {
         case 'players-tab': fetchPlayers(); break;
         case 'fashion-tab': fetchFashionProducts(); break;
         case 'giveaways-tab': fetchAdminGiveaways(); break;
+        case 'spain-camp-tab': fetchSpainApplications(); break;
     }
 }
 
@@ -3772,3 +3774,281 @@ async function handleDeleteFashion(id) {
 // Removed standalone event listeners and moved to initDashboardEvents()
 
 // Use global handleLogout from header.js for consistent CSRF-secure logout
+
+// --- Modal Helpers ---
+function showModal(id) {
+    const modal = document.getElementById(id);
+    if (modal) {
+        modal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+function closeModal(id) {
+    const modal = document.getElementById(id);
+    if (modal) {
+        modal.classList.add('hidden');
+        document.body.style.overflow = '';
+    }
+}
+
+// --- Spain Camp Management Logic ---
+
+let allSpainApplications = [];
+
+async function fetchSpainApplications() {
+    const tableBody = document.getElementById('spain-apps-table-body');
+    if (!tableBody) return;
+
+    tableBody.innerHTML = '<tr><td colspan="6" class="py-20 text-center text-slate-400 font-bold">جاري تحميل الطلبات...</td></tr>';
+
+    try {
+        const response = await fetch('/api/admin/spain-camp/applications');
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Server error response:', errorText);
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        allSpainApplications = data.applications || [];
+        
+        renderSpainApplications(allSpainApplications);
+        updateSpainStats(allSpainApplications);
+    } catch (err) {
+        console.error('Fetch Spain apps error:', err);
+        tableBody.innerHTML = '<tr><td colspan="6" class="py-20 text-center text-rose-500 font-bold">فشل تحميل البيانات.</td></tr>';
+    }
+}
+
+function updateSpainStats(apps) {
+    const total = apps.length;
+    const pending = apps.filter(a => a.status === 'pending').length;
+    
+    animateCounter('spain-total-apps', total);
+    animateCounter('spain-pending-apps', pending);
+}
+
+function renderSpainApplications(apps) {
+    const tableBody = document.getElementById('spain-apps-table-body');
+    if (!tableBody) return;
+
+    if (apps.length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="6" class="py-20 text-center text-slate-400 font-bold">لا توجد طلبات لعرضها</td></tr>';
+        return;
+    }
+
+    tableBody.innerHTML = apps.map(app => {
+        const age = Math.floor((new Date() - new Date(app.player_dob)) / (1000 * 60 * 60 * 24 * 365.25));
+        const dateStr = new Date(app.created_at).toLocaleDateString('ar-EG');
+        
+        return `
+            <tr class="border-b border-slate-50 hover:bg-slate-50/50 transition-colors group">
+                <td class="px-8 py-6">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-black text-xs">
+                            ${app.player_full_name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                        </div>
+                        <div>
+                            <p class="font-black text-slate-800">${app.player_full_name}</p>
+                            <p class="text-[10px] text-slate-400 font-bold">${app.player_phone}</p>
+                        </div>
+                    </div>
+                </td>
+                <td class="px-8 py-6 text-center">
+                    <span class="bg-slate-100 text-slate-600 py-1 px-3 rounded-lg text-xs font-black">${age} سنة</span>
+                </td>
+                <td class="px-8 py-6">
+                    <p class="font-bold text-slate-700 text-sm">${app.parent_full_name}</p>
+                    <p class="text-[10px] text-slate-400 font-medium">${app.parent_relation}</p>
+                </td>
+                <td class="px-8 py-6 text-center">
+                    ${getSpainStatusBadge(app.status)}
+                </td>
+                <td class="px-8 py-6 text-center text-xs font-bold text-slate-400">
+                    ${dateStr}
+                </td>
+                <td class="px-8 py-6 text-left">
+                    <div class="flex items-center justify-end gap-2">
+                        <button onclick="viewSpainApplicationDetails(${app.id})" class="w-10 h-10 bg-slate-50 text-slate-400 rounded-xl hover:bg-emerald-50 hover:text-emerald-600 transition-all flex items-center justify-center">
+                            <i class="fa-solid fa-eye text-sm"></i>
+                        </button>
+                        <button onclick="deleteSpainApplication(${app.id})" class="w-10 h-10 bg-slate-50 text-slate-400 rounded-xl hover:bg-rose-50 hover:text-rose-600 transition-all flex items-center justify-center">
+                            <i class="fa-solid fa-trash-can text-sm"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `;
+    }).join('');
+}
+
+function getSpainStatusBadge(status) {
+    const map = {
+        'pending': { text: 'قيد الانتظار', class: 'bg-amber-50 text-amber-600' },
+        'reviewed': { text: 'تمت المراجعة', class: 'bg-blue-50 text-blue-600' },
+        'accepted': { text: 'مقبول', class: 'bg-emerald-50 text-emerald-600' },
+        'rejected': { text: 'مرفوض', class: 'bg-rose-50 text-rose-600' }
+    };
+    const s = map[status] || map.pending;
+    return `<span class="${s.class} py-1.5 px-4 rounded-full text-[10px] font-black uppercase tracking-wider">${s.text}</span>`;
+}
+
+function filterSpainApplications() {
+    const query = document.getElementById('spain-app-search').value.toLowerCase();
+    const status = document.getElementById('spain-status-filter').value;
+
+    const filtered = allSpainApplications.filter(app => {
+        const matchesQuery = app.player_full_name.toLowerCase().includes(query) || 
+                            app.parent_full_name.toLowerCase().includes(query) ||
+                            app.player_phone.includes(query);
+        const matchesStatus = status === 'all' || app.status === status;
+        return matchesQuery && matchesStatus;
+    });
+
+    renderSpainApplications(filtered);
+}
+
+function viewSpainApplicationDetails(id) {
+    const app = allSpainApplications.find(a => a.id === id);
+    if (!app) return;
+
+    document.getElementById('detail-app-id').textContent = `#APP-${String(app.id).padStart(4, '0')}`;
+    const content = document.getElementById('spain-app-modal-content');
+    
+    content.innerHTML = `
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
+            <!-- Left: Info -->
+            <div class="lg:col-span-2 space-y-10">
+                <!-- Player Box -->
+                <div class="bg-slate-50 rounded-[2rem] p-8 border border-slate-100">
+                    <h4 class="text-lg font-black text-slate-800 mb-6 flex items-center gap-3">
+                        <i class="fa-solid fa-user text-emerald-500"></i> بيانات اللاعب
+                    </h4>
+                    <div class="grid grid-cols-2 gap-8">
+                        <div><p class="text-[10px] font-black text-slate-400 uppercase">الاسم الكامل</p><p class="font-bold text-slate-800">${app.player_full_name}</p></div>
+                        <div><p class="text-[10px] font-black text-slate-400 uppercase">تاريخ الميلاد</p><p class="font-bold text-slate-800">${new Date(app.player_dob).toLocaleDateString('ar-EG')}</p></div>
+                        <div><p class="text-[10px] font-black text-slate-400 uppercase">الهاتف</p><p class="font-bold text-slate-800">${app.player_phone}</p></div>
+                        <div><p class="text-[10px] font-black text-slate-400 uppercase">الجنسية</p><p class="font-bold text-slate-800">${app.player_nationality}</p></div>
+                        <div><p class="text-[10px] font-black text-slate-400 uppercase">رقم الهوية</p><p class="font-bold text-slate-800">${app.player_id_number}</p></div>
+                        <div><p class="text-[10px] font-black text-slate-400 uppercase">رقم الجواز</p><p class="font-bold text-slate-800">${app.player_passport_number}</p></div>
+                        <div class="col-span-full"><p class="text-[10px] font-black text-slate-400 uppercase">العنوان</p><p class="font-bold text-slate-800">${app.player_address}</p></div>
+                    </div>
+                </div>
+
+                <!-- Parent Box -->
+                <div class="bg-slate-50 rounded-[2rem] p-8 border border-slate-100">
+                    <h4 class="text-lg font-black text-slate-800 mb-6 flex items-center gap-3">
+                        <i class="fa-solid fa-users-rectangle text-emerald-500"></i> بيانات ولي الأمر
+                    </h4>
+                    <div class="grid grid-cols-2 gap-8">
+                        <div><p class="text-[10px] font-black text-slate-400 uppercase">الاسم الكامل</p><p class="font-bold text-slate-800">${app.parent_full_name}</p></div>
+                        <div><p class="text-[10px] font-black text-slate-400 uppercase">صلة القرابة</p><p class="font-bold text-slate-800">${app.parent_relation}</p></div>
+                        <div><p class="text-[10px] font-black text-slate-400 uppercase">الهاتف</p><p class="font-bold text-slate-800">${app.parent_phone}</p></div>
+                        <div><p class="text-[10px] font-black text-slate-400 uppercase">رقم الجواز</p><p class="font-bold text-slate-800">${app.parent_passport_number}</p></div>
+                    </div>
+                </div>
+
+                <!-- Health Box -->
+                <div class="bg-slate-50 rounded-[2rem] p-8 border border-slate-100">
+                    <h4 class="text-lg font-black text-slate-800 mb-6 flex items-center gap-3">
+                        <i class="fa-solid fa-heart-pulse text-rose-500"></i> المعلومات الصحية والسفر
+                    </h4>
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between p-4 bg-white rounded-xl">
+                            <span class="text-sm font-bold text-slate-600">أمراض مزمنة؟</span>
+                            <span class="font-black ${app.has_chronic_diseases ? 'text-rose-500' : 'text-emerald-500'}">${app.has_chronic_diseases ? 'نعم (' + app.chronic_diseases_details + ')' : 'لا'}</span>
+                        </div>
+                        <div class="flex items-center justify-between p-4 bg-white rounded-xl">
+                            <span class="text-sm font-bold text-slate-600">أدوية منتظمة؟</span>
+                            <span class="font-black ${app.takes_regular_medications ? 'text-rose-500' : 'text-emerald-500'}">${app.takes_regular_medications ? 'نعم (' + app.regular_medications_details + ')' : 'لا'}</span>
+                        </div>
+                        <div class="flex items-center justify-between p-4 bg-white rounded-xl">
+                            <span class="text-sm font-bold text-slate-600">حساسية؟</span>
+                            <span class="font-black ${app.has_allergies ? 'text-rose-500' : 'text-emerald-500'}">${app.has_allergies ? 'نعم (' + app.allergies_details + ')' : 'لا'}</span>
+                        </div>
+                        <div class="flex items-center justify-between p-4 bg-white rounded-xl border-t-2 border-slate-50 pt-6">
+                            <span class="text-sm font-bold text-slate-600">سافر لأوروبا سابقاً؟</span>
+                            <span class="font-black text-slate-800">${app.traveled_to_europe ? 'نعم' : 'لا'}</span>
+                        </div>
+                        <div class="flex items-center justify-between p-4 bg-white rounded-xl">
+                            <span class="text-sm font-bold text-slate-600">تأشيرة شنغن؟</span>
+                            <span class="font-black text-slate-800">${app.has_schengen_visa ? 'نعم' : 'لا'}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Attachments -->
+            <div class="space-y-8">
+                <div class="bg-white rounded-[2rem] border border-slate-100 p-6 shadow-sm">
+                    <p class="text-[10px] font-black text-slate-400 uppercase mb-4">صورة اللاعب الشخصية</p>
+                    <img src="${app.player_personal_image || '/images/placeholder.jpg'}" class="w-full rounded-2xl border border-slate-100 shadow-sm" alt="Player">
+                </div>
+                <div class="bg-white rounded-[2rem] border border-slate-100 p-6 shadow-sm">
+                    <p class="text-[10px] font-black text-slate-400 uppercase mb-4">جواز سفر اللاعب</p>
+                    <img src="${app.player_passport_image || '/images/placeholder.jpg'}" class="w-full rounded-2xl border border-slate-100 shadow-sm" alt="Passport">
+                </div>
+                <div class="bg-white rounded-[2rem] border border-slate-100 p-6 shadow-sm">
+                    <p class="text-[10px] font-black text-slate-400 uppercase mb-4">جواز سفر ولي الأمر</p>
+                    <img src="${app.parent_passport_image || '/images/placeholder.jpg'}" class="w-full rounded-2xl border border-slate-100 shadow-sm" alt="Parent Passport">
+                </div>
+                
+                <div class="bg-emerald-50 rounded-2xl p-6 text-center">
+                    <p class="text-[10px] font-black text-emerald-600 uppercase mb-2">توقيع اللاعب</p>
+                    <p class="font-black text-slate-800 italic">"${app.player_signature}"</p>
+                </div>
+                <div class="bg-emerald-50 rounded-2xl p-6 text-center">
+                    <p class="text-[10px] font-black text-emerald-600 uppercase mb-2">توقيع ولي الأمر</p>
+                    <p class="font-black text-slate-800 italic">"${app.parent_signature}"</p>
+                </div>
+            </div>
+        </div>
+    `;
+
+    // Action Buttons
+    document.getElementById('detail-accept-btn').onclick = () => updateSpainApplicationStatus(app.id, 'accepted');
+    document.getElementById('detail-reject-btn').onclick = () => updateSpainApplicationStatus(app.id, 'rejected');
+    document.getElementById('detail-review-btn').onclick = () => updateSpainApplicationStatus(app.id, 'reviewed');
+
+    showModal('spain-app-details-modal');
+}
+
+async function updateSpainApplicationStatus(id, status) {
+    try {
+        const response = await fetch(`/api/admin/spain-camp/applications/${id}/status`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status })
+        });
+
+        if (response.ok) {
+            showMessageBox('تم التحديث', 'تم تغيير حالة الطلب بنجاح.', 'success');
+            closeModal('spain-app-details-modal');
+            fetchSpainApplications();
+        } else {
+            const err = await response.json();
+            alert(err.error || 'فشل تحديث الحالة');
+        }
+    } catch (err) {
+        console.error('Update status error:', err);
+    }
+}
+
+async function deleteSpainApplication(id) {
+    if (!confirm('هل أنت متأكد من حذف هذا الطلب نهائياً؟')) return;
+
+    try {
+        const response = await fetch(`/api/admin/spain-camp/applications/${id}`, {
+            method: 'DELETE'
+        });
+
+        if (response.ok) {
+            showMessageBox('تم الحذف', 'تم مسح الطلب من النظام.', 'success');
+            fetchSpainApplications();
+        } else {
+            alert('فشل الحذف');
+        }
+    } catch (err) {
+        console.error('Delete app error:', err);
+    }
+}

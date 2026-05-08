@@ -37,6 +37,14 @@ router.post('/apply', requireAuth, async (req, res) => {
     const data = req.body;
 
     try {
+        // 0. Check Deadline (15 May 2026)
+        const deadline = new Date('2026-05-15T23:59:59');
+        if (new Date() > deadline) {
+            return res.status(400).json({ 
+                error: 'عذراً، انتهى الموعد النهائي للتقديم لمعسكر إسبانيا (15 مايو 2026).' 
+            });
+        }
+
         // 1. Verify eligibility (Age < 14)
         const userRes = await pool.query('SELECT birthdate FROM users WHERE id = $1', [userId]);
         const birthdate = userRes.rows[0]?.birthdate;

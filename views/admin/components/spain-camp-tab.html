@@ -1,0 +1,111 @@
+<div id="spain-camp-tab" class="tab-pane hidden animate-fade-in">
+    <!-- Header & Stats -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
+        <div>
+            <h2 class="text-3xl font-black text-slate-800 tracking-tight flex items-center gap-3">
+                <i class="fa-solid fa-earth-europe text-emerald-500"></i>
+                طلبات معسكر إسبانيا 2026
+            </h2>
+            <p class="text-slate-500 font-bold mt-1">إدارة ومراجعة طلبات الالتحاق بالمعسكر التدريبي الدولي</p>
+        </div>
+
+        <div class="flex items-center gap-3">
+            <div class="bg-white px-6 py-3 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4">
+                <div class="text-right">
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">إجمالي الطلبات</p>
+                    <p id="spain-total-apps" class="text-xl font-black text-slate-800">0</p>
+                </div>
+                <div class="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center">
+                    <i class="fa-solid fa-file-invoice"></i>
+                </div>
+            </div>
+            <div class="bg-white px-6 py-3 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4">
+                <div class="text-right">
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">قيد الانتظار</p>
+                    <p id="spain-pending-apps" class="text-xl font-black text-amber-500">0</p>
+                </div>
+                <div class="w-10 h-10 bg-amber-50 text-amber-500 rounded-xl flex items-center justify-center">
+                    <i class="fa-solid fa-clock"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters & Search -->
+    <div class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm mb-8 flex flex-wrap items-center justify-between gap-6">
+        <div class="flex items-center gap-4 flex-grow max-w-2xl">
+            <div class="relative flex-grow">
+                <i class="fa-solid fa-search absolute right-5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                <input type="text" id="spain-app-search" oninput="filterSpainApplications()" 
+                    placeholder="البحث باسم اللاعب، ولي الأمر، أو رقم الهاتف..." 
+                    class="w-full bg-slate-50 border-2 border-slate-50 rounded-2xl pr-12 pl-5 py-4 text-sm font-bold focus:bg-white focus:border-emerald-500 outline-none transition-all">
+            </div>
+            <select id="spain-status-filter" onchange="filterSpainApplications()"
+                class="bg-slate-50 border-2 border-slate-50 rounded-2xl px-6 py-4 text-sm font-black text-slate-700 focus:bg-white focus:border-emerald-500 outline-none transition-all cursor-pointer">
+                <option value="all">كل الحالات</option>
+                <option value="pending">قيد الانتظار</option>
+                <option value="reviewed">تمت المراجعة</option>
+                <option value="accepted">مقبول</option>
+                <option value="rejected">مرفوض</option>
+            </select>
+        </div>
+
+        <button onclick="fetchSpainApplications()" class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center hover:bg-emerald-600 hover:text-white transition-all shadow-sm">
+            <i class="fa-solid fa-rotate"></i>
+        </button>
+    </div>
+
+    <!-- Applications List -->
+    <div class="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-right border-collapse">
+                <thead>
+                    <tr class="bg-slate-50/50 border-b border-slate-100">
+                        <th class="px-8 py-6 text-[11px] font-black text-slate-400 uppercase tracking-widest">اللاعب</th>
+                        <th class="px-8 py-6 text-[11px] font-black text-slate-400 uppercase tracking-widest text-center">العمر</th>
+                        <th class="px-8 py-6 text-[11px] font-black text-slate-400 uppercase tracking-widest">ولي الأمر</th>
+                        <th class="px-8 py-6 text-[11px] font-black text-slate-400 uppercase tracking-widest text-center">الحالة</th>
+                        <th class="px-8 py-6 text-[11px] font-black text-slate-400 uppercase tracking-widest text-center">التاريخ</th>
+                        <th class="px-8 py-6 text-[11px] font-black text-slate-400 uppercase tracking-widest text-left">الإجراءات</th>
+                    </tr>
+                </thead>
+                <tbody id="spain-apps-table-body">
+                    <!-- Dynamic Content -->
+                    <tr>
+                        <td colspan="6" class="py-20 text-center text-slate-400 font-bold">جاري تحميل الطلبات...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Spain Application Details Modal -->
+<div id="spain-app-details-modal" class="hidden fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[3000] flex items-center justify-center p-4">
+    <div class="bg-white rounded-[3rem] shadow-2xl w-full max-w-5xl max-h-[90vh] overflow-hidden flex flex-col animate-scale-in">
+        <!-- Header -->
+        <div class="bg-slate-900 p-8 text-white flex items-center justify-between">
+            <div>
+                <h3 class="text-2xl font-black mb-1">تفاصيل طلب المعسكر</h3>
+                <p id="detail-app-id" class="text-emerald-400 font-bold text-xs uppercase tracking-widest">#APP-000</p>
+            </div>
+            <button onclick="closeModal('spain-app-details-modal')" class="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center hover:bg-rose-500 transition-all">
+                <i class="fa-solid fa-times"></i>
+            </button>
+        </div>
+
+        <!-- Content -->
+        <div id="spain-app-modal-content" class="flex-grow overflow-y-auto p-10">
+            <!-- Dynamic Content -->
+        </div>
+
+        <!-- Footer -->
+        <div class="bg-slate-50 p-8 border-t border-slate-100 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <button id="detail-reject-btn" class="px-8 py-4 bg-rose-50 text-rose-600 rounded-2xl font-black hover:bg-rose-600 hover:text-white transition-all">رفض الطلب</button>
+                <button id="detail-review-btn" class="px-8 py-4 bg-amber-50 text-amber-600 rounded-2xl font-black hover:bg-amber-600 hover:text-white transition-all">قيد المراجعة</button>
+            </div>
+            <button id="detail-accept-btn" class="px-10 py-4 bg-emerald-600 text-white rounded-2xl font-black shadow-xl shadow-emerald-500/20 hover:bg-emerald-700 transition-all">قبول الطلب</button>
+        </div>
+    </div>
+</div>

@@ -113,6 +113,7 @@ app.use('/images', express.static(path.join(__dirname, 'components/images')));
 initSchema();
 
 // --- API Route Mounting ---
+app.use('/api/admin', adminRoutes);  // /api/admin/*
 app.use('/api', authRoutes);         // /api/signup, /api/login, /api/me, /api/logout
 app.use('/api/fields', fieldRoutes); // /api/fields, /api/fields/:id/ratings
 app.use('/api', matchmakingRoutes);  // /api/matchmake, /api/team-building/initiate, etc.
@@ -120,7 +121,6 @@ app.use('/api', reservationRoutes);  // /api/reserve, /api/user-reservations/:us
 app.use('/api/tournaments', tournamentRoutes); // /api/tournaments, /api/tournaments/:id/teams, etc.
 app.use('/api/fashion', shopRoutes);         // /api/fashion/products
 app.use('/api/user', userRoutes);    // /api/user/:userId, /api/user/upcoming-birthdays
-app.use('/api/admin', adminRoutes);  // /api/admin/*
 app.use('/api/owner', ownerRoutes);  // /api/owner/login, /api/owner/system-status
 app.use('/api/spain-camp', spainCampRoutes); // /api/spain-camp/apply
 app.use('/api', publicRoutes);       // /api/gallery, /api/sponsors, /api/giveaways, /api/availability, /api/csrf-token, etc.
