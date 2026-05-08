@@ -22,6 +22,7 @@ const shopRoutes = require('./routes/shop');
 const userRoutes = require('./routes/users');
 const adminRoutes = require('./routes/admin');
 const ownerRoutes = require('./routes/owner');
+const spainCampRoutes = require('./routes/spain-camp');
 const publicRoutes = require('./routes/public');
 const pageRoutes = require('./routes/pages');
 
@@ -121,6 +122,7 @@ app.use('/api/fashion', shopRoutes);         // /api/fashion/products
 app.use('/api/user', userRoutes);    // /api/user/:userId, /api/user/upcoming-birthdays
 app.use('/api/admin', adminRoutes);  // /api/admin/*
 app.use('/api/owner', ownerRoutes);  // /api/owner/login, /api/owner/system-status
+app.use('/api/spain-camp', spainCampRoutes); // /api/spain-camp/apply
 app.use('/api', publicRoutes);       // /api/gallery, /api/sponsors, /api/giveaways, /api/availability, /api/csrf-token, etc.
 
 // --- Page Route Mounting ---

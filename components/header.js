@@ -184,6 +184,15 @@ document.addEventListener('DOMContentLoaded', () => {
         document.head.appendChild(style);
 
         const headerHTML = `
+            <!-- Spain Camp Banner -->
+            <div id="spain-camp-banner" class="bg-gradient-to-r from-emerald-600 to-emerald-800 text-white py-2 px-4 text-center text-[10px] md:text-xs font-bold relative overflow-hidden group z-[1001]">
+                <a href="/spain-camp" class="flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-earth-europe animate-pulse"></i>
+                    <span>سجل الآن في معسكر إسبانيا للتدريب الاحترافي 2026! مقاعد محدودة</span>
+                    <i class="fa-solid fa-arrow-left group-hover:-translate-x-1 transition-transform"></i>
+                </a>
+            </div>
+
             <!-- Top Navbar -->
             <div class="top-navbar">
                 <!-- Menu Toggle (Right side in RTL) -->
@@ -232,6 +241,13 @@ document.addEventListener('DOMContentLoaded', () => {
                         </a>
                         <a href="/trainings" class="nav-link ${isActive('/trainings') ? 'active' : ''}">
                             <i class="fa-solid fa-futbol"></i> أكاديمية التدريب
+                        </a>
+                    </nav>
+
+                    <div class="nav-section-title">عروض حصرية</div>
+                    <nav>
+                        <a href="/spain-camp" class="nav-link text-emerald-600 bg-emerald-50/30 ${isActive('/spain-camp') ? 'active' : ''}">
+                            <i class="fa-solid fa-earth-europe"></i> معسكر إسبانيا 2026
                         </a>
                     </nav>
 

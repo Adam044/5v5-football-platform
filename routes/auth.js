@@ -118,14 +118,29 @@ router.post('/login', loginLimiter, requireCsrf, async (req, res) => {
 
 // Auth: get current user from token
 router.get('/me', requireAuth, async (req, res) => {
-    const user = {
-        id: req.user.id,
-        name: req.user.name,
-        email: req.user.email,
-        is_admin: !!req.user.is_admin,
-        role: req.user.role
-    };
-    res.json({ user });
+    try {
+        const { rows } = await pool.query('SELECT id, name, email, phone_number, birthdate, gender, is_admin, role FROM users WHERE id = $1', [req.user.id]);
+        const dbUser = rows[0];
+        
+        if (!dbUser) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        const user = {
+            id: dbUser.id,
+            name: dbUser.name,
+            email: dbUser.email,
+            phone_number: dbUser.phone_number,
+            birthdate: dbUser.birthdate,
+            gender: dbUser.gender,
+            is_admin: !!dbUser.is_admin,
+            role: dbUser.role
+        };
+        res.json({ user });
+    } catch (err) {
+        console.error('Error in /me:', err);
+        res.status(500).json({ error: 'Internal server error' });
+    }
 });
 
 // Auth: logout (clear cookie)
