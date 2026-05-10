@@ -134,6 +134,10 @@
                                 </th>
                                 <th
                                     class="px-6 py-4 text-right text-sm font-bold text-gray-700 uppercase tracking-wider">
+                                    <i class="fa-solid fa-envelope ml-2"></i>البريد الإلكتروني
+                                </th>
+                                <th
+                                    class="px-6 py-4 text-right text-sm font-bold text-gray-700 uppercase tracking-wider">
                                     <i class="fa-solid fa-phone ml-2"></i>رقم الهاتف
                                 </th>
                                 <th
@@ -147,6 +151,10 @@
                                 <th
                                     class="px-6 py-4 text-right text-sm font-bold text-gray-700 uppercase tracking-wider">
                                     <i class="fa-solid fa-calendar-plus ml-2"></i>تاريخ التسجيل
+                                </th>
+                                <th
+                                    class="px-6 py-4 text-right text-sm font-bold text-gray-700 uppercase tracking-wider">
+                                    <i class="fa-solid fa-cogs ml-2"></i>الإجراءات
                                 </th>
                             </tr>
                         </thead>
@@ -162,10 +170,18 @@
                     <p class="text-xl text-gray-600">جاري تحميل بيانات اللاعبين...</p>
                 </div>
 
-                <!-- Empty State -->
                 <div id="empty-state" class="text-center py-12 hidden">
                     <i class="fa-solid fa-users-slash text-6xl text-gray-400 mb-4"></i>
                     <p class="text-xl text-gray-600">لا توجد بيانات لاعبين متاحة</p>
+                </div>
+
+                <!-- Load More Button -->
+                <div id="load-more-container" class="p-6 text-center border-t border-gray-100 hidden">
+                    <button id="load-more-btn" onclick="loadMore()" 
+                        class="bg-blue-50 text-blue-600 px-8 py-3 rounded-xl font-bold hover:bg-blue-600 hover:text-white transition-all duration-300 flex items-center gap-2 mx-auto">
+                        <i class="fa-solid fa-plus"></i>
+                        تحميل المزيد من اللاعبين
+                    </button>
                 </div>
             </div>
         </div>
@@ -187,6 +203,41 @@
         </div>
     </div>
 
+    <!-- Player Details Modal -->
+    <div id="player-details-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-[60] animate-fade-in">
+        <div class="bg-white rounded-[2rem] shadow-3xl max-w-2xl w-full overflow-hidden animate-scale-in-up">
+            <!-- Modal Header -->
+            <div class="bg-blue-600 p-8 text-white flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                    <div class="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center">
+                        <i class="fa-solid fa-user-gear text-2xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-2xl font-black">تفاصيل اللاعب</h3>
+                        <p class="text-blue-100 text-sm font-bold opacity-80">عرض كافة البيانات المسجلة</p>
+                    </div>
+                </div>
+                <button onclick="closePlayerModal()" class="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center hover:bg-white/20 transition-all">
+                    <i class="fa-solid fa-times text-xl"></i>
+                </button>
+            </div>
+            
+            <!-- Modal Body -->
+            <div class="p-8 max-h-[70vh] overflow-y-auto custom-scrollbar">
+                <div id="player-details-content" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Dynamic content will be injected here -->
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="bg-gray-50 p-6 border-t border-gray-100 flex justify-end">
+                <button onclick="closePlayerModal()" class="bg-blue-600 text-white px-10 py-3 rounded-xl font-bold hover:bg-blue-700 transition-all shadow-md">
+                    إغلاق النافذة
+                </button>
+            </div>
+        </div>
+    </div>
+
     <div id="global-footer"></div>
 
     <script src="/components/header.js"></script>
@@ -195,6 +246,8 @@
     <script>
         let allPlayers = [];
         let filteredPlayers = [];
+        let displayedCount = 10;
+        const INCREMENT = 10;
 
         // --- Admin Access Check on page load ---
         async function checkAdminAccess() {
@@ -220,14 +273,16 @@
 
         // Load all players from the server
         async function loadPlayers() {
-            const userId = localStorage.getItem('userId');
             const loadingState = document.getElementById('loading-state');
             const emptyState = document.getElementById('empty-state');
             const tableBody = document.getElementById('players-table-body');
+            const loadMoreContainer = document.getElementById('load-more-container');
 
             loadingState.classList.remove('hidden');
             emptyState.classList.add('hidden');
+            loadMoreContainer.classList.add('hidden');
             tableBody.innerHTML = '';
+            displayedCount = INCREMENT;
 
             try {
                 const response = await fetch('/api/admin/players', { credentials: 'include' });
@@ -256,16 +311,20 @@
         function displayPlayers() {
             const tableBody = document.getElementById('players-table-body');
             const emptyState = document.getElementById('empty-state');
+            const loadMoreContainer = document.getElementById('load-more-container');
 
             if (filteredPlayers.length === 0) {
                 tableBody.innerHTML = '';
                 emptyState.classList.remove('hidden');
+                loadMoreContainer.classList.add('hidden');
                 return;
             }
 
             emptyState.classList.add('hidden');
 
-            tableBody.innerHTML = filteredPlayers.map((player, index) => {
+            const playersToShow = filteredPlayers.slice(0, displayedCount);
+            
+            tableBody.innerHTML = playersToShow.map((player, index) => {
                 // Format dates with English numbers
                 const birthdate = player.birthdate ?
                     new Date(player.birthdate).toLocaleDateString('en-GB').replace(/\//g, '/') : 'غير محدد';
@@ -291,6 +350,9 @@
                                 </div>
                             </div>
                         </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600 font-medium">
+                            ${player.email || '<span class="text-red-500 font-bold">غير متوفر</span>'}
+                        </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                             ${player.phone_number ?
                         `<a href="https://wa.me/${player.phone_number.replace(/\\D/g, '')}" target="_blank" class="text-green-600 hover:text-green-800 font-bold hover:underline inline-flex items-center gap-2" dir="ltr">
@@ -312,14 +374,40 @@
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                             ${createdAt}
                         </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <div class="flex items-center gap-3">
+                                <button onclick="viewPlayerDetails(${allPlayers.findIndex(p => p.id === player.id)})" 
+                                    class="bg-blue-50 text-blue-600 p-2.5 rounded-xl hover:bg-blue-600 hover:text-white transition-all duration-300 shadow-sm" 
+                                    title="عرض التفاصيل">
+                                    <i class="fa-solid fa-eye text-lg"></i>
+                                </button>
+                                <button onclick="confirmDeletePlayer(${player.id}, '${player.name}')" 
+                                    class="bg-red-50 text-red-600 p-2.5 rounded-xl hover:bg-red-600 hover:text-white transition-all duration-300 shadow-sm" 
+                                    title="حذف اللاعب">
+                                    <i class="fa-solid fa-trash-can text-lg"></i>
+                                </button>
+                            </div>
+                        </td>
                     </tr>
                 `;
             }).join('');
+
+            // Show/Hide load more button
+            if (displayedCount < filteredPlayers.length) {
+                loadMoreContainer.classList.remove('hidden');
+            } else {
+                loadMoreContainer.classList.add('hidden');
+            }
+        }
+
+        function loadMore() {
+            displayedCount += INCREMENT;
+            displayPlayers();
         }
 
         // Update players count
         function updatePlayersCount() {
-            document.getElementById('total-players-count').textContent = filteredPlayers.length;
+            document.getElementById('total-players-count').textContent = allPlayers.length;
         }
 
         // Search and filter functionality
@@ -338,13 +426,79 @@
                 return matchesSearch && matchesGender;
             });
 
+            displayedCount = INCREMENT; // Reset pagination on filter
             displayPlayers();
-            updatePlayersCount();
         }
 
         // Refresh players data
         async function refreshPlayers() {
             await loadPlayers();
+        }
+
+        function viewPlayerDetails(index) {
+             const player = allPlayers[index];
+             if (!player) return;
+             
+             const content = document.getElementById('player-details-content');
+             
+             // Format dates in English locale (DD/MM/YYYY)
+             const formatDate = (dateStr) => {
+                 if (!dateStr) return 'غير محدد';
+                 const d = new Date(dateStr);
+                 return d.toLocaleDateString('en-GB'); // DD/MM/YYYY
+             };
+
+             const fields = [
+                 { label: 'الاسم الكامل', value: player.name || 'غير محدد', icon: 'fa-user' },
+                 { label: 'البريد الإلكتروني', value: player.email || 'غير متوفر', icon: 'fa-envelope' },
+                 { label: 'رقم الهاتف', value: player.phone_number || 'غير محدد', icon: 'fa-phone' },
+                 { label: 'تاريخ الميلاد', value: formatDate(player.birthdate), icon: 'fa-calendar' },
+                 { label: 'الجنس', value: player.gender === 'male' || player.gender === 'ذكر' ? 'ذكر' : 'أنثى', icon: 'fa-venus-mars' },
+                 { label: 'تاريخ الانضمام', value: formatDate(player.created_at), icon: 'fa-clock' },
+                 { label: 'رقم التعريف (ID)', value: player.id, icon: 'fa-fingerprint' },
+                 { label: 'الدور', value: player.role === 'admin' || player.is_admin ? 'مسؤول' : 'لاعب', icon: 'fa-shield-halved' }
+             ];
+
+            content.innerHTML = fields.map(f => `
+                <div class="bg-gray-50 p-5 rounded-2xl border border-gray-100 flex items-start gap-4">
+                    <div class="w-10 h-10 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center flex-shrink-0">
+                        <i class="fa-solid ${f.icon}"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs font-black text-gray-400 uppercase tracking-widest mb-1">${f.label}</p>
+                        <p class="text-sm font-bold text-gray-900">${f.value}</p>
+                    </div>
+                </div>
+            `).join('');
+
+            document.getElementById('player-details-modal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closePlayerModal() {
+            document.getElementById('player-details-modal').classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
+
+        async function confirmDeletePlayer(id, name) {
+            if (confirm(`هل أنت متأكد من رغبتك في حذف اللاعب "${name}"؟ لا يمكن التراجع عن هذا الإجراء.`)) {
+                try {
+                    const response = await fetch(`/api/admin/delete-player/${id}`, {
+                        method: 'DELETE',
+                        credentials: 'include'
+                    });
+                    const result = await response.json();
+                    
+                    if (response.ok) {
+                        showMessageBox('نجاح', 'تم حذف المستخدم بنجاح مع كافة بياناته', 'success');
+                        loadPlayers(); // Refresh list
+                    } else {
+                        showMessageBox('خطأ', result.error || 'حدث خطأ أثناء الحذف', 'error');
+                    }
+                } catch (err) {
+                    showMessageBox('خطأ', 'فشل الاتصال بالخادم', 'error');
+                }
+            }
         }
 
         // Message box functions

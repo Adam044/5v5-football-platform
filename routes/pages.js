@@ -27,6 +27,7 @@ router.get('/giveaways', serveFile('giveaways.html'));
 router.get('/tournaments', serveFile('tournaments.html'));
 router.get('/trainings', serveFile('trainings.html'));
 router.get('/spain-camp', serveFile('spain-camp.html'));
+router.get('/spain-camp/register', serveFile('spain-camp-register.html'));
 router.get('/tournament-team-hub', serveFile('tournament-team-hub.html'));
 
 // Matchmaking & Team Building Pages

@@ -22,6 +22,79 @@ router.get('/spain-camp/applications', checkAdmin, async (req, res) => {
     }
 });
 
+// --- Players Management ---
+
+router.get('/players', checkAdmin, async (req, res) => {
+    try {
+        const { rows } = await pool.query(`SELECT id, name, email, phone_number, birthdate, gender, created_at, role, is_admin FROM users ORDER BY created_at DESC`);
+        res.json({ players: rows });
+    } catch (err) {
+        return res.status(500).json({ error: err.message });
+    }
+});
+
+router.delete('/delete-player/:id', checkAdmin, async (req, res) => {
+    const { id } = req.params;
+    const client = await pool.connect();
+    try {
+        await client.query('BEGIN');
+
+        // 1. Check if user exists and is not admin
+        const { rows } = await client.query('SELECT role, is_admin FROM users WHERE id = $1', [id]);
+        const user = rows[0];
+        
+        if (!user) {
+            await client.query('ROLLBACK');
+            return res.status(404).json({ error: 'المستخدم غير موجود.' });
+        }
+        if (user.role === 'admin' || user.is_admin) {
+            await client.query('ROLLBACK');
+            return res.status(403).json({ error: 'لا يمكن حذف حساب مسؤول النظام.' });
+        }
+
+        // 2. Cleanup dependencies that don't have CASCADE
+        // Clear availability slots reserved by this user
+        await client.query('UPDATE availability_slots SET is_reserved = 0, user_id = NULL, reservation_type = NULL WHERE user_id = $1', [id]);
+        
+        // Delete reservations
+        await client.query('DELETE FROM reservations WHERE user_id = $1', [id]);
+        
+        // Delete matchmaking requests
+        await client.query('DELETE FROM matchmaking_requests WHERE user_id = $1', [id]);
+        
+        // Delete team sessions created by this user
+        await client.query('DELETE FROM team_sessions WHERE creator_id = $1', [id]);
+
+        // 3. Delete the user (other tables have ON DELETE CASCADE)
+        await client.query('DELETE FROM users WHERE id = $1', [id]);
+
+        await client.query('COMMIT');
+        res.json({ message: 'تم حذف المستخدم بنجاح مع كافة البيانات المرتبطة به' });
+    } catch (err) {
+        await client.query('ROLLBACK');
+        console.error('Detailed delete user error:', err);
+        return res.status(500).json({ error: 'فشل في حذف المستخدم بسبب قيود البيانات.' });
+    } finally {
+        client.release();
+    }
+});
+
+router.get('/players/search', checkCoachOrAdmin, async (req, res) => {
+    const { query } = req.query;
+    if (!query) return res.json({ players: [] });
+    try {
+        const { rows } = await pool.query(`
+            SELECT id, name, email, phone_number, role, is_admin 
+            FROM users 
+            WHERE (name ILIKE $1 OR phone_number ILIKE $1 OR email ILIKE $1)
+            LIMIT 10
+        `, [`%${query}%`]);
+        res.json({ players: rows });
+    } catch (err) {
+        return res.status(500).json({ error: err.message });
+    }
+});
+
 router.put('/spain-camp/applications/:id/status', checkAdmin, async (req, res) => {
     const { id } = req.params;
     const { status } = req.body;
@@ -226,33 +299,6 @@ router.get('/training-stats', checkAdmin, async (req, res) => {
             revenue: parseFloat(totalRevenue.rows[0].sum || 0),
             avgAttendance: Math.round(parseFloat(avgAttendance.rows[0].avg || 0))
         });
-    } catch (err) {
-        return res.status(500).json({ error: err.message });
-    }
-});
-
-// --- Players Management ---
-
-router.get('/players', checkAdmin, async (req, res) => {
-    try {
-        const { rows } = await pool.query(`SELECT id, name, phone_number, birthdate, gender, created_at, role FROM users ORDER BY created_at DESC`);
-        res.json({ players: rows });
-    } catch (err) {
-        return res.status(500).json({ error: err.message });
-    }
-});
-
-router.get('/players/search', checkCoachOrAdmin, async (req, res) => {
-    const { query } = req.query;
-    if (!query) return res.json({ players: [] });
-    try {
-        const { rows } = await pool.query(`
-            SELECT id, name, phone_number, role 
-            FROM users 
-            WHERE (name ILIKE $1 OR phone_number ILIKE $1)
-            LIMIT 10
-        `, [`%${query}%`]);
-        res.json({ players: rows });
     } catch (err) {
         return res.status(500).json({ error: err.message });
     }

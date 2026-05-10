@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>التسجيل الرسمي | معسكر إسبانيا 2026</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="/components/styles.css" />
+    <style type="text/tailwindcss">
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap');
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: #f8fafc;
+        }
+
+        /* Modern Horizontal Checklist Stepper */
+        .progress-wrapper {
+            @apply px-8 py-12 md:px-16 border-b border-slate-50 bg-white;
+        }
+        .progress-track {
+            @apply w-full h-1 bg-slate-100 rounded-full overflow-hidden mb-8;
+        }
+        .progress-bar {
+            @apply h-full bg-emerald-500 transition-all duration-700 ease-out shadow-[0_0_10px_rgba(16,185,129,0.3)];
+        }
+        .steps-container {
+            @apply flex justify-between items-center max-w-4xl mx-auto relative;
+        }
+        .step-item-new {
+            @apply flex flex-col items-center gap-3 relative z-10 transition-all duration-500;
+        }
+        .step-dot-new {
+            @apply w-8 h-8 rounded-full border-2 border-slate-100 bg-white flex items-center justify-center transition-all duration-500;
+        }
+        .step-item-new.active .step-dot-new {
+            @apply border-emerald-500 bg-white scale-110 shadow-lg shadow-emerald-500/10;
+        }
+        .step-item-new.active .step-dot-new::after {
+            content: '';
+            @apply w-2.5 h-2.5 bg-emerald-500 rounded-full animate-pulse;
+        }
+        .step-item-new.completed .step-dot-new {
+            @apply bg-emerald-500 border-emerald-500 shadow-md shadow-emerald-500/20;
+        }
+        .step-item-new.completed .step-dot-new i {
+            @apply text-white text-[10px] block;
+        }
+        .step-dot-new i {
+            @apply hidden;
+        }
+        .step-label-new {
+            @apply text-[10px] md:text-[11px] font-black uppercase tracking-tighter text-slate-300 transition-colors duration-300;
+        }
+        .step-item-new.active .step-label-new {
+            @apply text-emerald-600;
+        }
+        .step-item-new.completed .step-label-new {
+            @apply text-slate-500;
+        }
+
+        /* Sharp Professional Inputs */
+        .input-field {
+            @apply w-full bg-white border border-slate-200 rounded-xl px-5 py-4 text-slate-900 font-bold transition-all outline-none;
+        }
+        .input-field:focus {
+            @apply border-emerald-500 ring-4 ring-emerald-500/5 shadow-sm;
+        }
+        .input-field.readonly {
+            @apply bg-slate-50 border-slate-200 text-slate-500 cursor-not-allowed;
+        }
+        .label-text {
+            @apply block text-[13px] font-black text-slate-500 mb-2 mr-1 uppercase tracking-widest flex items-center gap-2;
+        }
+
+        /* Card Transitions */
+        .step-content {
+            display: none;
+        }
+        .step-content.active {
+            display: block;
+            animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Custom Radio/Check */
+        .option-card {
+            @apply p-5 bg-white border border-slate-200 rounded-2xl cursor-pointer transition-all hover:border-emerald-200 hover:bg-slate-50 flex items-center gap-4;
+        }
+        .option-card.selected {
+            @apply border-emerald-500 bg-emerald-50/30 ring-4 ring-emerald-500/5;
+        }
+
+        .file-drop {
+            @apply relative border-2 border-dashed border-slate-200 bg-white rounded-2xl p-8 text-center transition-all hover:border-emerald-500 hover:bg-emerald-50/10 cursor-pointer;
+        }
+    </style>
+</head>
+
+<body class="min-h-screen flex flex-col antialiased">
+    <div id="global-header"></div>
+
+    <main class="flex-grow flex flex-col py-10 md:py-16 px-4">
+        <div class="container mx-auto max-w-5xl">
+            <!-- Form Branding & Title -->
+            <div class="text-center mb-12">
+                <div class="inline-flex items-center gap-3 bg-emerald-100 text-emerald-700 px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest mb-6">
+                    <i class="fa-solid fa-star animate-pulse"></i>
+                    Official Registration
+                </div>
+                <h1 class="text-3xl md:text-5xl font-black text-slate-900 mb-4 leading-tight">معسكر إسبانيا للتدريب <span class="text-emerald-600">2026</span></h1>
+                <p class="text-slate-500 font-bold text-lg">يرجى إكمال خطوات التسجيل بدقة لضمان مقعدك في المعسكر</p>
+            </div>
+
+            <!-- Modern Multi-step Container -->
+            <div class="bg-white rounded-[2.5rem] shadow-2xl shadow-slate-200/60 overflow-hidden border border-white flex flex-col min-h-[700px]">
+                
+                <!-- Clean Progress Bar -->
+                <div class="progress-wrapper">
+                    <div class="progress-track">
+                        <div id="main-progress-bar" class="progress-bar" style="width: 20%"></div>
+                    </div>
+                    <div class="steps-container">
+                        <div class="step-item-new active" data-step-node="1">
+                            <div class="step-dot-new">
+                                <i class="fa-solid fa-check"></i>
+                            </div>
+                            <span class="step-label-new">التنبيه</span>
+                        </div>
+                        <div class="step-item-new" data-step-node="2">
+                            <div class="step-dot-new">
+                                <i class="fa-solid fa-check"></i>
+                            </div>
+                            <span class="step-label-new">اللاعب</span>
+                        </div>
+                        <div class="step-item-new" data-step-node="3">
+                            <div class="step-dot-new">
+                                <i class="fa-solid fa-check"></i>
+                            </div>
+                            <span class="step-label-new">ولي الأمر</span>
+                        </div>
+                        <div class="step-item-new" data-step-node="4">
+                            <div class="step-dot-new">
+                                <i class="fa-solid fa-check"></i>
+                            </div>
+                            <span class="step-label-new">الصحة</span>
+                        </div>
+                        <div class="step-item-new" data-step-node="5">
+                            <div class="step-dot-new">
+                                <i class="fa-solid fa-check"></i>
+                            </div>
+                            <span class="step-label-new">السفر</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Form Area -->
+                <div class="flex-grow p-8 md:p-16 relative">
+                    <form id="spain-camp-form" class="h-full">
+                        
+                        <!-- Step 1: Disclaimer -->
+                        <div class="step-content active" data-step="1">
+                            <div class="max-w-2xl mx-auto space-y-10">
+                                <div class="w-24 h-24 bg-amber-50 text-amber-500 rounded-3xl flex items-center justify-center mx-auto">
+                                    <i class="fa-solid fa-circle-exclamation text-4xl"></i>
+                                </div>
+                                <div class="text-center space-y-4">
+                                    <h2 class="text-3xl font-black text-slate-900">ميثاق التسجيل والبيانات</h2>
+                                    <p class="text-slate-500 font-bold leading-relaxed">نحن نأخذ جودة البيانات والاحترافية على محمل الجد. يرجى التأكد من دقة كل معلومة يتم إدخالها.</p>
+                                </div>
+                                
+                                <div class="grid grid-cols-1 gap-4">
+                                    <div class="p-6 bg-slate-50 rounded-2xl border border-slate-100 flex items-start gap-5 transition-all hover:bg-white hover:shadow-lg group">
+                                        <div class="w-10 h-10 bg-white rounded-xl shadow-sm flex items-center justify-center flex-shrink-0 text-emerald-500 group-hover:scale-110 transition-transform">
+                                            <i class="fa-solid fa-pen-nib"></i>
+                                        </div>
+                                        <p class="text-slate-700 font-bold leading-relaxed">الاستمارة تعبأ بمعرفة <span class="text-emerald-600 underline">اللاعب شخصياً</span> وإشراف ولي الأمر.</p>
+                                    </div>
+                                    <div class="p-6 bg-slate-50 rounded-2xl border border-slate-100 flex items-start gap-5 transition-all hover:bg-white hover:shadow-lg group">
+                                        <div class="w-10 h-10 bg-white rounded-xl shadow-sm flex items-center justify-center flex-shrink-0 text-emerald-500 group-hover:scale-110 transition-transform">
+                                            <i class="fa-solid fa-check-double"></i>
+                                        </div>
+                                        <p class="text-slate-700 font-bold leading-relaxed">البيانات يجب أن تطابق <span class="text-emerald-600 underline">جواز السفر</span> والوثائق الرسمية حرفياً.</p>
+                                    </div>
+                                    <div class="p-6 bg-emerald-50/50 rounded-2xl border border-emerald-100 flex items-start gap-5">
+                                        <div class="w-10 h-10 bg-white rounded-xl shadow-sm flex items-center justify-center flex-shrink-0 text-emerald-600">
+                                            <i class="fa-solid fa-lock"></i>
+                                        </div>
+                                        <p class="text-emerald-800 font-bold leading-relaxed">تشفير كامل لكافة البيانات والصور المرفوعة لضمان خصوصيتك.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Step 2: Player Info -->
+                        <div class="step-content" data-step="2">
+                            <div class="max-w-4xl mx-auto">
+                                <div class="flex items-center gap-4 mb-10 border-b border-slate-50 pb-6">
+                                    <h3 class="text-2xl font-black text-slate-900">معلومات اللاعب الشخصية</h3>
+                                </div>
+
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                    <div class="md:col-span-2">
+                                        <label class="label-text">الاسم الرباعي للاعب</label>
+                                        <input type="text" name="player_full_name" id="player_full_name" class="input-field" required placeholder="ادخل الاسم الكامل كما في الجواز">
+                                    </div>
+                                    <div>
+                                        <label class="label-text">تاريخ الميلاد</label>
+                                        <input type="date" name="player_dob" id="player_dob" class="input-field readonly" readonly>
+                                    </div>
+                                    <div>
+                                        <label class="label-text">الجنس</label>
+                                        <select name="player_gender" id="player_gender" class="input-field readonly pointer-events-none">
+                                            <option value="male">ذكر</option>
+                                            <option value="female">أنثى</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="label-text">رقم الهوية</label>
+                                        <input type="text" name="player_id_number" class="input-field" required placeholder="رقم الهوية الوطنية">
+                                    </div>
+                                    <div>
+                                        <label class="label-text">رقم جواز السفر</label>
+                                        <input type="text" name="player_passport_number" class="input-field" required placeholder="رقم الجواز">
+                                    </div>
+                                    <div>
+                                        <label class="label-text">الجنسية</label>
+                                        <input type="text" name="player_nationality" class="input-field" required placeholder="الجنسية كما في الجواز">
+                                    </div>
+                                    <div>
+                                        <label class="label-text">رقم الهاتف</label>
+                                        <input type="tel" name="player_phone" id="player_phone" class="input-field" required placeholder="05XXXXXXXX">
+                                    </div>
+                                    <div>
+                                        <label class="label-text">البريد الإلكتروني</label>
+                                        <input type="email" name="player_email" id="player_email" class="input-field" required placeholder="example@mail.com">
+                                    </div>
+                                    <div class="md:col-span-2">
+                                        <label class="label-text">العنوان الكامل</label>
+                                        <textarea name="player_address" rows="2" class="input-field" required placeholder="المدينة، الحي، الشارع..."></textarea>
+                                    </div>
+                                    
+                                    <div class="md:col-span-1">
+                                        <label class="label-text">صورة الجواز</label>
+                                        <label class="file-drop group block relative">
+                                            <input type="file" id="player_passport_image" accept="image/*" class="hidden" onchange="updateFileName(this)">
+                                            <div class="space-y-2">
+                                                <i class="fa-solid fa-passport text-3xl text-slate-200 group-hover:text-emerald-500 mb-2 transition-colors"></i>
+                                                <p class="text-[11px] font-black text-slate-400 group-hover:text-emerald-600">إرفاق صورة الجواز</p>
+                                                <p class="file-name text-[9px] text-emerald-500 font-bold hidden"></p>
+                                            </div>
+                                        </label>
+                                    </div>
+                                    <div class="md:col-span-1">
+                                        <label class="label-text">صورة شخصية</label>
+                                        <label class="file-drop group block relative">
+                                            <input type="file" id="player_personal_image" accept="image/*" class="hidden" onchange="updateFileName(this)">
+                                            <div class="space-y-2">
+                                                <i class="fa-solid fa-user-plus text-3xl text-slate-200 group-hover:text-emerald-500 mb-2 transition-colors"></i>
+                                                <p class="text-[11px] font-black text-slate-400 group-hover:text-emerald-600">إرفاق صورة شخصية</p>
+                                                <p class="file-name text-[9px] text-emerald-500 font-bold hidden"></p>
+                                            </div>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Step 3: Parent Info -->
+                        <div class="step-content" data-step="3">
+                            <div class="max-w-4xl mx-auto">
+                                <div class="flex items-center gap-4 mb-10 border-b border-slate-50 pb-6">
+                                    <h3 class="text-2xl font-black text-slate-900">بيانات ولي الأمر</h3>
+                                </div>
+
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                    <div class="md:col-span-2">
+                                        <label class="label-text">اسم ولي الأمر الرباعي</label>
+                                        <input type="text" name="parent_full_name" class="input-field" required placeholder="الاسم الكامل لولي الأمر">
+                                    </div>
+                                    <div>
+                                        <label class="label-text">رقم الهاتف للتواصل</label>
+                                        <input type="tel" name="parent_phone" class="input-field" required placeholder="05XXXXXXXX">
+                                    </div>
+                                    <div>
+                                        <label class="label-text">صلة القرابة</label>
+                                        <select name="parent_relation" class="input-field" required>
+                                            <option value="father">أب</option>
+                                            <option value="mother">أم</option>
+                                            <option value="guardian">ولي أمر / وصي</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="label-text">رقم جواز سفر ولي الأمر</label>
+                                        <input type="text" name="parent_passport_number" class="input-field" required placeholder="رقم الجواز">
+                                    </div>
+                                    <div>
+                                        <label class="label-text">صورة جواز ولي الأمر</label>
+                                        <label class="file-drop group block relative">
+                                            <input type="file" id="parent_passport_image" accept="image/*" class="hidden" onchange="updateFileName(this)">
+                                            <div class="space-y-2">
+                                                <i class="fa-solid fa-file-invoice text-3xl text-slate-200 group-hover:text-emerald-500 mb-2 transition-colors"></i>
+                                                <p class="text-[11px] font-black text-slate-400 group-hover:text-emerald-600">إرفاق صورة الجواز</p>
+                                                <p class="file-name text-[9px] text-emerald-500 font-bold hidden"></p>
+                                            </div>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Step 4: Health -->
+                        <div class="step-content" data-step="4">
+                            <div class="max-w-3xl mx-auto space-y-10">
+                                <div class="flex items-center gap-4 mb-6 border-b border-slate-50 pb-6">
+                                    <h3 class="text-2xl font-black text-slate-900">المعلومات الصحية</h3>
+                                </div>
+
+                                <div class="space-y-10">
+                                    <div class="health-block">
+                                        <label class="label-text mb-4">هل يعاني اللاعب من أمراض مزمنة؟</label>
+                                        <div class="grid grid-cols-2 gap-4">
+                                            <div class="option-card" onclick="setRadio(this, 'has_chronic_diseases', 'true')">
+                                                <div class="w-6 h-6 rounded-full border-2 border-slate-200 flex items-center justify-center radio-dot transition-all"></div>
+                                                <span class="font-black text-slate-700">نعم، يوجد</span>
+                                            </div>
+                                            <div class="option-card selected" onclick="setRadio(this, 'has_chronic_diseases', 'false')">
+                                                <div class="w-6 h-6 rounded-full border-2 border-emerald-500 flex items-center justify-center radio-dot transition-all">
+                                                    <div class="w-3 h-3 bg-emerald-500 rounded-full"></div>
+                                                </div>
+                                                <span class="font-black text-slate-700">لا</span>
+                                            </div>
+                                        </div>
+                                        <input type="hidden" name="has_chronic_diseases" value="false">
+                                        <textarea name="chronic_diseases_details" rows="2" class="input-field mt-4 hidden" placeholder="يرجى ذكر التفاصيل..."></textarea>
+                                    </div>
+
+                                    <div class="health-block">
+                                        <label class="label-text mb-4">هل يتناول أدوية بشكل منتظم؟</label>
+                                        <div class="grid grid-cols-2 gap-4">
+                                            <div class="option-card" onclick="setRadio(this, 'takes_regular_medications', 'true')">
+                                                <div class="w-6 h-6 rounded-full border-2 border-slate-200 flex items-center justify-center radio-dot transition-all"></div>
+                                                <span class="font-black text-slate-700">نعم</span>
+                                            </div>
+                                            <div class="option-card selected" onclick="setRadio(this, 'takes_regular_medications', 'false')">
+                                                <div class="w-6 h-6 rounded-full border-2 border-emerald-500 flex items-center justify-center radio-dot transition-all">
+                                                    <div class="w-3 h-3 bg-emerald-500 rounded-full"></div>
+                                                </div>
+                                                <span class="font-black text-slate-700">لا</span>
+                                            </div>
+                                        </div>
+                                        <input type="hidden" name="takes_regular_medications" value="false">
+                                        <textarea name="regular_medications_details" rows="2" class="input-field mt-4 hidden" placeholder="اسم الدواء ومواعيده..."></textarea>
+                                    </div>
+
+                                    <div class="health-block">
+                                        <label class="label-text mb-4">هل يعاني من حساسية معينة؟</label>
+                                        <div class="grid grid-cols-2 gap-4">
+                                            <div class="option-card" onclick="setRadio(this, 'has_allergies', 'true')">
+                                                <div class="w-6 h-6 rounded-full border-2 border-slate-200 flex items-center justify-center radio-dot transition-all"></div>
+                                                <span class="font-black text-slate-700">نعم</span>
+                                            </div>
+                                            <div class="option-card selected" onclick="setRadio(this, 'has_allergies', 'false')">
+                                                <div class="w-6 h-6 rounded-full border-2 border-emerald-500 flex items-center justify-center radio-dot transition-all">
+                                                    <div class="w-3 h-3 bg-emerald-500 rounded-full"></div>
+                                                </div>
+                                                <span class="font-black text-slate-700">لا</span>
+                                            </div>
+                                        </div>
+                                        <input type="hidden" name="has_allergies" value="false">
+                                        <textarea name="allergies_details" rows="2" class="input-field mt-4 hidden" placeholder="يرجى ذكر نوع الحساسية..."></textarea>
+                                    </div>
+
+                                    <div class="health-block">
+                                        <label class="label-text mb-4">هل يوجد تأمين صحي؟</label>
+                                        <div class="grid grid-cols-2 gap-4">
+                                            <div class="option-card" onclick="setRadio(this, 'has_health_insurance', 'true')">
+                                                <div class="w-6 h-6 rounded-full border-2 border-slate-200 flex items-center justify-center radio-dot transition-all"></div>
+                                                <span class="font-black text-slate-700">نعم، يوجد</span>
+                                            </div>
+                                            <div class="option-card selected" onclick="setRadio(this, 'has_health_insurance', 'false')">
+                                                <div class="w-6 h-6 rounded-full border-2 border-emerald-500 flex items-center justify-center radio-dot transition-all">
+                                                    <div class="w-3 h-3 bg-emerald-500 rounded-full"></div>
+                                                </div>
+                                                <span class="font-black text-slate-700">لا</span>
+                                            </div>
+                                        </div>
+                                        <input type="hidden" name="has_health_insurance" value="false">
+                                        <textarea name="health_insurance_details" rows="2" class="input-field mt-4 hidden" placeholder="اسم شركة التأمين ورقم البطاقة..."></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Step 5: Travel & Legal -->
+                        <div class="step-content" data-step="5">
+                            <div class="max-w-4xl mx-auto space-y-10">
+                                <div class="flex items-center gap-4 mb-6 border-b border-slate-50 pb-6">
+                                    <h3 class="text-2xl font-black text-slate-900">بيانات السفر والتعهد</h3>
+                                </div>
+
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div class="option-card group" onclick="toggleCheck(this)">
+                                        <input type="checkbox" name="traveled_to_europe" class="hidden">
+                                        <div class="w-6 h-6 rounded-lg border-2 border-slate-200 flex items-center justify-center check-box transition-all">
+                                            <i class="fa-solid fa-check text-white text-[10px] hidden"></i>
+                                        </div>
+                                        <span class="text-xs font-black text-slate-700 leading-tight">سبق له السفر لأوروبا</span>
+                                    </div>
+                                    <div class="option-card group" onclick="toggleCheck(this)">
+                                        <input type="checkbox" name="has_schengen_visa" class="hidden">
+                                        <div class="w-6 h-6 rounded-lg border-2 border-slate-200 flex items-center justify-center check-box transition-all">
+                                            <i class="fa-solid fa-check text-white text-[10px] hidden"></i>
+                                        </div>
+                                        <span class="text-xs font-black text-slate-700 leading-tight">لديه تأشيرة (شنغن)</span>
+                                    </div>
+                                    <div class="option-card group" onclick="toggleCheck(this)">
+                                        <input type="checkbox" name="has_valid_passport" class="hidden">
+                                        <div class="w-6 h-6 rounded-lg border-2 border-slate-200 flex items-center justify-center check-box transition-all">
+                                            <i class="fa-solid fa-check text-white text-[10px] hidden"></i>
+                                        </div>
+                                        <span class="text-xs font-black text-slate-700 leading-tight">جواز سفر ساري (>6 شهور)</span>
+                                    </div>
+                                </div>
+
+                                <div class="bg-slate-900 rounded-[2rem] p-10 text-white space-y-8">
+                                    <h4 class="text-xl font-black text-emerald-400 mb-6 flex items-center gap-3">
+                                        <i class="fa-solid fa-shield-halved"></i> التعهد القانوني والموافقة
+                                    </h4>
+                                    <div class="space-y-6">
+                                        <label class="flex items-start gap-4 cursor-pointer group" onclick="toggleCheck(this, true)">
+                                            <input type="checkbox" name="parent_consent" required class="hidden">
+                                            <div class="w-6 h-6 rounded-lg border-2 border-slate-600 flex items-center justify-center check-box mt-1 flex-shrink-0">
+                                                <i class="fa-solid fa-check text-white text-[10px] hidden"></i>
+                                            </div>
+                                            <span class="text-sm font-bold text-slate-300 group-hover:text-white transition-colors">أوافق بصفتي ولي الأمر على مشاركة ابني/ابنتي في معسكر إسبانيا 2026 وأتحمل المسؤولية القانونية.</span>
+                                        </label>
+                                        <label class="flex items-start gap-4 cursor-pointer group" onclick="toggleCheck(this, true)">
+                                            <input type="checkbox" name="media_consent" required class="hidden">
+                                            <div class="w-6 h-6 rounded-lg border-2 border-slate-600 flex items-center justify-center check-box mt-1 flex-shrink-0">
+                                                <i class="fa-solid fa-check text-white text-[10px] hidden"></i>
+                                            </div>
+                                            <span class="text-sm font-bold text-slate-300 group-hover:text-white transition-colors">أوافق على تصوير اللاعب واستخدام الصور لأغراض تسويقية للأكاديمية.</span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 pt-6">
+                                    <div>
+                                        <label class="label-text">توقيع اللاعب (الاسم الرباعي)</label>
+                                        <input type="text" name="player_signature" class="input-field text-center" required placeholder="أدخل اسمك هنا">
+                                    </div>
+                                    <div>
+                                        <label class="label-text">توقيع ولي الأمر (الاسم الرباعي)</label>
+                                        <input type="text" name="parent_signature" class="input-field text-center" required placeholder="أدخل اسم ولي الأمر هنا">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </form>
+
+                    <!-- Success State -->
+                    <div id="success-state" class="hidden absolute inset-0 bg-white z-50 flex flex-col items-center justify-center text-center p-8 animate-scale-in">
+                        <div class="w-32 h-32 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mb-10">
+                            <i class="fa-solid fa-check text-5xl"></i>
+                        </div>
+                        <h3 class="text-4xl font-black text-slate-900 mb-4">تم إرسال طلبك بنجاح!</h3>
+                        <p class="text-slate-500 font-bold text-xl mb-12 max-w-lg">شكراً لانضمامك إلينا. سنقوم بمراجعة بياناتك والتواصل معك قريباً جداً.</p>
+                        <div class="flex flex-col sm:flex-row gap-4">
+                            <a href="/user-dashboard" class="px-12 py-5 bg-slate-900 text-white rounded-2xl font-black hover:bg-slate-800 transition-all shadow-xl shadow-slate-900/20">لوحة التحكم</a>
+                            <a href="/" class="px-12 py-5 bg-white text-slate-600 border border-slate-200 rounded-2xl font-black hover:bg-slate-50 transition-all">الرئيسية</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer Navigation -->
+                <div id="form-footer" class="bg-slate-50/50 p-8 md:px-16 flex flex-col sm:flex-row items-center justify-between gap-6 border-t border-slate-100">
+                    <button type="button" id="prev-btn" class="invisible w-full sm:w-auto px-10 py-4 rounded-xl font-black text-slate-400 hover:bg-white hover:text-slate-900 transition-all flex items-center justify-center gap-3 border border-transparent hover:border-slate-200">
+                        <i class="fa-solid fa-arrow-right"></i> السابق
+                    </button>
+                    
+                    <div class="flex items-center gap-4 w-full sm:w-auto">
+                        <button type="button" id="next-btn" class="w-full sm:w-auto px-20 py-4 bg-emerald-600 text-white rounded-xl font-black shadow-xl shadow-emerald-500/20 hover:bg-emerald-700 hover:-translate-y-1 transition-all flex items-center justify-center gap-3">
+                            المتابعة <i class="fa-solid fa-arrow-left"></i>
+                        </button>
+                        <button type="button" id="submit-btn" class="hidden w-full sm:w-auto px-20 py-4 bg-emerald-600 text-white rounded-xl font-black shadow-xl shadow-emerald-500/20 hover:bg-emerald-700 hover:-translate-y-1 transition-all flex items-center justify-center gap-3">
+                            إرسال الطلب <i class="fa-solid fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Side Info (Responsive) -->
+            <div class="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-white p-8 rounded-3xl border border-white shadow-sm flex items-center gap-6">
+                    <div class="w-12 h-12 bg-blue-50 text-blue-500 rounded-2xl flex items-center justify-center flex-shrink-0"><i class="fa-solid fa-circle-question text-xl"></i></div>
+                    <div>
+                        <h4 class="font-black text-slate-900 text-sm mb-1 uppercase tracking-widest">هل تحتاج مساعدة؟</h4>
+                        <p class="text-xs text-slate-500 font-bold leading-relaxed">تواصل مع الدعم الفني عبر واتساب في حال واجهت مشكلة.</p>
+                    </div>
+                </div>
+                <div class="bg-white p-8 rounded-3xl border border-white shadow-sm flex items-center gap-6">
+                    <div class="w-12 h-12 bg-emerald-50 text-emerald-500 rounded-2xl flex items-center justify-center flex-shrink-0"><i class="fa-solid fa-shield-halved text-xl"></i></div>
+                    <div>
+                        <h4 class="font-black text-slate-900 text-sm mb-1 uppercase tracking-widest">خصوصية تامة</h4>
+                        <p class="text-xs text-slate-500 font-bold leading-relaxed">بياناتك الشخصية وصور الوثائق مؤمنة بالكامل لدينا.</p>
+                    </div>
+                </div>
+                <div class="bg-white p-8 rounded-3xl border border-white shadow-sm flex items-center gap-6">
+                    <div class="w-12 h-12 bg-amber-50 text-amber-500 rounded-2xl flex items-center justify-center flex-shrink-0"><i class="fa-solid fa-clock text-xl"></i></div>
+                    <div>
+                        <h4 class="font-black text-slate-900 text-sm mb-1 uppercase tracking-widest">مدة المراجعة</h4>
+                        <p class="text-xs text-slate-500 font-bold leading-relaxed">تستغرق عملية مراجعة الطلب من 2-4 أيام عمل رسمية.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="global-footer"></div>
+
+    <script src="/components/header.js"></script>
+    <script src="/components/footer.js"></script>
+    <script src="/components/loader.js"></script>
+    <script src="/components/system-guard.js"></script>
+    <script>
+        let currentStep = 1;
+        const totalSteps = 5;
+        const form = document.getElementById('spain-camp-form');
+        const nextBtn = document.getElementById('next-btn');
+        const prevBtn = document.getElementById('prev-btn');
+        const submitBtn = document.getElementById('submit-btn');
+
+        let currentUser = null;
+
+        // Load Initial Data
+        async function initPage() {
+            try {
+                const res = await fetch('/api/me');
+                if (res.ok) {
+                    const data = await res.json();
+                    currentUser = data.user;
+                    if (currentUser) {
+                        // Check if already applied
+                        const appRes = await fetch('/api/spain-camp/my-application');
+                        if (appRes.ok) {
+                            const appData = await appRes.json();
+                            if (appData.application) {
+                                alert('لقد قمت بتقديم طلب مسبقاً لهذا المعسكر.');
+                                window.location.href = '/user-dashboard';
+                                return;
+                            }
+                        }
+
+                        document.getElementById('player_full_name').value = currentUser.name || '';
+                        document.getElementById('player_email').value = currentUser.email || '';
+                        document.getElementById('player_phone').value = currentUser.phone_number || '';
+                        document.getElementById('player_dob').value = currentUser.birthdate ? currentUser.birthdate.split('T')[0] : '';
+                        document.getElementById('player_gender').value = currentUser.gender || 'male';
+                    }
+                } else {
+                    window.location.href = '/spain-camp';
+                }
+            } catch (err) {
+                console.error('Init failed:', err);
+                window.location.href = '/spain-camp';
+            }
+        }
+        initPage();
+
+        // File Name Helper
+        function updateFileName(input) {
+            const container = input.closest('.file-drop');
+            const nameEl = container.querySelector('.file-name');
+            const placeholderEl = container.querySelector('p:not(.file-name)');
+            const iconEl = container.querySelector('i');
+
+            if (input.files && input.files[0]) {
+                const fileName = input.files[0].name;
+                nameEl.innerText = fileName;
+                nameEl.classList.remove('hidden');
+                placeholderEl.classList.add('hidden');
+                iconEl.classList.replace('text-slate-200', 'text-emerald-500');
+                container.classList.add('border-emerald-500', 'bg-emerald-50/10');
+            }
+        }
+
+        // Custom UI Handlers
+        function setRadio(el, name, value) {
+            const block = el.closest('.health-block');
+            block.querySelectorAll('.option-card').forEach(card => {
+                card.classList.remove('selected');
+                card.querySelector('.radio-dot').classList.remove('border-emerald-500');
+                card.querySelector('.radio-dot').innerHTML = '';
+            });
+
+            el.classList.add('selected');
+            el.querySelector('.radio-dot').classList.add('border-emerald-500');
+            el.querySelector('.radio-dot').innerHTML = '<div class="w-3 h-3 bg-emerald-500 rounded-full"></div>';
+            
+            form.querySelector(`input[name="${name}"]`).value = value;
+            
+            const textarea = block.querySelector('textarea');
+            if (textarea) {
+                if (value === 'true') {
+                    textarea.classList.remove('hidden');
+                    textarea.required = true;
+                } else {
+                    textarea.classList.add('hidden');
+                    textarea.required = false;
+                }
+            }
+        }
+
+        function toggleCheck(el, isLegal = false) {
+            const checkbox = el.querySelector('input[type="checkbox"]');
+            checkbox.checked = !checkbox.checked;
+            
+            const box = el.querySelector('.check-box');
+            const icon = box.querySelector('i');
+            
+            if (checkbox.checked) {
+                if (!isLegal) el.classList.add('selected');
+                box.classList.add('bg-emerald-500', 'border-emerald-500');
+                icon.classList.remove('hidden');
+            } else {
+                if (!isLegal) el.classList.remove('selected');
+                box.classList.remove('bg-emerald-500', 'border-emerald-500');
+                icon.classList.add('hidden');
+            }
+        }
+
+        // Stepper Logic
+        nextBtn.addEventListener('click', () => {
+            if (validateStep(currentStep)) {
+                currentStep++;
+                updateUI();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        });
+
+        prevBtn.addEventListener('click', () => {
+            currentStep--;
+            updateUI();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+
+        function updateUI() {
+            // Update Contents
+            document.querySelectorAll('.step-content').forEach(c => c.classList.remove('active'));
+            const activeStep = document.querySelector(`.step-content[data-step="${currentStep}"]`);
+            if (activeStep) activeStep.classList.add('active');
+
+            // Update Stepper
+            document.querySelectorAll('.step-item-new').forEach((node, idx) => {
+                const stepIdx = idx + 1;
+                node.classList.remove('active', 'completed');
+                
+                if (stepIdx === currentStep) {
+                    node.classList.add('active');
+                } else if (stepIdx < currentStep) {
+                    node.classList.add('completed');
+                }
+            });
+
+            // Update Progress Bar
+            const progress = (currentStep / totalSteps) * 100;
+            document.getElementById('main-progress-bar').style.width = `${progress}%`;
+
+            // Buttons
+            prevBtn.style.visibility = currentStep === 1 ? 'hidden' : 'visible';
+            if (currentStep === totalSteps) {
+                nextBtn.classList.add('hidden');
+                submitBtn.classList.remove('hidden');
+            } else {
+                nextBtn.classList.remove('hidden');
+                submitBtn.classList.add('hidden');
+            }
+        }
+
+        function validateStep(step) {
+            const currentContent = document.querySelector(`.step-content[data-step="${step}"]`);
+            const inputs = currentContent.querySelectorAll('input[required], select[required], textarea[required]');
+            let valid = true;
+
+            inputs.forEach(input => {
+                if (!input.value || (input.type === 'checkbox' && !input.checked)) {
+                    input.classList.add('border-rose-400', 'bg-rose-50/30');
+                    valid = false;
+                } else {
+                    input.classList.remove('border-rose-400', 'bg-rose-50/30');
+                }
+            });
+
+            if (!valid) alert('يرجى تعبئة كافة الحقول المطلوبة للمتابعة.');
+            return valid;
+        }
+
+        async function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+            });
+        }
+
+        submitBtn.addEventListener('click', async () => {
+            if (!validateStep(5)) return;
+
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData.entries());
+
+            // Files
+            const pPass = document.getElementById('player_passport_image').files[0];
+            const pPers = document.getElementById('player_personal_image').files[0];
+            const prPass = document.getElementById('parent_passport_image').files[0];
+
+            if (pPass) data.player_passport_image = await fileToBase64(pPass);
+            if (pPers) data.player_personal_image = await fileToBase64(pPers);
+            if (prPass) data.parent_passport_image = await fileToBase64(prPass);
+
+            // Types
+            ['has_chronic_diseases', 'takes_regular_medications', 'has_allergies', 'has_health_insurance'].forEach(k => data[k] = data[k] === 'true');
+            ['traveled_to_europe', 'has_schengen_visa', 'has_valid_passport', 'parent_consent', 'media_consent'].forEach(k => data[k] = data[k] === 'on' || data[k] === true);
+
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> جاري الإرسال...';
+
+            try {
+                const res = await fetch('/api/spain-camp/apply', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                if (res.ok) {
+                    document.getElementById('success-state').classList.remove('hidden');
+                    document.getElementById('form-footer').classList.add('hidden');
+                } else {
+                    const err = await res.json();
+                    alert(err.error || 'فشل إرسال الطلب.');
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = 'إرسال الطلب <i class="fa-solid fa-paper-plane"></i>';
+                }
+            } catch (err) {
+                alert('خطأ في الاتصال بالخادم.');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = 'إرسال الطلب <i class="fa-solid fa-paper-plane"></i>';
+            }
+        });
+    </script>
+</body>
+
+</html>
