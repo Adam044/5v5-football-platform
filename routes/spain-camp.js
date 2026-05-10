@@ -54,7 +54,7 @@ router.post('/apply', requireAuth, async (req, res) => {
         }
 
         const age = Math.floor((new Date() - new Date(birthdate)) / (1000 * 60 * 60 * 24 * 365.25));
-        if (age >= 14) {
+        if (age > 14) {
             return res.status(400).json({ 
                 error: `عذراً، المعسكر مخصص للأطفال في سن 14 عاماً أو أقل. عمرك المسجل هو ${age} سنة.` 
             });

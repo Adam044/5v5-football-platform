@@ -64,7 +64,7 @@
                 <h3 class="text-2xl font-black">عذراً، لست مؤهلاً</h3>
             </div>
             <div class="p-8 text-center">
-                <p id="eligibility-reason" class="text-slate-500 font-medium mb-8">المعسكر مخصص للأطفال دون سن 14 عاماً فقط.</p>
+                <p id="eligibility-reason" class="text-slate-500 font-medium mb-8">المعسكر مخصص للأطفال في سن 14 عاماً أو أقل فقط.</p>
                 <button onclick="closeModal('eligibility-modal')" class="block w-full py-4 bg-slate-900 text-white rounded-2xl font-black hover:bg-slate-800 transition-all">فهمت ذلك</button>
             </div>
         </div>
@@ -183,7 +183,7 @@
                             ملاحظات هامة:
                         </h4>
                         <ul class="space-y-3 text-sm text-rose-700 font-medium">
-                            <li class="flex items-center gap-2"><i class="fa-solid fa-check"></i> يجب أن يكون عمر اللاعب أقل من 14 عاماً.</li>
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-check"></i> يجب أن يكون عمر اللاعب 14 عاماً أو أقل.</li>
                             <li class="flex items-center gap-2"><i class="fa-solid fa-check"></i> يتطلب التسجيل وجود جواز سفر ساري المفعول.</li>
                             <li class="flex items-center gap-2"><i class="fa-solid fa-check"></i> الأماكن محدودة والأولوية لأسبقية التسجيل.</li>
                         </ul>
@@ -310,7 +310,7 @@
             }
 
             const age = Math.floor((new Date() - new Date(currentUser.birthdate)) / (1000 * 60 * 60 * 24 * 365.25));
-            if (age >= 14) {
+            if (age > 14) {
                 document.getElementById('eligibility-reason').innerHTML = `
                     <div class="space-y-4">
                         <p>هذا المعسكر مخصص حصرياً للاعبين الموهوبين في سن <span class="text-rose-600 font-black">14 عاماً أو أقل</span>.</p>
