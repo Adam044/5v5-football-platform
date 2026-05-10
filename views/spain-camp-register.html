@@ -68,6 +68,9 @@
         .input-field:focus {
             @apply border-emerald-500 ring-4 ring-emerald-500/5 shadow-sm;
         }
+        .input-field.error {
+            @apply border-rose-500 ring-4 ring-rose-500/5 bg-rose-50/30;
+        }
         .input-field.readonly {
             @apply bg-slate-50 border-slate-200 text-slate-500 cursor-not-allowed;
         }
@@ -87,6 +90,16 @@
         @keyframes slideUp {
             from { opacity: 0; transform: translateY(15px); }
             to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-8px); }
+            50% { transform: translateX(8px); }
+            75% { transform: translateX(-8px); }
+        }
+        .animate-shake {
+            animation: shake 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
         }
 
         /* Custom Radio/Check */
@@ -249,7 +262,7 @@
                                     <div class="md:col-span-1">
                                         <label class="label-text">صورة الجواز</label>
                                         <label class="file-drop group block relative">
-                                            <input type="file" id="player_passport_image" accept="image/*" class="hidden" onchange="updateFileName(this)">
+                                            <input type="file" id="player_passport_image" accept="image/*" class="hidden" onchange="updateFileName(this)" required>
                                             <div class="space-y-2">
                                                 <i class="fa-solid fa-passport text-3xl text-slate-200 group-hover:text-emerald-500 mb-2 transition-colors"></i>
                                                 <p class="text-[11px] font-black text-slate-400 group-hover:text-emerald-600">إرفاق صورة الجواز</p>
@@ -260,7 +273,7 @@
                                     <div class="md:col-span-1">
                                         <label class="label-text">صورة شخصية</label>
                                         <label class="file-drop group block relative">
-                                            <input type="file" id="player_personal_image" accept="image/*" class="hidden" onchange="updateFileName(this)">
+                                            <input type="file" id="player_personal_image" accept="image/*" class="hidden" onchange="updateFileName(this)" required>
                                             <div class="space-y-2">
                                                 <i class="fa-solid fa-user-plus text-3xl text-slate-200 group-hover:text-emerald-500 mb-2 transition-colors"></i>
                                                 <p class="text-[11px] font-black text-slate-400 group-hover:text-emerald-600">إرفاق صورة شخصية</p>
@@ -303,7 +316,7 @@
                                     <div>
                                         <label class="label-text">صورة جواز ولي الأمر</label>
                                         <label class="file-drop group block relative">
-                                            <input type="file" id="parent_passport_image" accept="image/*" class="hidden" onchange="updateFileName(this)">
+                                            <input type="file" id="parent_passport_image" accept="image/*" class="hidden" onchange="updateFileName(this)" required>
                                             <div class="space-y-2">
                                                 <i class="fa-solid fa-file-invoice text-3xl text-slate-200 group-hover:text-emerald-500 mb-2 transition-colors"></i>
                                                 <p class="text-[11px] font-black text-slate-400 group-hover:text-emerald-600">إرفاق صورة الجواز</p>
@@ -687,20 +700,72 @@
 
         function validateStep(step) {
             const currentContent = document.querySelector(`.step-content[data-step="${step}"]`);
+            if (!currentContent) return true;
+
             const inputs = currentContent.querySelectorAll('input[required], select[required], textarea[required]');
-            let valid = true;
+            let firstError = null;
+            let isValid = true;
 
             inputs.forEach(input => {
-                if (!input.value || (input.type === 'checkbox' && !input.checked)) {
-                    input.classList.add('border-rose-400', 'bg-rose-50/30');
-                    valid = false;
-                } else {
-                    input.classList.remove('border-rose-400', 'bg-rose-50/30');
+                let isInputValid = true;
+
+                // Basic value check
+                if (!input.value || input.value.trim() === '') {
+                    isInputValid = false;
+                }
+
+                // Checkbox specific
+                if (input.type === 'checkbox' && !input.checked) {
+                    isInputValid = false;
+                }
+
+                // File specific (if they have an ID and are expected to be files)
+                if (input.type === 'file' && (!input.files || input.files.length === 0)) {
+                    isInputValid = false;
+                }
+
+                if (!isInputValid) {
+                    isValid = false;
+                    // Find visual container for styling
+                    const visualTarget = input.type === 'file' ? input.closest('.file-drop') : input;
+                    visualTarget.classList.add('error', 'border-rose-500');
+                    
+                    if (!firstError) firstError = visualTarget;
+
+                    // Remove error style on input
+                    const clearError = () => {
+                        visualTarget.classList.remove('error', 'border-rose-500');
+                        input.removeEventListener('input', clearError);
+                        input.removeEventListener('change', clearError);
+                    };
+                    input.addEventListener('input', clearError);
+                    input.addEventListener('change', clearError);
                 }
             });
 
-            if (!valid) alert('يرجى تعبئة كافة الحقول المطلوبة للمتابعة.');
-            return valid;
+            // Special check for radio-like option cards in Step 4
+            if (step === 4) {
+                // Since Step 4 has defaults ('false'), they are usually valid. 
+                // But we could add checks if any was mandatory without default.
+            }
+
+            if (!isValid) {
+                if (firstError) {
+                    firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    // Visual shake effect
+                    firstError.classList.add('animate-shake');
+                    setTimeout(() => firstError.classList.remove('animate-shake'), 500);
+                }
+                
+                // Show a nice toast or message instead of a generic alert
+                const errorMsg = document.createElement('div');
+                errorMsg.className = 'fixed top-10 left-1/2 -translate-x-1/2 bg-rose-600 text-white px-8 py-4 rounded-2xl font-black shadow-2xl z-[100] animate-bounce';
+                errorMsg.innerHTML = '<i class="fa-solid fa-circle-exclamation ml-2"></i> يرجى إكمال الحقول المطلوبة للمتابعة';
+                document.body.appendChild(errorMsg);
+                setTimeout(() => errorMsg.remove(), 3000);
+            }
+
+            return isValid;
         }
 
         async function fileToBase64(file) {
