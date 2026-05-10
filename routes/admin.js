@@ -118,10 +118,35 @@ router.put('/spain-camp/applications/:id/status', checkAdmin, async (req, res) =
 router.delete('/spain-camp/applications/:id', checkAdmin, async (req, res) => {
     const { id } = req.params;
     try {
-        const { rowCount } = await pool.query('DELETE FROM spain_camp_applications WHERE id = $1', [id]);
-        if (rowCount === 0) return res.status(404).json({ error: 'Application not found' });
-        res.json({ message: 'Application deleted successfully' });
+        // 1. Get application data to find file URLs
+        const { rows } = await pool.query(
+            'SELECT player_passport_image, player_personal_image, parent_passport_image FROM spain_camp_applications WHERE id = $1',
+            [id]
+        );
+        
+        const application = rows[0];
+        if (!application) return res.status(404).json({ error: 'Application not found' });
+
+        // 2. Delete files from Supabase Storage if they exist
+        const filesToDelete = [
+            application.player_passport_image,
+            application.player_personal_image,
+            application.parent_passport_image
+        ].filter(url => url && url.includes('supabase'));
+
+        if (filesToDelete.length > 0) {
+            console.log(`[Admin] Deleting ${filesToDelete.length} files from storage for application ${id}`);
+            await Promise.all(filesToDelete.map(url => deleteImageFromStorage(url).catch(err => {
+                console.warn(`[Admin] Failed to delete file from storage: ${url}`, err);
+            })));
+        }
+
+        // 3. Delete from database
+        await pool.query('DELETE FROM spain_camp_applications WHERE id = $1', [id]);
+        
+        res.json({ message: 'Application and associated files deleted successfully' });
     } catch (err) {
+        console.error('[Admin] Error deleting application:', err);
         res.status(500).json({ error: err.message });
     }
 });

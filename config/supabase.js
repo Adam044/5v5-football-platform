@@ -6,33 +6,42 @@ const supabase = createClient(
 );
 
 /**
- * Upload an image buffer to Supabase Storage.
+ * Upload an image or PDF buffer to Supabase Storage.
  */
-async function uploadImageToStorage(imageBuffer, fileName, folder = 'images') {
+async function uploadFileToStorage(fileBuffer, fileName, folder = 'images', contentType = 'image/jpeg') {
     try {
         const filePath = `${folder}/${Date.now()}_${fileName}`;
 
         const { data, error } = await supabase.storage
             .from('images')
-            .upload(filePath, imageBuffer, {
-                contentType: 'image/jpeg',
+            .upload(filePath, fileBuffer, {
+                contentType: contentType,
                 upsert: false
             });
 
         if (error) {
             console.error('Supabase storage error:', error);
-            return null;
+            // Return error object instead of null to identify MIME type issues
+            return { error: error.message || 'Storage error', status: error.status };
         }
 
         const { data: urlData } = supabase.storage
             .from('images')
             .getPublicUrl(filePath);
 
-        return urlData.publicUrl;
+        return { url: urlData.publicUrl };
     } catch (error) {
         console.error('Error uploading to storage:', error);
-        return null;
+        return { error: error.message || 'Unknown upload error' };
     }
+}
+
+/**
+ * Upload an image buffer to Supabase Storage. (Deprecated: Use uploadFileToStorage)
+ */
+async function uploadImageToStorage(imageBuffer, fileName, folder = 'images') {
+    const result = await uploadFileToStorage(imageBuffer, fileName, folder, 'image/jpeg');
+    return result.url || null;
 }
 
 /**
@@ -65,6 +74,7 @@ async function deleteImageFromStorage(imageUrl) {
 
 module.exports = {
     supabase,
+    uploadFileToStorage,
     uploadImageToStorage,
     deleteImageFromStorage
 };
