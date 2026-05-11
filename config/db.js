@@ -289,6 +289,20 @@ async function initSchema() {
             );
         `);
 
+        // EMAIL_LOGS Table
+        await client.query(`
+            CREATE TABLE IF NOT EXISTS email_logs (
+                id SERIAL PRIMARY KEY,
+                recipient_email TEXT NOT NULL,
+                subject TEXT,
+                content TEXT,
+                application_id INTEGER, -- Optional: link to spain_camp_applications
+                status TEXT, -- 'success', 'failed'
+                error_message TEXT,
+                sent_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+            );
+        `);
+
         await client.query('COMMIT');
         console.log('Database schema initialized successfully.');
     } catch (err) {

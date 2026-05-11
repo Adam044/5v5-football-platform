@@ -4,6 +4,7 @@ const sharp = require('sharp');
 const pool = require('../database');
 const { checkAdmin, checkCoachOrAdmin } = require('../middleware/auth');
 const { uploadImageToStorage, deleteImageFromStorage } = require('../config/supabase');
+const { sendEmail } = require('../utils/email');
 
 // --- Spain Camp Management ---
 
@@ -147,6 +148,67 @@ router.delete('/spain-camp/applications/:id', checkAdmin, async (req, res) => {
         res.json({ message: 'Application and associated files deleted successfully' });
     } catch (err) {
         console.error('[Admin] Error deleting application:', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+/**
+ * POST /api/admin/spain-camp/send-email
+ * Send a custom email to a camp applicant
+ */
+router.post('/spain-camp/send-email', checkAdmin, async (req, res) => {
+    const { to, subject, message, applicationId } = req.body;
+
+    console.log(`[Admin] Attempting to send custom email to: ${to}`);
+
+    if (!to || !subject || !message) {
+        return res.status(400).json({ error: 'يرجى تزويد البريد الإلكتروني، الموضوع، والرسالة.' });
+    }
+
+    try {
+        const content = `
+            <div style="font-size: 16px; color: #1e293b;">
+                ${message}
+            </div>
+            <p style="margin-top: 40px; border-top: 1px dashed #e2e8f0; padding-top: 20px; font-style: italic; color: #64748b; font-size: 14px;">
+                هذه الرسالة مرسلة من قبل إدارة منصة 5v5 فلسطين.
+            </p>
+        `;
+
+        const result = await sendEmail({ 
+            to, 
+            subject, 
+            html: content,
+            title: subject, // Use the subject as the header title
+            applicationId: applicationId // Pass application ID for logging
+        });
+        
+        if (result.success) {
+            console.log(`[Admin] Custom email sent successfully to ${to}`);
+            res.json({ message: 'تم إرسال البريد الإلكتروني بنجاح.' });
+        } else {
+            console.error(`[Admin] SendEmail helper returned failure:`, result.error);
+            throw new Error(result.error);
+        }
+    } catch (err) {
+        console.error('[Admin] Custom email route error:', err);
+        res.status(500).json({ error: `فشل في إرسال البريد الإلكتروني: ${err.message || 'خطأ غير معروف'}` });
+    }
+});
+
+/**
+ * GET /api/admin/spain-camp/applications/:id/emails
+ * Get email logs for a specific application
+ */
+router.get('/spain-camp/applications/:id/emails', checkAdmin, async (req, res) => {
+    const { id } = req.params;
+    try {
+        const { rows } = await pool.query(
+            'SELECT * FROM email_logs WHERE application_id = $1 ORDER BY sent_at DESC',
+            [id]
+        );
+        res.json({ emails: rows });
+    } catch (err) {
         res.status(500).json({ error: err.message });
     }
 });

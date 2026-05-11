@@ -229,6 +229,50 @@
             </div>
         </section>
 
+        <!-- Spain Camp Application Section -->
+        <section id="spain-camp-section" class="hidden bg-white rounded-2xl shadow-xl p-8 mb-12 border-t-4 border-emerald-500 relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-emerald-50 rounded-full -mr-16 -mt-16 opacity-50"></div>
+            <div class="relative z-10">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
+                    <h4 class="text-3xl font-bold text-gray-900 flex items-center gap-3">
+                        <div class="bg-emerald-100 p-3 rounded-full text-emerald-600">
+                            <i class="fa-solid fa-plane-departure text-xl"></i>
+                        </div>
+                        طلب معسكر إسبانيا 2026
+                    </h4>
+                    <div id="camp-status-badge"></div>
+                </div>
+                
+                <div class="bg-slate-50 rounded-3xl p-6 md:p-10 border border-slate-100">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        <div>
+                            <p class="text-[10px] font-black text-slate-400 uppercase mb-2">الاسم المسجل في الطلب</p>
+                            <p id="camp-player-name" class="font-bold text-slate-800 text-lg">...</p>
+                        </div>
+                        <div>
+                            <p class="text-[10px] font-black text-slate-400 uppercase mb-2">تاريخ التقديم</p>
+                            <p id="camp-submit-date" class="font-bold text-slate-800 text-lg">...</p>
+                        </div>
+                        <div>
+                            <p class="text-[10px] font-black text-slate-400 uppercase mb-2">البريد الإلكتروني للطلب</p>
+                            <p id="camp-player-email" class="font-bold text-slate-800 text-lg">...</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-10 pt-8 border-t border-slate-200/60 flex flex-wrap gap-4">
+                        <a href="/spain-camp" class="px-6 py-3 bg-white border border-slate-200 text-slate-600 rounded-xl font-bold hover:bg-slate-50 transition-all text-sm">
+                            عرض صفحة المعسكر
+                        </a>
+                        <div class="flex-grow"></div>
+                        <p class="text-xs text-slate-400 font-bold flex items-center gap-2 italic">
+                            <i class="fa-solid fa-circle-info"></i>
+                            سيتم التواصل معك عبر البريد الإلكتروني عند تحديث حالة طلبك.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
 
 
         <!-- My Matchmaking Requests Section -->
@@ -658,6 +702,38 @@
             } catch (error) {
                 console.error('Failed to fetch user reservations:', error);
                 showMessageBox('خطأ في الاتصال', 'فشل تحميل الحجوزات. يرجى التأكد من تشغيل الخادم.', 'error');
+            }
+        }
+
+        async function fetchUserSpainCamp() {
+            try {
+                const res = await fetch('/api/spain-camp/my-application');
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.application) {
+                        const app = data.application;
+                        document.getElementById('spain-camp-section').classList.remove('hidden');
+                        document.getElementById('camp-player-name').innerText = app.player_full_name;
+                        document.getElementById('camp-submit-date').innerText = new Date(app.created_at).toLocaleDateString('en-GB');
+                        document.getElementById('camp-player-email').innerText = app.player_email;
+                        
+                        const statusMap = {
+                            'pending': { text: 'قيد المراجعة', class: 'bg-amber-100 text-amber-600' },
+                            'reviewed': { text: 'تحت التدقيق', class: 'bg-blue-100 text-blue-600' },
+                            'accepted': { text: 'مقبول', class: 'bg-emerald-100 text-emerald-600' },
+                            'rejected': { text: 'مرفوض', class: 'bg-rose-100 text-rose-600' }
+                        };
+                        
+                        const status = statusMap[app.status] || statusMap['pending'];
+                        document.getElementById('camp-status-badge').innerHTML = `
+                            <span class="${status.class} px-6 py-2 rounded-full font-black text-sm border-2 border-current border-opacity-10 animate-pulse">
+                                ${status.text}
+                            </span>
+                        `;
+                    }
+                }
+            } catch (err) {
+                console.error('Error fetching spain camp app:', err);
             }
         }
 
@@ -1248,6 +1324,7 @@
                     await fetchUserMatchmaking();
                     await fetchUserTournamentTeams();
                     await fetchUserTrainingSubscription();
+                    await fetchUserSpainCamp();
                     showWelcomeNotification();
                 } catch (e) {
                     console.error('Failed to init dashboard:', e);

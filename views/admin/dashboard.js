@@ -3810,7 +3810,10 @@ async function fetchSpainApplications() {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         const data = await response.json();
+        
+        // Ensure both global and window variables are updated
         allSpainApplications = data.applications || [];
+        window.allSpainApplications = allSpainApplications;
         
         renderSpainApplications(allSpainApplications);
         updateSpainStats(allSpainApplications);
@@ -3839,7 +3842,11 @@ function renderSpainApplications(apps) {
 
     tableBody.innerHTML = apps.map(app => {
         const age = Math.floor((new Date() - new Date(app.player_dob)) / (1000 * 60 * 60 * 24 * 365.25));
-        const dateStr = new Date(app.created_at).toLocaleDateString('ar-EG');
+        const dateStr = new Date(app.created_at).toLocaleDateString('en-GB', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+        });
         
         return `
             <tr class="border-b border-slate-50 hover:bg-slate-50/50 transition-colors group">
@@ -3871,9 +3878,6 @@ function renderSpainApplications(apps) {
                     <div class="flex items-center justify-end gap-2">
                         <button onclick="viewSpainApplicationDetails(${app.id})" class="w-10 h-10 bg-slate-50 text-slate-400 rounded-xl hover:bg-emerald-50 hover:text-emerald-600 transition-all flex items-center justify-center">
                             <i class="fa-solid fa-eye text-sm"></i>
-                        </button>
-                        <button onclick="deleteSpainApplication(${app.id})" class="w-10 h-10 bg-slate-50 text-slate-400 rounded-xl hover:bg-rose-50 hover:text-rose-600 transition-all flex items-center justify-center">
-                            <i class="fa-solid fa-trash-can text-sm"></i>
                         </button>
                     </div>
                 </td>
@@ -3926,7 +3930,7 @@ function viewSpainApplicationDetails(id) {
                     </h4>
                     <div class="grid grid-cols-2 gap-8">
                         <div><p class="text-[10px] font-black text-slate-400 uppercase">الاسم الكامل</p><p class="font-bold text-slate-800">${app.player_full_name}</p></div>
-                        <div><p class="text-[10px] font-black text-slate-400 uppercase">تاريخ الميلاد</p><p class="font-bold text-slate-800">${new Date(app.player_dob).toLocaleDateString('ar-EG')}</p></div>
+                        <div><p class="text-[10px] font-black text-slate-400 uppercase">تاريخ الميلاد</p><p class="font-bold text-slate-800">${new Date(app.player_dob).toLocaleDateString('en-GB')}</p></div>
                         <div><p class="text-[10px] font-black text-slate-400 uppercase">الهاتف</p><p class="font-bold text-slate-800">${app.player_phone}</p></div>
                         <div><p class="text-[10px] font-black text-slate-400 uppercase">الجنسية</p><p class="font-bold text-slate-800">${app.player_nationality}</p></div>
                         <div><p class="text-[10px] font-black text-slate-400 uppercase">رقم الهوية</p><p class="font-bold text-slate-800">${app.player_id_number}</p></div>
@@ -3981,16 +3985,53 @@ function viewSpainApplicationDetails(id) {
             <!-- Right: Attachments -->
             <div class="space-y-8">
                 <div class="bg-white rounded-[2rem] border border-slate-100 p-6 shadow-sm">
-                    <p class="text-[10px] font-black text-slate-400 uppercase mb-4">صورة اللاعب الشخصية</p>
+                    <div class="flex items-center justify-between mb-4">
+                        <p class="text-[10px] font-black text-slate-400 uppercase">صورة اللاعب الشخصية</p>
+                        ${app.player_personal_image ? `
+                            <button onclick="downloadFile('${app.player_personal_image}', 'player_photo_${app.id}')" class="text-emerald-600 hover:text-emerald-700 font-black text-[10px] flex items-center gap-1">
+                                <i class="fa-solid fa-download"></i> تحميل
+                            </button>
+                        ` : ''}
+                    </div>
                     <img src="${app.player_personal_image || '/images/placeholder.jpg'}" class="w-full rounded-2xl border border-slate-100 shadow-sm" alt="Player">
                 </div>
                 <div class="bg-white rounded-[2rem] border border-slate-100 p-6 shadow-sm">
-                    <p class="text-[10px] font-black text-slate-400 uppercase mb-4">جواز سفر اللاعب</p>
-                    <img src="${app.player_passport_image || '/images/placeholder.jpg'}" class="w-full rounded-2xl border border-slate-100 shadow-sm" alt="Passport">
+                    <div class="flex items-center justify-between mb-4">
+                        <p class="text-[10px] font-black text-slate-400 uppercase">جواز سفر اللاعب</p>
+                        ${app.player_passport_image ? `
+                            <button onclick="downloadFile('${app.player_passport_image}', 'player_passport_${app.id}')" class="text-emerald-600 hover:text-emerald-700 font-black text-[10px] flex items-center gap-1">
+                                <i class="fa-solid fa-download"></i> تحميل
+                            </button>
+                        ` : ''}
+                    </div>
+                    ${app.player_passport_image && app.player_passport_image.endsWith('.pdf') ? `
+                        <div class="aspect-[3/4] bg-slate-50 rounded-2xl border border-dashed border-slate-200 flex flex-col items-center justify-center gap-3">
+                            <i class="fa-solid fa-file-pdf text-4xl text-rose-500"></i>
+                            <p class="text-xs font-bold text-slate-500 text-center px-4">ملف PDF للجواز</p>
+                            <a href="${app.player_passport_image}" target="_blank" class="text-blue-600 font-black text-xs hover:underline">فتح في تبويب جديد</a>
+                        </div>
+                    ` : `
+                        <img src="${app.player_passport_image || '/images/placeholder.jpg'}" class="w-full rounded-2xl border border-slate-100 shadow-sm" alt="Passport">
+                    `}
                 </div>
                 <div class="bg-white rounded-[2rem] border border-slate-100 p-6 shadow-sm">
-                    <p class="text-[10px] font-black text-slate-400 uppercase mb-4">جواز سفر ولي الأمر</p>
-                    <img src="${app.parent_passport_image || '/images/placeholder.jpg'}" class="w-full rounded-2xl border border-slate-100 shadow-sm" alt="Parent Passport">
+                    <div class="flex items-center justify-between mb-4">
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-tighter">جواز سفر ولي الأمر</p>
+                        ${app.parent_passport_image ? `
+                            <button onclick="downloadFile('${app.parent_passport_image}', 'parent_passport_${app.id}')" class="text-emerald-600 hover:text-emerald-700 font-black text-[10px] flex items-center gap-1">
+                                <i class="fa-solid fa-download"></i> تحميل
+                            </button>
+                        ` : ''}
+                    </div>
+                    ${app.parent_passport_image && app.parent_passport_image.endsWith('.pdf') ? `
+                        <div class="aspect-[3/4] bg-slate-50 rounded-2xl border border-dashed border-slate-200 flex flex-col items-center justify-center gap-3">
+                            <i class="fa-solid fa-file-pdf text-4xl text-rose-500"></i>
+                            <p class="text-xs font-bold text-slate-500 text-center px-4">ملف PDF لجواز ولي الأمر</p>
+                            <a href="${app.parent_passport_image}" target="_blank" class="text-blue-600 font-black text-xs hover:underline">فتح في تبويب جديد</a>
+                        </div>
+                    ` : `
+                        <img src="${app.parent_passport_image || '/images/placeholder.jpg'}" class="w-full rounded-2xl border border-slate-100 shadow-sm" alt="Parent Passport">
+                    `}
                 </div>
                 
                 <div class="bg-emerald-50 rounded-2xl p-6 text-center">
@@ -4009,8 +4050,395 @@ function viewSpainApplicationDetails(id) {
     document.getElementById('detail-accept-btn').onclick = () => updateSpainApplicationStatus(app.id, 'accepted');
     document.getElementById('detail-reject-btn').onclick = () => updateSpainApplicationStatus(app.id, 'rejected');
     document.getElementById('detail-review-btn').onclick = () => updateSpainApplicationStatus(app.id, 'reviewed');
+    
+    // Custom Email Button
+    document.getElementById('detail-email-btn').onclick = () => {
+        document.getElementById('custom-email-to').value = app.player_email;
+        document.getElementById('custom-email-subject').value = 'بخصوص طلب انضمامك لمعسكر إسبانيا 2026';
+        document.getElementById('custom-email-message').value = '';
+        // Store current application ID in the button's dataset
+        document.getElementById('send-custom-email-btn').dataset.applicationId = app.id;
+        showModal('spain-custom-email-modal');
+    };
+
+    // PDF Extraction
+    document.getElementById('extract-pdf-btn').onclick = () => downloadSpainApplicationPDF(app);
+
+    // Email History Button
+    document.getElementById('detail-history-btn').onclick = () => openEmailHistoryModal(app.id);
 
     showModal('spain-app-details-modal');
+}
+
+async function openEmailHistoryModal(appId) {
+    const logsContainer = document.getElementById('email-history-logs-container');
+    logsContainer.innerHTML = '<div class="py-20 text-center"><i class="fa-solid fa-circle-notch fa-spin text-3xl text-blue-500 mb-4"></i><p class="font-bold text-slate-400">جاري تحميل السجل...</p></div>';
+    
+    showModal('spain-email-history-modal');
+
+    try {
+        const res = await fetch(`/api/admin/spain-camp/applications/${appId}/emails`, { credentials: 'include' });
+        if (!res.ok) throw new Error('Failed to fetch logs');
+        
+        const data = await res.json();
+        const logs = data.emails || [];
+        
+        if (logs.length > 0) {
+            logsContainer.innerHTML = logs.map(log => {
+                const date = new Date(log.sent_at);
+                const formattedDate = date.toLocaleDateString('en-GB', { 
+                    day: '2-digit', 
+                    month: 'short', 
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+
+                return `
+                    <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-lg ${log.status === 'success' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'} flex items-center justify-center text-xs">
+                                    <i class="fa-solid ${log.status === 'success' ? 'fa-check' : 'fa-xmark'}"></i>
+                                </div>
+                                <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">${formattedDate}</span>
+                            </div>
+                            <span class="${log.status === 'success' ? 'text-emerald-600' : 'text-rose-600'} text-[10px] font-black uppercase">
+                                ${log.status === 'success' ? 'Success' : 'Failed'}
+                            </span>
+                        </div>
+                        <p class="font-black text-slate-800 text-sm mb-3 border-r-4 border-blue-500 pr-3">${log.subject || 'No Subject'}</p>
+                        <div class="bg-slate-50 p-4 rounded-2xl text-slate-500 text-xs leading-relaxed max-h-32 overflow-y-auto custom-scrollbar text-right">
+                            ${log.content}
+                        </div>
+                        ${log.error_message ? `<div class="mt-3 p-3 bg-rose-50 rounded-xl border border-rose-100 text-[10px] text-rose-500 font-bold">Error: ${log.error_message}</div>` : ''}
+                    </div>
+                `;
+            }).join('');
+        } else {
+            logsContainer.innerHTML = `
+                <div class="py-20 text-center">
+                    <div class="w-20 h-20 bg-slate-100 text-slate-300 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fa-solid fa-envelope-open text-3xl"></i>
+                    </div>
+                    <p class="font-black text-slate-400">لا توجد مراسلات مسجلة لهذا الطلب</p>
+                </div>
+            `;
+        }
+    } catch (err) {
+        console.error('Email history fetch error:', err);
+        logsContainer.innerHTML = '<div class="py-20 text-center text-rose-500 font-bold">فشل تحميل السجل. يرجى المحاولة لاحقاً.</div>';
+    }
+}
+
+// Global handler for sending custom email
+async function handleSendCustomEmail() {
+    const to = document.getElementById('custom-email-to').value;
+    const subject = document.getElementById('custom-email-subject').value;
+    const message = document.getElementById('custom-email-message').value;
+    const btn = document.getElementById('send-custom-email-btn');
+    const applicationId = btn.dataset.applicationId;
+
+    if (!subject || !message) {
+        showMessageBox('تنبيه', 'يرجى كتابة الموضوع والرسالة.', 'warning');
+        return;
+    }
+
+    const originalHtml = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> جاري الإرسال...';
+
+    try {
+        const res = await fetch('/api/admin/spain-camp/send-email', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ to, subject, message, applicationId })
+        });
+
+        if (res.ok) {
+            showMessageBox('نجاح', 'تم إرسال البريد الإلكتروني بنجاح.', 'success');
+            closeModal('spain-custom-email-modal');
+            // Refresh history if the details modal is still open
+            // (The history modal might not be open yet, but we update the background data if needed)
+        } else {
+            const err = await res.json();
+            showMessageBox('خطأ', err.error || 'فشل إرسال البريد.', 'error');
+        }
+    } catch (err) {
+        console.error('Send email error:', err);
+        showMessageBox('خطأ', 'حدث خطأ في الاتصال بالسيرفر.', 'error');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalHtml;
+    }
+}
+
+/**
+ * Downloads a specific file from a URL
+ */
+async function downloadFile(url, filename) {
+    const btn = event.currentTarget;
+    const originalHtml = btn.innerHTML;
+    
+    try {
+        btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>';
+        btn.disabled = true;
+
+        const response = await fetch(url, { mode: 'cors' });
+        if (!response.ok) throw new Error('Network response was not ok');
+        
+        const blob = await response.blob();
+        const blobUrl = window.URL.createObjectURL(blob);
+        
+        const link = document.createElement('a');
+        link.href = blobUrl;
+        
+        // Try to get extension from URL
+        const extension = url.split('.').pop().split(/[?#]/)[0] || 'jpg';
+        link.download = `${filename}.${extension}`;
+        
+        document.body.appendChild(link);
+        link.click();
+        
+        // Cleanup
+        setTimeout(() => {
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(blobUrl);
+        }, 100);
+
+        btn.innerHTML = originalHtml;
+        btn.disabled = false;
+    } catch (err) {
+        console.error('Download error:', err);
+        // Direct download fallback
+        const link = document.createElement('a');
+        link.href = url;
+        link.target = '_blank';
+        link.download = filename;
+        link.click();
+        
+        btn.innerHTML = originalHtml;
+        btn.disabled = false;
+    }
+}
+
+/**
+ * Generates and downloads a beautiful PDF for a single application
+ */
+async function downloadSpainApplicationPDF(app) {
+    const btn = document.getElementById('extract-pdf-btn');
+    const originalHtml = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> جاري استخراج PDF...';
+
+    try {
+        // Ensure html2pdf is loaded dynamically if not present
+        if (typeof html2pdf === 'undefined') {
+            await new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                // Use jsdelivr which is already allowed in CSP or cdnjs (which we just added)
+                script.src = 'https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js';
+                script.onload = resolve;
+                script.onerror = () => reject(new Error('Failed to load PDF library'));
+                document.head.appendChild(script);
+            });
+        }
+
+        const formatDate = (d) => d ? new Date(d).toLocaleDateString('en-GB') : 'N/A';
+        const age = Math.floor((new Date() - new Date(app.player_dob)) / (1000 * 60 * 60 * 24 * 365.25));
+
+        // Create a hidden div for PDF generation
+        const pdfContainer = document.createElement('div');
+        pdfContainer.style.width = '800px';
+        pdfContainer.style.backgroundColor = 'white';
+        pdfContainer.dir = 'rtl';
+        // Add specific style to avoid page breaks inside elements
+        pdfContainer.innerHTML = `
+            <style>
+                .pdf-section { page-break-inside: avoid; break-inside: avoid; margin-bottom: 30px; }
+                .grid-container { display: table; width: 100%; border-spacing: 15px; border-collapse: separate; }
+                .grid-row { display: table-row; }
+                .grid-cell { display: table-cell; background-color: #f8fafc; padding: 20px; border-radius: 20px; width: 50%; }
+                .label { font-size: 10px; font-weight: 900; color: #94a3b8; text-transform: uppercase; margin-bottom: 5px; }
+                .value { font-weight: 700; font-size: 14px; color: #1e293b; }
+            </style>
+            <div style="padding: 40px; font-family: 'Cairo', sans-serif;">
+                <div style="border: 1px solid #e2e8f0; border-radius: 35px; overflow: hidden; background-color: white;">
+                    <!-- Header -->
+                    <div style="background-color: #0f172a; padding: 40px; color: white; display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <h1 style="font-size: 26px; font-weight: 900; margin-bottom: 10px;">طلب التحاق بمعسكر إسبانيا 2026</h1>
+                            <p style="color: #10b981; font-weight: 700; text-transform: uppercase; font-size: 12px; letter-spacing: 1px;">Application ID: #APP-${String(app.id).padStart(4, '0')}</p>
+                        </div>
+                        <div style="text-align: left;">
+                            <p style="color: #94a3b8; font-weight: 700; font-size: 10px; text-transform: uppercase; margin-bottom: 5px;">تاريخ التقديم</p>
+                            <p style="font-weight: 900; font-size: 20px;">${formatDate(app.created_at)}</p>
+                        </div>
+                    </div>
+
+                    <div style="padding: 40px;">
+                        <!-- Section: Player -->
+                        <div class="pdf-section">
+                            <h2 style="font-size: 18px; font-weight: 900; color: #1e293b; border-right: 5px solid #10b981; padding-right: 15px; margin-bottom: 25px;">بيانات اللاعب</h2>
+                            <div class="grid-container" style="background-color: #f8fafc; border-radius: 25px; padding: 10px;">
+                                <div class="grid-row">
+                                    <div class="grid-cell"><p class="label">الاسم الكامل</p><p class="value">${app.player_full_name}</p></div>
+                                    <div class="grid-cell"><p class="label">تاريخ الميلاد</p><p class="value" dir="ltr" style="text-align: right;">${formatDate(app.player_dob)}</p></div>
+                                </div>
+                                <div class="grid-row">
+                                    <div class="grid-cell"><p class="label">رقم الهوية</p><p class="value">${app.player_id_number}</p></div>
+                                    <div class="grid-cell"><p class="label">رقم الجواز</p><p class="value">${app.player_passport_number}</p></div>
+                                </div>
+                                <div class="grid-row">
+                                    <div class="grid-cell"><p class="label">الجنسية</p><p class="value">${app.player_nationality}</p></div>
+                                    <div class="grid-cell"><p class="label">رقم الهاتف</p><p class="value" dir="ltr">${app.player_phone}</p></div>
+                                </div>
+                                <div class="grid-row">
+                                    <div class="grid-cell" style="width: 100%; display: block;"><p class="label">العنوان</p><p class="value">${app.player_address}</p></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Section: Parent -->
+                        <div class="pdf-section">
+                            <h2 style="font-size: 18px; font-weight: 900; color: #1e293b; border-right: 5px solid #3b82f6; padding-right: 15px; margin-bottom: 25px;">بيانات ولي الأمر</h2>
+                            <div class="grid-container" style="background-color: #f8fafc; border-radius: 25px; padding: 10px;">
+                                <div class="grid-row">
+                                    <div class="grid-cell"><p class="label">الاسم الكامل</p><p class="value">${app.parent_full_name}</p></div>
+                                    <div class="grid-cell"><p class="label">رقم الهاتف</p><p class="value" dir="ltr" style="text-align: right;">${app.parent_phone}</p></div>
+                                </div>
+                                <div class="grid-row">
+                                    <div class="grid-cell"><p class="label">صلة القرابة</p><p class="value">${app.parent_relation}</p></div>
+                                    <div class="grid-cell"><p class="label">رقم جواز ولي الأمر</p><p class="value">${app.parent_passport_number}</p></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Section: Health & Travel -->
+                        <div class="pdf-section">
+                            <h2 style="font-size: 18px; font-weight: 900; color: #1e293b; border-right: 5px solid #ef4444; padding-right: 15px; margin-bottom: 25px;">المعلومات الصحية والسفر</h2>
+                            <div class="grid-container" style="background-color: #f8fafc; border-radius: 25px; padding: 10px;">
+                                <div class="grid-row">
+                                    <div class="grid-cell"><p class="label">أمراض مزمنة</p><p class="value">${app.has_chronic_diseases ? 'نعم (' + app.chronic_diseases_details + ')' : 'لا'}</p></div>
+                                    <div class="grid-cell"><p class="label">أدوية منتظمة</p><p class="value">${app.takes_regular_medications ? 'نعم (' + app.regular_medications_details + ')' : 'لا'}</p></div>
+                                </div>
+                                <div class="grid-row">
+                                    <div class="grid-cell"><p class="label">حساسية</p><p class="value">${app.has_allergies ? 'نعم (' + app.allergies_details + ')' : 'لا'}</p></div>
+                                    <div class="grid-cell"><p class="label">تأمين صحي</p><p class="value">${app.has_health_insurance ? 'نعم (' + app.health_insurance_details + ')' : 'لا'}</p></div>
+                                </div>
+                                <div class="grid-row">
+                                    <div class="grid-cell"><p class="label">سافر لأوروبا</p><p class="value">${app.traveled_to_europe ? 'نعم' : 'لا'}</p></div>
+                                    <div class="grid-cell"><p class="label">تأشيرة شنغن</p><p class="value">${app.has_schengen_visa ? 'نعم' : 'لا'}</p></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Section: Images -->
+                        <div class="pdf-section" style="page-break-before: auto;">
+                            <h2 style="font-size: 18px; font-weight: 900; color: #1e293b; border-right: 5px solid #f59e0b; padding-right: 15px; margin-bottom: 25px;">الصور والمرفقات</h2>
+                            <div style="display: flex; gap: 20px; justify-content: center; align-items: flex-start; flex-wrap: wrap;">
+                                ${app.player_personal_image ? `
+                                    <div style="text-align: center; width: 220px; margin-bottom: 20px;">
+                                        <p style="font-size: 10px; font-weight: 900; color: #94a3b8; margin-bottom: 10px; text-transform: uppercase;">صورة اللاعب</p>
+                                        <div style="border-radius: 15px; overflow: hidden; border: 1px solid #e2e8f0; line-height: 0;">
+                                            <img src="${app.player_personal_image}" style="width: 100%; display: block;" crossorigin="anonymous">
+                                        </div>
+                                    </div>
+                                ` : ''}
+                                
+                                <!-- Player Passport -->
+                                <div style="text-align: center; width: 220px; margin-bottom: 20px;">
+                                    <p style="font-size: 10px; font-weight: 900; color: #94a3b8; margin-bottom: 10px; text-transform: uppercase;">جواز اللاعب</p>
+                                    ${app.player_passport_image && app.player_passport_image.endsWith('.pdf') ? `
+                                        <div style="padding: 20px; border-radius: 15px; border: 2px dashed #e2e8f0; background-color: #f8fafc;">
+                                            <i class="fa-solid fa-file-pdf" style="font-size: 24px; color: #ef4444; margin-bottom: 10px; display: block;"></i>
+                                            <a href="${app.player_passport_image}" target="_blank" style="color: #2563eb; font-weight: 800; font-size: 11px; text-decoration: underline;">فتح ملف PDF</a>
+                                        </div>
+                                    ` : app.player_passport_image ? `
+                                        <div style="border-radius: 15px; overflow: hidden; border: 1px solid #e2e8f0; line-height: 0;">
+                                            <img src="${app.player_passport_image}" style="width: 100%; display: block;" crossorigin="anonymous">
+                                        </div>
+                                    ` : '<p class="value" style="font-size: 12px; color: #94a3b8;">غير متوفر</p>'}
+                                </div>
+
+                                <!-- Parent Passport -->
+                                <div style="text-align: center; width: 220px; margin-bottom: 20px;">
+                                    <p style="font-size: 10px; font-weight: 900; color: #94a3b8; margin-bottom: 10px; text-transform: uppercase;">جواز ولي الأمر</p>
+                                    ${app.parent_passport_image && app.parent_passport_image.endsWith('.pdf') ? `
+                                        <div style="padding: 20px; border-radius: 15px; border: 2px dashed #e2e8f0; background-color: #f8fafc;">
+                                            <i class="fa-solid fa-file-pdf" style="font-size: 24px; color: #ef4444; margin-bottom: 10px; display: block;"></i>
+                                            <a href="${app.parent_passport_image}" target="_blank" style="color: #2563eb; font-weight: 800; font-size: 11px; text-decoration: underline;">فتح ملف PDF</a>
+                                        </div>
+                                    ` : app.parent_passport_image ? `
+                                        <div style="border-radius: 15px; overflow: hidden; border: 1px solid #e2e8f0; line-height: 0;">
+                                            <img src="${app.parent_passport_image}" style="width: 100%; display: block;" crossorigin="anonymous">
+                                        </div>
+                                    ` : '<p class="value" style="font-size: 12px; color: #94a3b8;">غير متوفر</p>'}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Section: Signatures -->
+                        <div class="pdf-section" style="margin-top: 50px; padding-top: 40px; border-top: 2px solid #f1f5f9;">
+                            <div style="display: flex; gap: 30px;">
+                                <div style="flex: 1; text-align: center; padding: 30px; background-color: #f8fafc; border-radius: 30px;">
+                                    <p style="font-size: 10px; font-weight: 900; color: #94a3b8; text-transform: uppercase; margin-bottom: 15px;">توقيع اللاعب</p>
+                                    <p style="font-size: 22px; font-weight: 900; font-style: italic; color: #0f172a; font-family: cursive;">${app.player_signature}</p>
+                                </div>
+                                <div style="flex: 1; text-align: center; padding: 30px; background-color: #f8fafc; border-radius: 30px;">
+                                    <p style="font-size: 10px; font-weight: 900; color: #94a3b8; text-transform: uppercase; margin-bottom: 15px;">توقيع ولي الأمر</p>
+                                    <p style="font-size: 22px; font-weight: 900; font-style: italic; color: #0f172a; font-family: cursive;">${app.parent_signature}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // Configure options for html2pdf
+        const opt = {
+            margin: [10, 0, 10, 0], // Top, Left, Bottom, Right
+            filename: `Spain_App_${app.id}_${app.player_full_name.replace(/\s+/g, '_')}.pdf`,
+            image: { type: 'jpeg', quality: 1.0 },
+            html2canvas: { 
+                scale: 2, 
+                useCORS: true, 
+                logging: false,
+                letterRendering: true,
+                allowTaint: true
+            },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+            pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+        };
+
+        // Ensure images are loaded before generating PDF
+        const images = pdfContainer.querySelectorAll('img');
+        const imagePromises = Array.from(images).map(img => {
+            return new Promise((resolve) => {
+                if (img.complete) resolve();
+                else {
+                    img.onload = resolve;
+                    img.onerror = resolve;
+                }
+            });
+        });
+
+        await Promise.all(imagePromises);
+        
+        // Run the conversion and download
+        await html2pdf().set(opt).from(pdfContainer).save();
+        
+        btn.innerHTML = originalHtml;
+        btn.disabled = false;
+        showMessageBox('نجاح', 'تم تحميل الطلب بنجاح.', 'success');
+
+    } catch (err) {
+        console.error('PDF Generation Error:', err);
+        showMessageBox('خطأ', 'فشل في تحميل ملف PDF. يرجى المحاولة مرة أخرى.', 'error');
+        btn.innerHTML = originalHtml;
+        btn.disabled = false;
+    }
 }
 
 async function updateSpainApplicationStatus(id, status) {
@@ -4050,5 +4478,102 @@ async function deleteSpainApplication(id) {
         }
     } catch (err) {
         console.error('Delete app error:', err);
+    }
+}
+
+/**
+ * Downloads Spain Camp applications as a clean CSV file
+ */
+function downloadSpainApplicationsCSV() {
+    // Try global variables and window properties
+    const apps = (typeof allSpainApplications !== 'undefined' ? allSpainApplications : []) || 
+                 window.allSpainApplications || 
+                 window.spainApplications || 
+                 [];
+    
+    console.log('Extracting CSV. Applications count:', apps.length);
+    
+    if (apps.length === 0) {
+        showMessageBox('تنبيه', 'لا توجد بيانات لاستخراجها حالياً. يرجى التأكد من تحميل الطلبات أولاً.', 'warning');
+        return;
+    }
+
+    try {
+        // Define relevant columns for extraction
+        const columns = [
+            { label: 'ID', key: 'id' },
+            { label: 'الاسم الكامل', key: 'player_full_name' },
+            { label: 'تاريخ الميلاد', key: 'player_dob' },
+            { label: 'الجنس', key: 'player_gender' },
+            { label: 'البريد الإلكتروني', key: 'player_email' },
+            { label: 'رقم الهاتف', key: 'player_phone' },
+            { label: 'رقم الهوية', key: 'player_id_number' },
+            { label: 'رقم الجواز', key: 'player_passport_number' },
+            { label: 'الجنسية', key: 'player_nationality' },
+            { label: 'العنوان', key: 'player_address' },
+            { label: 'اسم ولي الأمر', key: 'parent_full_name' },
+            { label: 'هاتف ولي الأمر', key: 'parent_phone' },
+            { label: 'صلة القرابة', key: 'parent_relation' },
+            { label: 'جواز ولي الأمر', key: 'parent_passport_number' },
+            { label: 'أمراض مزمنة', key: 'has_chronic_diseases' },
+            { label: 'تفاصيل الأمراض', key: 'chronic_diseases_details' },
+            { label: 'أدوية منتظمة', key: 'takes_regular_medications' },
+            { label: 'تفاصيل الأدوية', key: 'regular_medications_details' },
+            { label: 'حساسية', key: 'has_allergies' },
+            { label: 'تفاصيل الحساسية', key: 'allergies_details' },
+            { label: 'تأمين صحي', key: 'has_health_insurance' },
+            { label: 'تفاصيل التأمين', key: 'health_insurance_details' },
+            { label: 'سافر لأوروبا', key: 'traveled_to_europe' },
+            { label: 'فيزا شنغن', key: 'has_schengen_visa' },
+            { label: 'جواز ساري', key: 'has_valid_passport' },
+            { label: 'تاريخ التقديم', key: 'created_at' },
+            { label: 'الحالة', key: 'status' }
+        ];
+
+        // Create CSV header
+        const header = columns.map(col => `"${col.label}"`).join(',');
+
+        // Create CSV rows
+        const rows = apps.map(app => {
+            return columns.map(col => {
+                let value = app[col.key];
+                
+                // Format boolean values
+                if (typeof value === 'boolean') {
+                    value = value ? 'نعم' : 'لا';
+                }
+                
+                // Format dates
+                if (col.key === 'created_at' || col.key === 'player_dob') {
+                    value = value ? new Date(value).toLocaleDateString('en-GB') : '';
+                }
+
+                // Clean string values
+                value = value ? String(value).replace(/"/g, '""') : '';
+                
+                return `"${value}"`;
+            }).join(',');
+        });
+
+        // Combine header and rows with UTF-8 BOM for Arabic support in Excel
+        const csvContent = '\uFEFF' + [header, ...rows].join('\n');
+        
+        // Create download link
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        
+        const timestamp = new Date().toISOString().split('T')[0];
+        link.setAttribute('href', url);
+        link.setAttribute('download', `Spain_Camp_Applications_${timestamp}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        showMessageBox('نجاح', 'تم استخراج البيانات بنجاح بصيغة CSV.', 'success');
+    } catch (error) {
+        console.error('CSV Export Error:', error);
+        showMessageBox('خطأ', 'حدث خطأ أثناء استخراج البيانات.', 'error');
     }
 }

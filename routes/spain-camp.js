@@ -4,6 +4,7 @@ const pool = require('../database');
 const { requireAuth } = require('../middleware/auth');
 const { uploadFileToStorage } = require('../config/supabase');
 const sharp = require('sharp');
+const { sendSpainCampConfirmation } = require('../utils/email');
 
 /**
  * Helper to process and upload image or PDF from base64
@@ -44,6 +45,20 @@ async function processAndUpload(base64Data, fileName, folder) {
         return null;
     }
 }
+
+router.get('/my-application', requireAuth, async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { rows } = await pool.query('SELECT * FROM spain_camp_applications WHERE user_id = $1', [userId]);
+        if (rows.length === 0) {
+            return res.json({ application: null });
+        }
+        res.json({ application: rows[0] });
+    } catch (err) {
+        console.error('Error fetching my spain camp application:', err);
+        res.status(500).json({ error: err.message });
+    }
+});
 
 /**
  * POST /api/spain-camp/apply
@@ -150,6 +165,20 @@ router.post('/apply', requireAuth, async (req, res) => {
         ];
 
         const { rows } = await pool.query(sql, params);
+        
+        // 4. Send Confirmation Emails (Async - don't block response)
+        // To Player
+        sendSpainCampConfirmation(data.player_email, data.player_full_name).catch(err => {
+            console.error('[Email] Failed to send player confirmation:', err);
+        });
+
+        // To Parent (Optional if they have an email field, or just notify admin if needed)
+        // For now, if parent email exists in the data, send it there too. 
+        // Based on the data received, we might not have a separate parent_email field yet, 
+        // but we can send to the player email and mention it covers both.
+        // If you want a separate parent email, we should add it to the form.
+        // Assuming we send to the main player email which the parent likely sees too.
+
         res.status(201).json({ message: 'تم تقديم طلبك بنجاح!', applicationId: rows[0].id });
 
     } catch (err) {

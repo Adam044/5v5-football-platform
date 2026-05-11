@@ -41,13 +41,15 @@ app.use(helmet.contentSecurityPolicy({
             "'self'",
             "'unsafe-inline'",
             "https://cdn.tailwindcss.com",
-            "https://cdn.jsdelivr.net"
+            "https://cdn.jsdelivr.net",
+            "https://cdnjs.cloudflare.com"
         ],
         "script-src-elem": [
             "'self'",
             "'unsafe-inline'",
             "https://cdn.tailwindcss.com",
-            "https://cdn.jsdelivr.net"
+            "https://cdn.jsdelivr.net",
+            "https://cdnjs.cloudflare.com"
         ],
         "script-src-attr": ["'unsafe-inline'"],
         "style-src": [

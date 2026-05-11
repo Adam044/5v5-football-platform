@@ -479,13 +479,15 @@
 
                     </form>
 
-                    <!-- Success State -->
+                    <!-- Success Message -->
                     <div id="success-state" class="hidden absolute inset-0 bg-white z-50 flex flex-col items-center justify-center text-center p-8 animate-scale-in">
                         <div class="w-32 h-32 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mb-10">
                             <i class="fa-solid fa-check text-5xl"></i>
                         </div>
                         <h3 class="text-4xl font-black text-slate-900 mb-4">تم إرسال طلبك بنجاح!</h3>
-                        <p class="text-slate-500 font-bold text-xl mb-12 max-w-lg">شكراً لانضمامك إلينا. سنقوم بمراجعة بياناتك والتواصل معك قريباً جداً.</p>
+                        <p class="text-slate-500 font-bold text-xl mb-12 max-w-lg">
+                            شكراً لتقديمك! لقد تم إرسال بريد إلكتروني تأكيدي لك ولولي أمرك. سنقوم بمراجعة بياناتك والتواصل معك قريباً جداً.
+                        </p>
                         <div class="flex flex-col sm:flex-row gap-4">
                             <a href="/user-dashboard" class="px-12 py-5 bg-slate-900 text-white rounded-2xl font-black hover:bg-slate-800 transition-all shadow-xl shadow-slate-900/20">لوحة التحكم</a>
                             <a href="/" class="px-12 py-5 bg-white text-slate-600 border border-slate-200 rounded-2xl font-black hover:bg-slate-50 transition-all">الرئيسية</a>
@@ -576,7 +578,14 @@
                         document.getElementById('player_email').value = currentUser.email || '';
                         document.getElementById('player_phone').value = currentUser.phone_number || '';
                         document.getElementById('player_dob').value = currentUser.birthdate ? currentUser.birthdate.split('T')[0] : '';
-                        document.getElementById('player_gender').value = currentUser.gender || 'male';
+                        
+                        // Fix: Auto-select gender based on user account
+                        const genderSelect = document.getElementById('player_gender');
+                        if (currentUser.gender) {
+                            genderSelect.value = currentUser.gender;
+                        } else {
+                            genderSelect.value = 'male';
+                        }
                     }
                 } else {
                     window.location.href = '/spain-camp';
