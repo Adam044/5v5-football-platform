@@ -108,7 +108,7 @@
                     status.innerText = 'ACCESS GRANTED. REDIRECTING...';
                     status.classList.remove('text-yellow-500', 'text-red-500');
                     status.classList.add('text-green-500');
-                    setTimeout(() => window.location.href = '/owner_panel/index.html', 1000);
+                    setTimeout(() => window.location.href = '/owner-panel', 1000);
                 } else {
                     status.innerText = 'ACCESS DENIED: ' + (data.error || 'INVALID CREDENTIALS');
                     status.classList.remove('text-yellow-500');

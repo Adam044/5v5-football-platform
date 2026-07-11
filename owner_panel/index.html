@@ -307,7 +307,7 @@
             try {
                 const res = await fetch('/api/owner/system-status');
                 if (res.status === 401 || res.status === 403) {
-                    window.location.href = '/owner_panel/login.html';
+                    window.location.href = '/owner/login';
                     return;
                 }
                 const data = await res.json();

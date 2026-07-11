@@ -107,6 +107,7 @@ app.use('/api', apiLimiter);
 
 // --- Static Files ---
 app.use(express.static(path.join(__dirname, 'views')));
+app.use('/owner_panel', express.static(path.join(__dirname, 'owner_panel'))); // Allow direct access to owner panel files
 app.use('/components', express.static(path.join(__dirname, 'components')));
 // Map /images to components/images for frontend compatibility
 app.use('/images', express.static(path.join(__dirname, 'components/images')));

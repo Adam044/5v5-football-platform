@@ -2,11 +2,13 @@ const express = require('express');
 const path = require('path');
 const router = express.Router();
 
-// Define views directory
+// Define directories
 const viewsDir = path.join(__dirname, '../views');
+const ownerDir = path.join(__dirname, '../owner_panel');
 
-// Helper to serve HTML files
+// Helpers to serve HTML files
 const serveFile = (file) => (req, res) => res.sendFile(path.join(viewsDir, file));
+const serveOwnerFile = (file) => (req, res) => res.sendFile(path.join(ownerDir, file));
 
 // Core Pages
 router.get('/', serveFile('index.html'));
@@ -43,6 +45,7 @@ router.get('/terms-of-use', serveFile('terms-of-use.html'));
 // Admin & Owner Pages
 router.get('/admin', serveFile('admin/index.html'));
 router.get('/coach-dashboard', serveFile('coach-dashboard.html'));
-router.get('/owner-panel', serveFile('owner-panel.html'));
+router.get('/owner/login', serveOwnerFile('login.html'));
+router.get('/owner-panel', serveOwnerFile('index.html'));
 
 module.exports = router;
