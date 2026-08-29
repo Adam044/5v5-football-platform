@@ -215,6 +215,8 @@ function setActiveTab(tabId, event, sectionId = null) {
         if (tabId === 'availability-tab') activeTabButton.classList.add('bg-purple-50', 'text-purple-600');
         if (tabId === 'trainings-tab') activeTabButton.classList.add('bg-orange-50', 'text-orange-600');
         if (tabId === 'spain-camp-tab') activeTabButton.classList.add('bg-emerald-50', 'text-emerald-600');
+        if (tabId === 'field-admins-tab') activeTabButton.classList.add('bg-emerald-50', 'text-emerald-600');
+        if (tabId === 'field-bookings-tab') activeTabButton.classList.add('bg-blue-50', 'text-blue-600');
     }
     
     if (activeTabPane) {
@@ -253,6 +255,12 @@ function setActiveTab(tabId, event, sectionId = null) {
         case 'fashion-tab': fetchFashionProducts(); break;
         case 'giveaways-tab': fetchAdminGiveaways(); break;
         case 'spain-camp-tab': fetchSpainApplications(); break;
+        case 'field-admins-tab':
+            if (typeof window.fetchFieldAdminsList === 'function') window.fetchFieldAdminsList();
+            break;
+        case 'field-bookings-tab':
+            if (typeof window.fetchFieldBookings === 'function') window.fetchFieldBookings();
+            break;
     }
 }
 

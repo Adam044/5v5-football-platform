@@ -22,6 +22,7 @@ const shopRoutes = require('./routes/shop');
 const userRoutes = require('./routes/users');
 const adminRoutes = require('./routes/admin');
 const ownerRoutes = require('./routes/owner');
+const fieldAdminRoutes = require('./routes/field_admin');
 const spainCampRoutes = require('./routes/spain-camp');
 const publicRoutes = require('./routes/public');
 const pageRoutes = require('./routes/pages');
@@ -108,6 +109,7 @@ app.use('/api', apiLimiter);
 // --- Static Files ---
 app.use(express.static(path.join(__dirname, 'views')));
 app.use('/owner_panel', express.static(path.join(__dirname, 'owner_panel'))); // Allow direct access to owner panel files
+app.use('/field_admin', express.static(path.join(__dirname, 'field_admin'))); // Field Admin B2B service dashboard
 app.use('/components', express.static(path.join(__dirname, 'components')));
 // Map /images to components/images for frontend compatibility
 app.use('/images', express.static(path.join(__dirname, 'components/images')));
@@ -125,6 +127,7 @@ app.use('/api/tournaments', tournamentRoutes); // /api/tournaments, /api/tournam
 app.use('/api/fashion', shopRoutes);         // /api/fashion/products
 app.use('/api/user', userRoutes);    // /api/user/:userId, /api/user/upcoming-birthdays
 app.use('/api/owner', ownerRoutes);  // /api/owner/login, /api/owner/system-status
+app.use('/api/field_admin', fieldAdminRoutes); // /api/field_admin/* (B2B service)
 app.use('/api/spain-camp', spainCampRoutes); // /api/spain-camp/apply
 app.use('/api', publicRoutes);       // /api/gallery, /api/sponsors, /api/giveaways, /api/availability, /api/csrf-token, etc.
 

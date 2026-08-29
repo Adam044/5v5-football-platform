@@ -303,6 +303,60 @@ async function initSchema() {
             );
         `);
 
+        // FIELD ADMIN SERVICE: fa_admins Table
+        await client.query(`
+            CREATE TABLE IF NOT EXISTS fa_admins (
+                id SERIAL PRIMARY KEY,
+                field_id INTEGER REFERENCES fields(id) UNIQUE NOT NULL,
+                username TEXT UNIQUE NOT NULL,
+                password_hash TEXT NOT NULL,
+                full_name TEXT NOT NULL,
+                phone TEXT,
+                price_per_hour REAL DEFAULT 100,
+                default_slot_duration INTEGER DEFAULT 120,
+                operating_start TEXT DEFAULT '08:00',
+                operating_end TEXT DEFAULT '00:00',
+                is_active INTEGER DEFAULT 1,
+                password_changed_at TIMESTAMP WITH TIME ZONE,
+                last_login TIMESTAMP WITH TIME ZONE,
+                created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+            );
+        `);
+
+        // NOTE: fa_slots is deprecated in favor of dynamic virtual slots.
+        // We keep the table for now to avoid breaking existing migrations,
+        // but it is no longer used by the application logic.
+
+        // FIELD ADMIN SERVICE: fa_bookings Table (isolated bookings from phone calls)
+        await client.query(`
+            CREATE TABLE IF NOT EXISTS fa_bookings (
+                id SERIAL PRIMARY KEY,
+                slot_id INTEGER, -- Legacy reference, can be NULL
+                field_id INTEGER REFERENCES fields(id) NOT NULL,
+                field_admin_id INTEGER REFERENCES fa_admins(id) NOT NULL,
+                slot_date TEXT NOT NULL,
+                start_time TEXT NOT NULL,
+                customer_name TEXT NOT NULL,
+                customer_phone TEXT,
+                amount REAL NOT NULL,
+                payment_status TEXT NOT NULL DEFAULT 'unpaid',
+                status TEXT NOT NULL DEFAULT 'confirmed',
+                duration_minutes INTEGER NOT NULL,
+                notes TEXT,
+                created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+            );
+        `);
+
+        // Concurrency Protection: Partial Unique Index to prevent double-booking same slot
+        // Only active (confirmed) bookings are restricted.
+        await client.query(`
+            CREATE UNIQUE INDEX IF NOT EXISTS idx_fa_bookings_no_overlap 
+            ON fa_bookings (field_id, slot_date, start_time) 
+            WHERE (status = 'confirmed');
+        `);
+
         await client.query('COMMIT');
         console.log('Database schema initialized successfully.');
     } catch (err) {

@@ -55,9 +55,23 @@ const checkOwner = (req, res, next) => {
     next();
 };
 
+const checkFieldAdmin = (req, res, next) => {
+    const token = req.cookies?.field_admin_token;
+    if (!token) {
+        return res.status(401).json({ error: 'Unauthorized: Field Admin access required' });
+    }
+    const payload = verifyToken(token);
+    if (!payload || payload.role !== 'field_admin') {
+        return res.status(403).json({ error: 'Forbidden: Field Admin access required' });
+    }
+    req.fieldAdmin = payload;
+    next();
+};
+
 module.exports = {
     requireAuth,
     checkAdmin,
     checkCoachOrAdmin,
-    checkOwner
+    checkOwner,
+    checkFieldAdmin
 };

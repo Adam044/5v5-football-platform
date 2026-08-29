@@ -1,0 +1,342 @@
+<section id="field-bookings-tab" class="tab-pane hidden">
+    <div class="mb-8">
+        <h2 class="text-3xl font-black text-slate-800 mb-2">حجوزات مسؤولي الملاعب (B2B)</h2>
+        <p class="text-slate-500 font-bold">اختر الملعب لرؤية جدول مواعيده وحجوزاته اليومية بشكل فوري وبسيط.</p>
+    </div>
+
+    <!-- Field Selection & Date Nav -->
+    <div class="space-y-6 mb-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
+            <div class="space-y-2">
+                <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mr-1">اختر الملعب</label>
+                <div class="relative">
+                    <select id="fb-field-select" onchange="window.onFbFieldChange()" class="w-full pl-10 pr-5 py-4 rounded-2xl bg-white border-2 border-slate-100 focus:border-emerald-500 outline-none text-slate-800 font-black transition-all appearance-none shadow-sm">
+                        <option value="">-- اختر الملعب --</option>
+                    </select>
+                    <div class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
+                        <i class="fa-solid fa-futbol"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2 bg-white p-2 rounded-2xl border-2 border-slate-100 shadow-sm">
+                <button onclick="window.fbShiftDay(-1)" class="w-12 h-12 rounded-xl hover:bg-slate-50 text-slate-400 transition-all"><i class="fa-solid fa-chevron-right"></i></button>
+                <div class="flex-1 text-center">
+                    <span id="fb-date-text" class="font-black text-slate-800">الأثنين، 24 أغسطس</span>
+                </div>
+                <button onclick="window.fbShiftDay(1)" class="w-12 h-12 rounded-xl hover:bg-slate-50 text-slate-400 transition-all"><i class="fa-solid fa-chevron-left"></i></button>
+                <input type="date" id="fb-date-input" onchange="window.onFbDateChange()" class="hidden">
+                <button onclick="document.getElementById('fb-date-input').showPicker()" class="w-12 h-12 rounded-xl bg-slate-50 text-slate-400 flex items-center justify-center">
+                    <i class="fa-regular fa-calendar-days"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Date Slider (Same as field admin) -->
+        <div id="fb-date-slider" class="flex gap-3 overflow-x-auto no-scrollbar pb-2 pt-2">
+            <!-- JS generated pills -->
+        </div>
+    </div>
+
+    <!-- Slots Container -->
+    <div id="fb-slots-container" class="space-y-4 min-h-[400px] relative">
+        <div id="fb-empty-state" class="flex flex-col items-center justify-center py-20 text-center space-y-4">
+            <div class="w-20 h-20 bg-slate-50 rounded-3xl flex items-center justify-center text-slate-300">
+                <i class="fa-solid fa-calendar-day text-4xl"></i>
+            </div>
+            <div>
+                <h3 class="font-black text-slate-700 text-lg">اختر الملعب لعرض المواعيد</h3>
+                <p class="text-slate-400 font-bold max-w-xs mx-auto">سيظهر لك الجدول الزمني للملعب فور اختياره من القائمة أعلاه.</p>
+            </div>
+        </div>
+        <div id="fb-timeline" class="space-y-3 hidden">
+            <!-- Slots will be injected here -->
+        </div>
+    </div>
+
+    <!-- Booking Details Modal -->
+    <div id="fb-booking-modal" class="fixed inset-0 z-[1000] hidden flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="window.closeFbBookingModal()"></div>
+        <div class="relative w-full max-w-md bg-white rounded-[2.5rem] shadow-2xl transition-all translate-y-full opacity-0 max-h-[90vh] flex flex-col" id="fb-modal-content">
+            <!-- Scrollable Content Container -->
+            <div class="overflow-y-auto no-scrollbar p-8 flex-1">
+                <div class="w-12 h-1.5 bg-slate-100 rounded-full mx-auto mb-8 lg:hidden"></div>
+                
+                <div class="flex items-center justify-between mb-8">
+                    <div>
+                        <h3 class="text-2xl font-black text-slate-900">تفاصيل الحجز</h3>
+                        <p id="fb-modal-time" class="text-slate-400 font-bold"></p>
+                    </div>
+                    <button onclick="window.closeFbBookingModal()" class="w-12 h-12 rounded-2xl bg-slate-50 text-slate-400 flex items-center justify-center hover:bg-slate-100 transition-colors">
+                        <i class="fa-solid fa-xmark text-xl"></i>
+                    </button>
+                </div>
+
+                <div class="space-y-4">
+                    <div class="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-100">
+                        <div class="w-12 h-12 rounded-xl bg-white flex items-center justify-center text-slate-400 shadow-sm">
+                            <i class="fa-solid fa-user"></i>
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">اسم العميل</p>
+                            <p id="fb-modal-name" class="font-black text-slate-800 text-lg truncate">—</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-100">
+                        <div class="w-12 h-12 rounded-xl bg-white flex items-center justify-center text-slate-400 shadow-sm">
+                            <i class="fa-solid fa-phone"></i>
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">رقم الهاتف</p>
+                            <p id="fb-modal-phone" class="font-black text-slate-800 text-lg">—</p>
+                        </div>
+                        <a id="fb-modal-whatsapp" href="#" target="_blank" class="shrink-0 w-10 h-10 rounded-xl bg-green-500 text-white flex items-center justify-center hover:scale-110 transition-transform">
+                            <i class="fa-brands fa-whatsapp text-lg"></i>
+                        </a>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="p-4 rounded-2xl bg-slate-50 border border-slate-100">
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">المبلغ</p>
+                            <p class="font-black text-slate-800 text-xl"><span id="fb-modal-amount">0</span> ₪</p>
+                        </div>
+                        <div class="p-4 rounded-2xl bg-slate-50 border border-slate-100">
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">الحالة</p>
+                            <span id="fb-modal-status" class="inline-flex px-3 py-1 rounded-lg font-black text-xs mt-1"></span>
+                        </div>
+                    </div>
+
+                    <div class="p-4 rounded-2xl bg-slate-50 border border-slate-100">
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">ملاحظات</p>
+                        <p id="fb-modal-notes" class="font-bold text-slate-600 text-sm leading-relaxed">—</p>
+                    </div>
+                </div>
+
+                <button onclick="window.closeFbBookingModal()" class="w-full mt-8 py-5 rounded-2xl bg-slate-900 text-white font-black text-lg shadow-xl shadow-slate-900/20 hover:scale-[1.02] active:scale-95 transition-all">
+                    إغلاق النافذة
+                </button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+(function() {
+    let fbCurrentField = null;
+    let fbCurrentDate = new Date().toISOString().slice(0, 10);
+    let initDone = false;
+
+    function formatDateAr(isoDate) {
+        const d = new Date(isoDate + 'T00:00:00');
+        return d.toLocaleDateString('ar-EG', { weekday: 'long', day: 'numeric', month: 'long' });
+    }
+
+    function to12(t) {
+        if (!t) return '';
+        const [hh, mm] = t.split(':');
+        let h = parseInt(hh);
+        const suffix = h >= 12 ? 'م' : 'ص';
+        h = h % 12 || 12;
+        return `${h}:${mm} ${suffix}`;
+    }
+
+    async function loadFields() {
+        try {
+            const r = await fetch('/api/admin/field-admins');
+            const d = await r.json();
+            const sel = document.getElementById('fb-field-select');
+            if (!sel) return;
+            
+            const fields = d.fieldAdmins || [];
+            sel.innerHTML = '<option value="">-- اختر الملعب --</option>' + 
+                fields.map(f => `<option value="${f.field_id}">${f.field_name || 'ملعب غير مسمى'}</option>`).join('');
+        } catch (e) {
+            console.error('Failed to load field admins for select', e);
+        }
+    }
+
+    function renderDateSlider() {
+        const slider = document.getElementById('fb-date-slider');
+        if (!slider) return;
+        
+        const today = new Date();
+        const dates = [];
+        // Show 7 days before and 14 days after today
+        for (let i = -7; i <= 14; i++) {
+            const d = new Date();
+            d.setDate(today.getDate() + i);
+            dates.push(d.toISOString().slice(0, 10));
+        }
+
+        slider.innerHTML = dates.map(iso => {
+            const d = new Date(iso + 'T00:00:00');
+            const isActive = iso === fbCurrentDate;
+            const dayName = d.toLocaleDateString('ar-EG', { weekday: 'short' });
+            const dayNum = d.getDate();
+            
+            return `
+                <button onclick="window.setFbDate('${iso}')" class="flex-shrink-0 w-16 h-20 rounded-2xl border-2 transition-all flex flex-col items-center justify-center gap-1 ${isActive ? 'bg-emerald-500 border-emerald-500 text-white shadow-lg shadow-emerald-500/20' : 'bg-white border-slate-100 text-slate-400 hover:border-slate-200'}">
+                    <span class="text-[10px] font-black uppercase tracking-widest opacity-80">${dayName}</span>
+                    <span class="text-xl font-black">${dayNum}</span>
+                </button>
+            `;
+        }).join('');
+
+        // Center the active pill
+        const active = slider.querySelector('.bg-emerald-500');
+        if (active) active.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+    }
+
+    window.setFbDate = function(iso) {
+        fbCurrentDate = iso;
+        document.getElementById('fb-date-text').innerText = formatDateAr(iso);
+        document.getElementById('fb-date-input').value = iso;
+        renderDateSlider();
+        if (fbCurrentField) window.refreshFbSlots();
+    };
+
+    window.onFbFieldChange = function() {
+        fbCurrentField = document.getElementById('fb-field-select').value;
+        if (fbCurrentField) {
+            document.getElementById('fb-empty-state').classList.add('hidden');
+            document.getElementById('fb-timeline').classList.remove('hidden');
+            window.refreshFbSlots();
+        } else {
+            document.getElementById('fb-empty-state').classList.remove('hidden');
+            document.getElementById('fb-timeline').classList.add('hidden');
+        }
+    };
+
+    window.fbShiftDay = function(n) {
+        const d = new Date(fbCurrentDate + 'T00:00:00');
+        d.setDate(d.getDate() + n);
+        window.setFbDate(d.toISOString().slice(0, 10));
+    };
+
+    window.onFbDateChange = function() {
+        window.setFbDate(document.getElementById('fb-date-input').value);
+    };
+
+    window.refreshFbSlots = async function() {
+        if (!fbCurrentField) return;
+        
+        const timeline = document.getElementById('fb-timeline');
+        timeline.innerHTML = '<div class="flex justify-center py-10"><i class="fa-solid fa-spinner fa-spin text-2xl text-slate-300"></i></div>';
+        
+        try {
+            const r = await fetch(`/api/admin/field-slots?field_id=${fbCurrentField}&date=${fbCurrentDate}`);
+            const d = await r.json();
+            const slots = d.slots || [];
+            
+            if (slots.length === 0) {
+                timeline.innerHTML = '<div class="text-center py-10 text-slate-400 font-bold">لا توجد مواعيد لهذا اليوم</div>';
+                return;
+            }
+
+            timeline.innerHTML = slots.map(s => {
+                const isBooked = s.is_booked;
+                const isPaid = s.payment_status === 'paid';
+                const now = new Date();
+                const slotTime = new Date(`${fbCurrentDate}T${s.start_time}`);
+                const isPast = slotTime < now && fbCurrentDate === new Date().toISOString().slice(0,10);
+
+                let statusClass = 'bg-white border-slate-100 text-slate-400';
+                let statusText = 'متاح';
+                let dotClass = 'bg-slate-200';
+
+                if (isBooked) {
+                    if (isPaid) {
+                        statusClass = 'bg-emerald-50 border-emerald-100 text-emerald-700 cursor-pointer hover:scale-[1.01]';
+                        statusText = 'مدفوع';
+                        dotClass = 'bg-emerald-500';
+                    } else {
+                        statusClass = 'bg-amber-50 border-amber-100 text-amber-700 cursor-pointer hover:scale-[1.01]';
+                        statusText = 'غير مدفوع';
+                        dotClass = 'bg-amber-500';
+                    }
+                } else if (isPast) {
+                    statusClass = 'bg-slate-50 border-transparent text-slate-300';
+                    statusText = 'انتهى';
+                    dotClass = 'bg-slate-200';
+                }
+
+                return `
+                    <div class="flex gap-4 items-start group">
+                        <div class="w-16 pt-4 text-right">
+                            <span class="text-sm font-black text-slate-400 group-hover:text-slate-600 transition-colors">${s.start_time}</span>
+                        </div>
+                        <div class="flex-1 p-5 rounded-2xl border-2 transition-all ${statusClass} flex items-center justify-between" ${isBooked ? `onclick='window.showFbBookingDetails(${JSON.stringify(s).replace(/'/g, "&apos;")})'` : ''}>
+                            <div>
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="w-2 h-2 rounded-full ${dotClass}"></span>
+                                    <span class="text-[10px] font-black uppercase tracking-widest opacity-70">${to12(s.start_time)} – ${to12(s.end_time)}</span>
+                                </div>
+                                <h4 class="font-black text-lg">${isBooked ? s.customer_name : 'متاح للحجز'}</h4>
+                                ${isBooked ? `<p class="text-xs font-bold opacity-70">${s.customer_phone || ''}</p>` : ''}
+                            </div>
+                            <div class="text-right">
+                                <div class="font-black text-xl">${isBooked ? s.amount + ' ₪' : ''}</div>
+                                <div class="text-[10px] font-black uppercase tracking-widest opacity-60">${statusText}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+        } catch (e) {
+            console.error('Failed to refresh slots', e);
+            timeline.innerHTML = '<div class="text-center py-10 text-rose-500 font-bold">فشل تحميل البيانات</div>';
+        }
+    };
+
+    window.showFbBookingDetails = function(s) {
+        document.getElementById('fb-modal-time').innerText = `${formatDateAr(s.slot_date)} | ${to12(s.start_time)} – ${to12(s.end_time)}`;
+        document.getElementById('fb-modal-name').innerText = s.customer_name || '—';
+        document.getElementById('fb-modal-phone').innerText = s.customer_phone || 'لا يوجد رقم';
+        document.getElementById('fb-modal-amount').innerText = s.amount || 0;
+        document.getElementById('fb-modal-notes').innerText = s.notes || 'لا توجد ملاحظات';
+        
+        const statusEl = document.getElementById('fb-modal-status');
+        if (s.payment_status === 'paid') {
+            statusEl.innerText = 'مدفوع';
+            statusEl.className = 'inline-flex px-3 py-1 rounded-lg font-black text-xs mt-1 bg-emerald-100 text-emerald-700';
+        } else {
+            statusEl.innerText = 'غير مدفوع';
+            statusEl.className = 'inline-flex px-3 py-1 rounded-lg font-black text-xs mt-1 bg-amber-100 text-amber-700';
+        }
+
+        const wa = document.getElementById('fb-modal-whatsapp');
+        if (s.customer_phone) {
+            wa.classList.remove('hidden');
+            wa.href = `https://wa.me/${s.customer_phone.replace(/\D/g, '')}`;
+        } else {
+            wa.classList.add('hidden');
+        }
+
+        const modal = document.getElementById('fb-booking-modal');
+        const content = document.getElementById('fb-modal-content');
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+            content.classList.remove('translate-y-full', 'opacity-0');
+        }, 10);
+    };
+
+    window.closeFbBookingModal = function() {
+        const modal = document.getElementById('fb-booking-modal');
+        const content = document.getElementById('fb-modal-content');
+        content.classList.add('translate-y-full', 'opacity-0');
+        setTimeout(() => modal.classList.add('hidden'), 300);
+    };
+
+    window.fetchFieldBookings = function() {
+        if (!initDone) {
+            initDone = true;
+            loadFields();
+            document.getElementById('fb-date-text').innerText = formatDateAr(fbCurrentDate);
+            document.getElementById('fb-date-input').value = fbCurrentDate;
+            renderDateSlider();
+        }
+    };
+})();
+</script>

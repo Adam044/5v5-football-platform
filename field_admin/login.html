@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>تسجيل الدخول · 5v5 B2B</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  * { font-family: 'Cairo', sans-serif; }
+  
+  body {
+    background-image: url('/images/5v5_field_admin_bg.jpg');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.7) 0%, rgba(22, 101, 52, 0.6) 100%);
+    z-index: 1;
+  }
+
+  .header {
+    position: relative;
+    z-index: 10;
+    width: 100%;
+    padding: 1.5rem 2rem;
+  }
+
+  .main-container {
+    position: relative;
+    z-index: 10;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    padding: 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
+    width: 100%;
+  }
+
+  .glass-card {
+    background: rgba(255, 255, 255, 0.96);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 40px 100px -20px rgba(0, 0, 0, 0.4);
+    border-radius: 3rem;
+  }
+
+  .hero-text {
+    text-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  }
+
+  .feature-pill {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+  }
+  .feature-pill:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateX(-5px);
+  }
+
+  .inp {
+    transition: all 0.2s ease;
+  }
+  .inp:focus {
+    box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.15);
+    border-color: #22c55e;
+  }
+
+  /* Fixed RTL icon spacing to prevent overlap */
+  .password-wrapper .input-icon {
+    right: 1rem;
+    left: auto;
+  }
+  .password-wrapper .toggle-btn {
+    left: 0.75rem;
+    right: auto;
+  }
+  .password-input {
+    padding-right: 3.25rem !important;
+    padding-left: 3.25rem !important;
+  }
+
+  .fade-in-up { animation: fadeInUp 0.8s cubic-bezier(0.22, 1, 0.36, 1) both; }
+  @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: none; } }
+
+  .spin { animation: spin 1s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body class="antialiased">
+
+  <!-- Header -->
+  <header class="header">
+    <div class="max-w-7xl mx-auto flex items-center justify-center">
+      <a href="/" class="logo-container flex items-center gap-3 group">
+        <img src="/images/logo.jpg" alt="5v5 Logo" class="w-12 h-12 rounded-xl object-cover shadow-lg border-2 border-white/20 group-hover:border-green-400 transition-all">
+        <div class="text-right">
+          <span class="block text-white font-black text-2xl leading-none">5v5</span>
+        </div>
+      </a>
+    </div>
+  </header>
+
+  <main class="main-container">
+    <div class="flex flex-col lg:flex-row w-full items-center gap-12 lg:gap-20">
+      
+      <!-- Left Side: Hero Content -->
+      <div class="flex-1 text-center lg:text-right fade-in-up" style="animation-delay: 0.1s">
+        <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 text-white border border-white/20 text-xs font-black mb-8 backdrop-blur-md">
+          <i class="fa-solid fa-shield-check"></i>
+          نظام 5v5 المعتمد لإدارة الملاعب
+        </div>
+        <h1 class="hero-text text-5xl lg:text-7xl font-black text-white leading-[1.15] mb-6">
+          بوابة <span class="text-green-400">إدارة الملاعب</span>
+        </h1>
+        <p class="text-xl text-slate-200 font-bold mb-12 max-w-xl mx-auto lg:mx-0 leading-relaxed">
+          سجّل حجوزات ملعبك، تابع الدفعات، ونظّم مواعيدك اليومية بكل سهولة من مكان واحد.
+        </p>
+      </div>
+
+      <!-- Right Side: Login Form -->
+      <div class="w-full max-w-[480px] fade-in-up" style="animation-delay: 0.3s">
+        <div id="card-login" class="glass-card p-8 sm:p-12">
+          <div class="text-center mb-10">
+            <div class="lg:hidden mb-6">
+              <img src="/images/logo.jpg" alt="Logo" class="w-20 h-20 rounded-2xl mx-auto border-4 border-white shadow-2xl">
+            </div>
+            <h2 class="text-3xl font-black text-slate-800 mb-2">تسجيل الدخول</h2>
+            <p class="text-slate-500 font-bold">مرحباً بك في لوحة تحكم ملعبك</p>
+          </div>
+
+          <form id="loginForm" class="space-y-6">
+            <div class="space-y-2">
+              <label class="block text-[11px] font-black uppercase tracking-widest text-slate-400 mr-2">اسم المستخدم</label>
+              <div class="relative">
+                <i class="fa-solid fa-user absolute right-4 top-1/2 -translate-y-1/2 text-slate-300"></i>
+                <input id="username" type="text" autocomplete="username" required
+                  class="inp w-full pr-12 pl-5 py-4 rounded-2xl border-2 border-slate-100 bg-slate-50 font-bold text-slate-700 outline-none"
+                  placeholder="اسم المستخدم">
+              </div>
+            </div>
+
+            <div class="space-y-2 password-wrapper">
+              <label class="block text-[11px] font-black uppercase tracking-widest text-slate-400 mr-2">كلمة المرور</label>
+              <div class="relative">
+                <i class="fa-solid fa-lock input-icon absolute text-slate-300"></i>
+                <input id="password" type="password" autocomplete="current-password" required
+                  class="inp password-input w-full rounded-2xl border-2 border-slate-100 bg-slate-50 font-bold text-slate-700 outline-none py-4"
+                  placeholder="••••••••">
+                <button type="button" onclick="togglePw('password', this)"
+                  class="toggle-btn absolute top-1/2 -translate-y-1/2 text-slate-400 hover:text-green-600 w-10 h-10 flex items-center justify-center transition-colors">
+                  <i class="fa-solid fa-eye"></i>
+                </button>
+              </div>
+            </div>
+
+            <div id="err" class="hidden p-4 rounded-2xl bg-rose-50 text-rose-700 text-sm font-bold border border-rose-100 animate-pulse"></div>
+
+            <button id="submitBtn" type="submit"
+              class="w-full py-4 rounded-2xl bg-green-600 hover:bg-green-700 active:scale-[0.98] transition-all text-white font-black text-lg shadow-xl shadow-green-600/20 flex items-center justify-center gap-3">
+              <span id="btnText">دخول النظام</span>
+              <i id="btnIcon" class="fa-solid fa-arrow-left-long"></i>
+              <i id="btnSpinner" class="fa-solid fa-circle-notch spin hidden"></i>
+            </button>
+          </form>
+
+          <div class="mt-10 pt-8 border-t border-slate-100 text-center">
+            <a href="https://wa.me/970594444403" target="_blank" class="inline-flex items-center gap-3 text-green-600 font-black hover:text-green-700 transition-all">
+              <i class="fa-brands fa-whatsapp text-2xl"></i>
+              <span class="text-sm">هل تواجه مشكلة؟ تواصل مع الدعم الفني</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- Password Change Card -->
+        <div id="card-pwchange" class="glass-card p-8 sm:p-12 hidden">
+          <div class="text-center mb-8">
+            <div class="w-20 h-20 rounded-3xl bg-emerald-500 text-white flex items-center justify-center mx-auto mb-6 shadow-2xl shadow-emerald-200">
+              <i class="fa-solid fa-lock-open text-3xl"></i>
+            </div>
+            <h2 class="text-2xl font-black text-slate-800 mb-2">إنشاء كلمة المرور</h2>
+            <p class="text-slate-500 font-bold text-sm">أهلاً بك! يرجى اختيار كلمة مرور خاصة بك لتفعيل حسابك بشكل دائم.</p>
+          </div>
+          
+          <form id="pwForm" class="space-y-6">
+            <div class="password-wrapper">
+              <label class="block text-[11px] font-black uppercase tracking-widest text-slate-400 mr-2 mb-2">كلمة المرور الجديدة</label>
+              <div class="relative">
+                <input id="newPw1" type="password" required 
+                  class="inp password-input w-full rounded-2xl border-2 border-slate-100 bg-slate-50 font-bold text-slate-700 outline-none py-4" 
+                  placeholder="اختر كلمة مرور قوية">
+                <button type="button" onclick="togglePw('newPw1', this)" class="toggle-btn absolute top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 w-10 h-10 flex items-center justify-center">
+                  <i class="fa-solid fa-eye"></i>
+                </button>
+              </div>
+              
+              <!-- Live Validation Requirements -->
+              <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] font-bold">
+                <div id="v-len" class="flex items-center gap-2 text-slate-400 transition-colors">
+                  <i class="fa-solid fa-circle-check"></i> 8 أحرف على الأقل
+                </div>
+                <div id="v-num" class="flex items-center gap-2 text-slate-400 transition-colors">
+                  <i class="fa-solid fa-circle-check"></i> رقم واحد على الأقل
+                </div>
+                <div id="v-up" class="flex items-center gap-2 text-slate-400 transition-colors">
+                  <i class="fa-solid fa-circle-check"></i> حرف كبير (A-Z)
+                </div>
+                <div id="v-match" class="flex items-center gap-2 text-slate-400 transition-colors">
+                  <i class="fa-solid fa-circle-check"></i> تطابق الكلمتين
+                </div>
+              </div>
+            </div>
+
+            <div class="password-wrapper">
+              <label class="block text-[11px] font-black uppercase tracking-widest text-slate-400 mr-2 mb-2">تأكيد كلمة المرور</label>
+              <div class="relative">
+                <input id="newPw2" type="password" required 
+                  class="inp password-input w-full rounded-2xl border-2 border-slate-100 bg-slate-50 font-bold text-slate-700 outline-none py-4" 
+                  placeholder="أعد كتابة الكلمة">
+                <button type="button" onclick="togglePw('newPw2', this)" class="toggle-btn absolute top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 w-10 h-10 flex items-center justify-center">
+                  <i class="fa-solid fa-eye"></i>
+                </button>
+              </div>
+            </div>
+
+            <div id="pwErr" class="hidden p-4 rounded-2xl bg-rose-50 text-rose-700 text-sm font-bold border border-rose-100"></div>
+            
+            <button id="pwBtn" type="submit" disabled 
+              class="w-full py-4.5 rounded-2xl bg-slate-200 text-slate-400 font-black text-lg shadow-none cursor-not-allowed transition-all duration-300 flex items-center justify-center gap-3 border-2 border-transparent">
+              <span id="pwBtnText">حفظ وتفعيل الحساب</span>
+              <i id="pwSpinner" class="fa-solid fa-circle-notch spin hidden"></i>
+            </button>
+          </form>
+        </div>
+
+        <p class="text-center mt-12 text-[10px] text-white/50 font-bold tracking-[0.3em] uppercase">
+          Powered by 5v5 Integrated Ecosystem · 2026
+        </p>
+      </div>
+    </div>
+  </main>
+
+<script>
+function togglePw(id, btn) {
+  const el = document.getElementById(id);
+  const isPw = el.type === 'password';
+  el.type = isPw ? 'text' : 'password';
+  btn.querySelector('i').className = isPw ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye';
+}
+
+function showErr(msg) {
+  const e = document.getElementById('err');
+  e.innerText = msg; e.classList.remove('hidden');
+}
+function clearErr() { document.getElementById('err').classList.add('hidden'); }
+function pwErr(msg) {
+  const e = document.getElementById('pwErr');
+  e.innerText = msg; e.classList.remove('hidden');
+}
+
+document.getElementById('loginForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  clearErr();
+  const u = document.getElementById('username').value.trim();
+  const p = document.getElementById('password').value;
+  const btn = document.getElementById('submitBtn');
+  const txt = document.getElementById('btnText');
+  const icon = document.getElementById('btnIcon');
+  const sp = document.getElementById('btnSpinner');
+  
+  btn.disabled = true; txt.innerText = 'جارٍ التحقق...'; icon.classList.add('hidden'); sp.classList.remove('hidden');
+
+  try {
+    const r = await fetch('/api/field_admin/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ username: u, password: p })
+    });
+    const data = await r.json();
+    if (r.status === 200 && data.success) {
+      if (data.must_change_password) {
+        document.getElementById('card-login').classList.add('hidden');
+        document.getElementById('card-pwchange').classList.remove('hidden');
+      } else {
+        window.location.href = '/field_admin/';
+      }
+    } else {
+      showErr(data.error || 'اسم المستخدم أو كلمة المرور غير صحيحة');
+    }
+  } catch (err) {
+    showErr('تعذر الاتصال بالخادم، يرجى المحاولة لاحقاً');
+  } finally {
+    btn.disabled = false; txt.innerText = 'دخول النظام'; icon.classList.remove('hidden'); sp.classList.add('hidden');
+  }
+});
+
+document.getElementById('pwForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  document.getElementById('pwErr').classList.add('hidden');
+  const p1 = document.getElementById('newPw1').value;
+  const p2 = document.getElementById('newPw2').value;
+  
+  const btn = document.getElementById('pwBtn');
+  const txt = document.getElementById('pwBtnText');
+  const sp = document.getElementById('pwSpinner');
+  btn.disabled = true; txt.innerText = 'جارٍ تفعيل الحساب...'; sp.classList.remove('hidden');
+  try {
+    const r = await fetch('/api/field_admin/change-password', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ new_password: p1 })
+    });
+    const d = await r.json();
+    if (r.status === 200 && d.success) {
+      window.location.href = '/field_admin/';
+    } else {
+      pwErr(d.error || 'فشل تحديث كلمة المرور');
+    }
+  } catch (_) {
+    pwErr('خطأ في الاتصال بالخادم');
+  } finally {
+    btn.disabled = false; txt.innerText = 'حفظ وتفعيل الحساب'; sp.classList.add('hidden');
+  }
+});
+
+// Live Validation Logic
+const p1 = document.getElementById('newPw1');
+const p2 = document.getElementById('newPw2');
+const btn = document.getElementById('pwBtn');
+
+function validate() {
+  const val = p1.value;
+  const val2 = p2.value;
+  
+  const hasLen = val.length >= 8;
+  const hasNum = /\d/.test(val);
+  const hasUp = /[A-Z]/.test(val);
+  const matches = val === val2 && val.length > 0;
+
+  updateUI('v-len', hasLen);
+  updateUI('v-num', hasNum);
+  updateUI('v-up', hasUp);
+  updateUI('v-match', matches);
+
+  if (hasLen && hasNum && hasUp && matches) {
+    btn.disabled = false;
+    btn.classList.remove('bg-slate-200', 'text-slate-400', 'cursor-not-allowed', 'shadow-none');
+    btn.classList.add('bg-green-600', 'text-white', 'hover:bg-green-700', 'shadow-xl', 'shadow-green-600/20');
+  } else {
+    btn.disabled = true;
+    btn.classList.add('bg-slate-200', 'text-slate-400', 'cursor-not-allowed', 'shadow-none');
+    btn.classList.remove('bg-green-600', 'text-white', 'hover:bg-green-700', 'shadow-xl', 'shadow-green-600/20');
+  }
+}
+
+function updateUI(id, ok) {
+  const el = document.getElementById(id);
+  if (ok) {
+    el.classList.remove('text-slate-400');
+    el.classList.add('text-green-500');
+  } else {
+    el.classList.add('text-slate-400');
+    el.classList.remove('text-green-500');
+  }
+}
+
+p1.addEventListener('input', validate);
+p2.addEventListener('input', validate);
+</script>
+</body>
+</html>

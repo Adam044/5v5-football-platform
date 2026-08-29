@@ -1063,4 +1063,482 @@ router.delete('/fashion/products/:id', async (req, res) => {
     } catch (err) { return res.status(500).json({ error: err.message }); }
 });
 
+// --- Field Admin Management (B2B Service) ---
+
+function transliterateArabicToLatin(text) {
+    const map = {
+        'ا': 'a', 'ب': 'b', 'ت': 't', 'ث': 'th', 'ج': 'j', 'ح': 'h', 'خ': 'kh',
+        'د': 'd', 'ذ': 'dh', 'ر': 'r', 'ز': 'z', 'س': 's', 'ش': 'sh', 'ص': 's',
+        'ض': 'd', 'ط': 't', 'ظ': 'th', 'ع': 'a', 'غ': 'gh', 'ف': 'f', 'ق': 'q',
+        'ك': 'k', 'ل': 'l', 'م': 'm', 'ن': 'n', 'ه': 'h', 'و': 'w', 'ي': 'y',
+        'ى': 'a', 'ة': 'h', 'ئ': 'y', 'ؤ': 'w', 'إ': 'i', 'أ': 'a', 'آ': 'aa'
+    };
+    let result = '';
+    for (const ch of text || '') {
+        result += map[ch] || (ch.match(/[a-zA-Z0-9]/) ? ch : '_');
+    }
+    return result;
+}
+
+function slugify(text) {
+    let s = transliterateArabicToLatin(text || '');
+    s = s.toLowerCase().trim();
+    s = s.replace(/[^a-z0-9]+/g, '_');
+    s = s.replace(/^_+|_+$/g, '');
+    return s || 'field';
+}
+
+function generateTempPassword(len = 10) {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789';
+    let pw = '';
+    for (let i = 0; i < len; i++) {
+        pw += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return pw;
+}
+
+async function generateUniqueLatinUsername(fieldName) {
+    const base = slugify(fieldName);
+    const suffix = String(Math.floor(10 + Math.random() * 90));
+    const candidate = `${base}_${suffix}`;
+    const exists = await pool.query('SELECT id FROM fa_admins WHERE username = $1', [candidate]);
+    if (exists.rowCount === 0) return candidate;
+    return `${base}_${String(Math.floor(100 + Math.random() * 900))}`;
+}
+
+router.get('/field-admins', checkAdmin, async (req, res) => {
+    try {
+        const { rows } = await pool.query(`
+            SELECT 
+                fa.id, fa.username, fa.full_name, fa.phone, fa.field_id,
+                fa.price_per_hour, fa.default_slot_duration,
+                fa.operating_start, fa.operating_end,
+                fa.is_active, fa.last_login_at, fa.password_changed_at,
+                fa.created_at, f.name as field_name
+            FROM fa_admins fa
+            LEFT JOIN fields f ON fa.field_id = f.id
+            ORDER BY fa.created_at DESC
+        `);
+        res.json({ fieldAdmins: rows });
+    } catch (err) {
+        console.error('[Admin] List field-admins error:', err);
+        return res.status(500).json({ error: err.message });
+    }
+});
+
+router.get('/field-admins/available-fields', checkAdmin, async (req, res) => {
+    try {
+        const { rows } = await pool.query(`
+            SELECT f.id, f.name, f.location, f.price_per_hour
+            FROM fields f
+            WHERE f.id NOT IN (SELECT field_id FROM fa_admins WHERE field_id IS NOT NULL)
+            ORDER BY f.name ASC
+        `);
+        res.json({ fields: rows });
+    } catch (err) {
+        console.error('[Admin] Available fields error:', err);
+        return res.status(500).json({ error: err.message });
+    }
+});
+
+router.post('/field-admins', checkAdmin, async (req, res) => {
+    const { field_id, full_name, phone, price_per_hour, default_slot_duration } = req.body;
+    if (!field_id || !full_name || !phone) {
+        return res.status(400).json({ error: 'الملعب، الاسم الكامل، ورقم الهاتف مطلوبة.' });
+    }
+
+    const client = await pool.connect();
+    try {
+        await client.query('BEGIN');
+        const bcrypt = require('bcrypt');
+
+        const fieldRes = await client.query('SELECT name, price_per_hour as field_price FROM fields WHERE id = $1', [field_id]);
+        if (fieldRes.rowCount === 0) {
+            await client.query('ROLLBACK');
+            return res.status(404).json({ error: 'الملعب غير موجود.' });
+        }
+        const field = fieldRes.rows[0];
+
+        const boundCheck = await client.query('SELECT id FROM fa_admins WHERE field_id = $1', [field_id]);
+        if (boundCheck.rowCount > 0) {
+            await client.query('ROLLBACK');
+            return res.status(400).json({ error: 'هذا الملعب مرتبط بالفعل بمسؤول ملعب.' });
+        }
+
+        const username = await generateUniqueLatinUsername(field.name);
+        const tempPassword = generateTempPassword(10);
+        const hashedPassword = await bcrypt.hash(tempPassword, 10);
+        const finalPrice = price_per_hour != null ? Number(price_per_hour) : (field.field_price || 100);
+        const finalDuration = default_slot_duration ? Number(default_slot_duration) : 120;
+
+        const { rows } = await client.query(`
+            INSERT INTO fa_admins
+                (field_id, username, password, full_name, phone,
+                 price_per_hour, default_slot_duration,
+                 operating_start, operating_end, is_active, password_changed_at)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, '16:00', '24:00', 1, NULL)
+            RETURNING id, username
+        `, [field_id, username, hashedPassword, full_name, phone, finalPrice, finalDuration]);
+
+        await client.query('COMMIT');
+        res.status(201).json({
+            message: 'تم إنشاء حساب مسؤول الملعب بنجاح.',
+            fieldAdminId: rows[0].id,
+            credentials: {
+                username: rows[0].username,
+                temporary_password: tempPassword
+            }
+        });
+    } catch (err) {
+        await client.query('ROLLBACK');
+        console.error('[Admin] Create field-admin error:', err);
+        return res.status(500).json({ error: err.message });
+    } finally {
+        client.release();
+    }
+});
+
+router.put('/field-admins/:id', checkAdmin, async (req, res) => {
+    const { id } = req.params;
+    const {
+        full_name, phone, price_per_hour, default_slot_duration,
+        operating_start, operating_end, is_active
+    } = req.body;
+
+    try {
+        const current = (await pool.query('SELECT id FROM fa_admins WHERE id = $1', [id])).rows[0];
+        if (!current) return res.status(404).json({ error: 'مسؤول الملعب غير موجود.' });
+
+        const updates = [];
+        const params = [];
+
+        if (full_name !== undefined) { params.push(full_name); updates.push(`full_name = $${params.length}`); }
+        if (phone !== undefined) { params.push(phone); updates.push(`phone = $${params.length}`); }
+        if (price_per_hour !== undefined) { params.push(Number(price_per_hour)); updates.push(`price_per_hour = $${params.length}`); }
+        if (default_slot_duration !== undefined) { params.push(Number(default_slot_duration)); updates.push(`default_slot_duration = $${params.length}`); }
+        if (operating_start !== undefined) { params.push(operating_start); updates.push(`operating_start = $${params.length}`); }
+        if (operating_end !== undefined) { params.push(operating_end); updates.push(`operating_end = $${params.length}`); }
+        if (is_active !== undefined) { params.push(is_active ? 1 : 0); updates.push(`is_active = $${params.length}`); }
+
+        if (updates.length === 0) {
+            return res.status(400).json({ error: 'لا توجد بيانات للتحديث.' });
+        }
+
+        params.push(id);
+        await pool.query(`UPDATE fa_admins SET ${updates.join(', ')} WHERE id = $${params.length}`, params);
+        res.json({ message: 'تم تحديث بيانات مسؤول الملعب بنجاح.' });
+    } catch (err) {
+        console.error('[Admin] Update field-admin error:', err);
+        return res.status(500).json({ error: err.message });
+    }
+});
+
+router.post('/field-admins/:id/reset-password', checkAdmin, async (req, res) => {
+    const { id } = req.params;
+    try {
+        const bcrypt = require('bcrypt');
+        const current = (await pool.query('SELECT id, username FROM fa_admins WHERE id = $1', [id])).rows[0];
+        if (!current) return res.status(404).json({ error: 'مسؤول الملعب غير موجود.' });
+
+        const newTempPassword = generateTempPassword(10);
+        const hashedPassword = await bcrypt.hash(newTempPassword, 10);
+
+        await pool.query(`
+            UPDATE fa_admins 
+            SET password = $1, password_changed_at = NULL 
+            WHERE id = $2
+        `, [hashedPassword, id]);
+
+        res.json({
+            message: 'تم إعادة تعيين كلمة المرور بنجاح.',
+            credentials: {
+                username: current.username,
+                temporary_password: newTempPassword
+            }
+        });
+    } catch (err) {
+        console.error('[Admin] Reset field-admin password error:', err);
+        return res.status(500).json({ error: err.message });
+    }
+});
+
+// --- Field Admin Bookings (Admin Overview) ---
+
+router.get('/field-bookings', checkAdmin, async (req, res) => {
+    const { field_id, date, startDate, endDate, payment_status, status, search } = req.query;
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const limit = Math.min(100, parseInt(req.query.limit) || 50);
+    const offset = (page - 1) * limit;
+
+    let whereSql = [];
+    const params = [];
+
+    if (field_id) { params.push(field_id); whereSql.push(`fb.field_id = $${params.length}`); }
+    if (date) { params.push(date); whereSql.push(`s.slot_date = $${params.length}`); }
+    else {
+        if (startDate) { params.push(startDate); whereSql.push(`s.slot_date >= $${params.length}`); }
+        if (endDate) { params.push(endDate); whereSql.push(`s.slot_date <= $${params.length}`); }
+    }
+    if (payment_status) { params.push(payment_status); whereSql.push(`fb.payment_status = $${params.length}`); }
+    if (status) { params.push(status); whereSql.push(`fb.status = $${params.length}`); }
+    if (search) {
+        const like = `%${search}%`;
+        params.push(like);
+        whereSql.push(`(fb.customer_name ILIKE $${params.length} OR fb.customer_phone ILIKE $${params.length})`);
+    }
+
+    const whereClause = whereSql.length ? `WHERE ${whereSql.join(' AND ')}` : '';
+
+    try {
+        const countRes = await pool.query(`
+            SELECT COUNT(*) FROM fa_bookings fb
+            LEFT JOIN fa_slots s ON fb.slot_id = s.id
+            ${whereClause}
+        `, params);
+        const total = parseInt(countRes.rows[0].count);
+
+        const { rows } = await pool.query(`
+            SELECT 
+                fb.id, fb.customer_name, fb.customer_phone, fb.amount,
+                fb.payment_status, fb.status, fb.notes, fb.created_at,
+                fb.slot_date, fb.start_time,
+                f.id as field_id, f.name as field_name,
+                fa.full_name as admin_name
+            FROM fa_bookings fb
+            LEFT JOIN fields f ON fb.field_id = f.id
+            LEFT JOIN fa_admins fa ON fb.field_admin_id = fa.id
+            ${whereClause}
+            ORDER BY fb.slot_date DESC, fb.start_time DESC, fb.created_at DESC
+            LIMIT $${params.length + 1} OFFSET $${params.length + 2}
+        `, [...params, limit, offset]);
+
+        res.json({ bookings: rows, pagination: { page, limit, total, pages: Math.ceil(total / limit) } });
+    } catch (err) {
+        console.error('[Admin] Field-bookings list error:', err);
+        return res.status(500).json({ error: err.message });
+    }
+});
+
+// --- Field Admin Slots (Calendar Grid View for Admin) ---
+
+router.get('/field-slots', checkAdmin, async (req, res) => {
+    const { field_id, date } = req.query;
+    if (!field_id) return res.status(400).json({ error: 'field_id مطلوب.' });
+    if (!date) return res.status(400).json({ error: 'التاريخ مطلوب.' });
+
+    try {
+        const { rows: fieldRows } = await pool.query(
+            `SELECT f.id, f.name, f.price_per_hour, fa.default_slot_duration, fa.operating_start, fa.operating_end, fa.full_name as admin_name
+             FROM fields f
+             LEFT JOIN fa_admins fa ON fa.field_id = f.id
+             WHERE f.id = $1 LIMIT 1`,
+            [field_id]
+        );
+        const field = fieldRows[0];
+        if (!field) return res.status(404).json({ error: 'الملعب غير موجود.' });
+
+        // Virtual Slot Generation logic (shared with field_admin dashboard)
+        const duration = Number(field.default_slot_duration) || 120;
+        const startMin = timeToMinutes(field.operating_start || '08:00');
+        let endMin = timeToMinutes(field.operating_end || '00:00');
+        if (endMin <= startMin) endMin += 24 * 60;
+
+        const virtualSlots = [];
+        for (let t = startMin; t + duration <= endMin; t += duration) {
+            const st = minutesToTime(t);
+            const et = minutesToTime(t + duration);
+            virtualSlots.push({
+                id: `v-${date}-${st}`,
+                field_id: field.id,
+                slot_date: date,
+                start_time: st,
+                end_time: et,
+                is_booked: 0
+            });
+        }
+
+        const { rows: bookings } = await pool.query(
+            `SELECT * FROM fa_bookings WHERE field_id = $1 AND slot_date = $2 AND status != 'cancelled'`,
+            [field_id, date]
+        );
+
+        const slots = virtualSlots.map(vs => {
+            const b = bookings.find(x => x.start_time === vs.start_time);
+            if (b) {
+                return {
+                    ...vs,
+                    is_booked: 1,
+                    booking_id: b.id,
+                    customer_name: b.customer_name,
+                    customer_phone: b.customer_phone,
+                    amount: b.amount,
+                    payment_status: b.payment_status,
+                    booking_status: b.status,
+                    notes: b.notes,
+                    admin_name: field.admin_name
+                };
+            }
+            return vs;
+        });
+
+        const bookedSlots = slots.filter(s => s.is_booked);
+        const paidCount = bookedSlots.filter(s => s.payment_status === 'paid').length;
+        const unpaidCount = bookedSlots.filter(s => s.payment_status !== 'paid').length;
+        const paidRevenue = bookedSlots.filter(s => s.payment_status === 'paid').reduce((a, b) => a + Number(b.amount || 0), 0);
+        const unpaidRevenue = bookedSlots.filter(s => s.payment_status !== 'paid').reduce((a, b) => a + Number(b.amount || 0), 0);
+
+        res.json({
+            field,
+            date,
+            slots,
+            summary: {
+                total_slots: slots.length,
+                booked: bookedSlots.length,
+                empty: slots.length - bookedSlots.length,
+                occupancy_pct: slots.length === 0 ? 0 : Math.round((bookedSlots.length / slots.length) * 100),
+                paid: paidCount,
+                unpaid: unpaidCount,
+                paid_revenue: paidRevenue,
+                unpaid_revenue: unpaidRevenue,
+                total_revenue: paidRevenue + unpaidRevenue,
+                booked_minutes: bookedSlots.length * duration
+            }
+        });
+    } catch (err) {
+        console.error('[Admin] Field-slots dynamic error:', err);
+        return res.status(500).json({ error: err.message });
+    }
+});
+
+// Helper functions for time math (copied from field_admin.js for consistency)
+function timeToMinutes(t) {
+    if (!t) return 0;
+    const [h, m] = t.split(':').map(Number);
+    return h * 60 + m;
+}
+function minutesToTime(m) {
+    const h = Math.floor(m / 60) % 24;
+    const mm = m % 60;
+    return `${String(h).padStart(2, '0')}:${String(mm).padStart(2, '0')}`;
+}
+
+// --- Field Performance (Unified 5v5 + Field Admin view) ---
+
+router.get('/field-performance', checkAdmin, async (req, res) => {
+    const { startDate, endDate } = req.query;
+    const today = new Date().toISOString().split('T')[0];
+    const sDate = startDate || today;
+    const eDate = endDate || today;
+
+    try {
+        const { rows: fields } = await pool.query(`SELECT id, name, price_per_hour FROM fields ORDER BY name`);
+        const fieldIds = fields.map(f => f.id);
+
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        const tomorrowStr = tomorrow.toISOString().split('T')[0];
+
+        let emptySlotsTomorrow = [];
+        try {
+            // Since we don't have fa_slots anymore, we can't easily query "empty" slots 
+            // without generating them for all fields. 
+            // For now, let's return bookings tomorrow so the admin sees what IS booked.
+            // Or better: return nothing for now to avoid complexity, 
+            // or just query fa_bookings for tomorrow.
+            const bookingsTomorrow = await pool.query(`
+                SELECT 
+                    fb.id, fb.field_id, f.name as field_name,
+                    fb.slot_date, fb.start_time
+                FROM fa_bookings fb
+                JOIN fields f ON fb.field_id = f.id
+                WHERE fb.slot_date = $1 AND fb.status != 'cancelled'
+                ORDER BY fb.field_id, fb.start_time
+            `, [tomorrowStr]);
+            // emptySlotsTomorrow = []; // Placeholder until we want to implement full virtual slot checking for all fields
+        } catch (e) { }
+
+        const consumerAgg = fieldIds.length ? await pool.query(`
+            SELECT 
+                r.field_id,
+                COUNT(*) as consumer_bookings_count,
+                COALESCE(SUM(f.price_per_hour * EXTRACT(EPOCH FROM (r.end_time::time - r.start_time::time))/3600), 0) as consumer_revenue
+            FROM reservations r
+            JOIN fields f ON r.field_id = f.id
+            WHERE r.slot_date BETWEEN $1 AND $2
+            GROUP BY r.field_id
+        `, [sDate, eDate]).catch(() => ({ rows: [] })) : { rows: [] };
+
+        const faAgg = fieldIds.length ? await pool.query(`
+            SELECT 
+                fb.field_id,
+                COUNT(*) as fa_bookings_count,
+                COALESCE(SUM(CASE WHEN fb.payment_status = 'paid' THEN fb.amount ELSE 0 END), 0) as fa_paid_revenue,
+                COALESCE(SUM(fb.amount), 0) as fa_total_revenue
+            FROM fa_bookings fb
+            WHERE fb.status != 'cancelled' AND fb.slot_date BETWEEN $1 AND $2
+            GROUP BY fb.field_id
+        `, [sDate, eDate]).catch(() => ({ rows: [] })) : { rows: [] };
+
+        const consumerByField = {};
+        for (const row of (consumerAgg.rows || [])) consumerByField[row.field_id] = row;
+        const faByField = {};
+        for (const row of (faAgg.rows || [])) faByField[row.field_id] = row;
+
+        const performance = fields.map(f => {
+            const c = consumerByField[f.id] || {};
+            const fa = faByField[f.id] || {};
+            const consumerBookings = parseInt(c.consumer_bookings_count || 0);
+            const faBookings = parseInt(fa.fa_bookings_count || 0);
+            const consumerRev = parseFloat(c.consumer_revenue || 0);
+            const faRev = parseFloat(fa.fa_total_revenue || 0);
+            const faPaidRev = parseFloat(fa.fa_paid_revenue || 0);
+            return {
+                field_id: f.id,
+                field_name: f.name,
+                price_per_hour: f.price_per_hour,
+                period: { start: sDate, end: eDate },
+                consumer: {
+                    bookings_count: consumerBookings,
+                    revenue: consumerRev
+                },
+                field_admin: {
+                    bookings_count: faBookings,
+                    total_revenue: faRev,
+                    paid_revenue: faPaidRev,
+                    unpaid_revenue: Math.max(0, faRev - faPaidRev)
+                },
+                combined: {
+                    total_bookings: consumerBookings + faBookings,
+                    total_revenue: consumerRev + faRev
+                }
+            };
+        });
+
+        const totals = performance.reduce((acc, p) => {
+            acc.total_bookings += p.combined.total_bookings;
+            acc.total_revenue += p.combined.total_revenue;
+            acc.consumer_bookings += p.consumer.bookings_count;
+            acc.consumer_revenue += p.consumer.revenue;
+            acc.fa_bookings += p.field_admin.bookings_count;
+            acc.fa_total_revenue += p.field_admin.total_revenue;
+            acc.fa_paid_revenue += p.field_admin.paid_revenue;
+            return acc;
+        }, {
+            total_bookings: 0, total_revenue: 0,
+            consumer_bookings: 0, consumer_revenue: 0,
+            fa_bookings: 0, fa_total_revenue: 0, fa_paid_revenue: 0
+        });
+
+        res.json({
+            period: { start: sDate, end: eDate },
+            performance,
+            totals,
+            empty_slots_tomorrow: emptySlotsTomorrow
+        });
+    } catch (err) {
+        console.error('[Admin] Field-performance error:', err);
+        return res.status(500).json({ error: err.message });
+    }
+});
+
 module.exports = router;

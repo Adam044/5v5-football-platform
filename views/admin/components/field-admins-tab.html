@@ -1,0 +1,475 @@
+<section id="field-admins-tab" class="tab-pane hidden">
+    <div class="mb-8 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+        <div>
+            <h2 class="text-3xl font-black text-slate-800 mb-2">مسؤولي الملاعب (خدمة B2B)</h2>
+            <p class="text-slate-500 font-medium">إدارة حسابات ملاك الملاعب المستقلين. بياناتهم في جداول منفصلة تماماً عن خدمات 5v5.</p>
+        </div>
+        <button onclick="window.openCreateFieldAdminModal()" class="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-black px-6 py-3 rounded-2xl shadow-lg shadow-emerald-200 transition-all">
+            <i class="fa-solid fa-user-plus"></i>
+            إضافة مسؤول ملعب جديد
+        </button>
+    </div>
+
+    <div class="glass-panel rounded-3xl p-6 sm:p-8 shadow-xl shadow-slate-200/50 mb-6 overflow-hidden">
+        <div class="overflow-x-auto -mx-6 sm:-mx-8 px-6 sm:px-8">
+            <table class="w-full min-w-[950px]">
+                <thead>
+                    <tr class="text-[11px] font-black text-slate-400 uppercase tracking-widest border-b-2 border-slate-100">
+                        <th class="text-right py-4 px-3 whitespace-nowrap">الملعب</th>
+                        <th class="text-right py-4 px-3 whitespace-nowrap">اسم المسؤول</th>
+                        <th class="text-right py-4 px-3 whitespace-nowrap">اسم المستخدم</th>
+                        <th class="text-right py-4 px-3 whitespace-nowrap">الهاتف</th>
+                        <th class="text-right py-4 px-3 whitespace-nowrap">السعر/الساعة</th>
+                        <th class="text-right py-4 px-3 whitespace-nowrap">آخر تسجيل دخول</th>
+                        <th class="text-right py-4 px-3 whitespace-nowrap">الحالة</th>
+                        <th class="text-left py-4 px-3 whitespace-nowrap">الإجراءات</th>
+                    </tr>
+                </thead>
+                <tbody id="field-admins-tbody" data-state="skeleton">
+                    <tr><td colspan="8" class="py-16 text-center text-slate-400"><i class="fa-solid fa-spinner fa-spin text-3xl mb-3 block text-slate-300"></i>جاري التحميل...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+
+<!-- Create Field Admin Modal -->
+<div id="create-field-admin-modal" class="hidden fixed inset-0 bg-black/60 z-[80] flex items-center justify-center p-4 animate-fade-in">
+    <div class="bg-white rounded-3xl shadow-3xl w-full max-w-xl p-8 relative animate-scale-in-up border-t-4 border-emerald-500">
+        <button onclick="window.closeFieldAdminCreateModal()" class="absolute top-4 left-4 w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 transition-all"><i class="fa-solid fa-xmark"></i></button>
+        <h3 class="text-2xl font-black text-slate-800 mb-2 flex items-center gap-3">
+            <div class="w-11 h-11 rounded-2xl bg-emerald-50 flex items-center justify-center"><i class="fa-solid fa-user-plus text-emerald-600 text-xl"></i></div>
+            إنشاء حساب مسؤول ملعب
+        </h3>
+        <p class="text-slate-500 text-sm mb-7">سيتم عرض بيانات الدخول (اسم المستخدم وكلمة المرور المؤقتة) مرة واحدة فقط بعد الإنشاء — انسخها فوراً.</p>
+
+        <form id="create-field-admin-form" onsubmit="window.submitCreateFieldAdmin(event)" class="space-y-5">
+            <div>
+                <label class="block text-[11px] font-black text-slate-500 uppercase tracking-widest mb-2">الملعب *</label>
+                <select id="cfa-field-id" required class="w-full px-4 py-3 rounded-2xl border-2 border-slate-200 focus:border-emerald-500 outline-none transition-colors text-slate-800 font-semibold">
+                    <option value="">-- اختر ملعباً من القائمة --</option>
+                </select>
+                <p class="text-[11px] text-slate-400 mt-1">تظهر فقط الملاعب التي لا تملك مسؤولاً بعد.</p>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div>
+                    <label class="block text-[11px] font-black text-slate-500 uppercase tracking-widest mb-2">اسم المسؤول الكامل *</label>
+                    <input type="text" id="cfa-full-name" required placeholder="مثال: أحمد محمود" class="w-full px-4 py-3 rounded-2xl border-2 border-slate-200 focus:border-emerald-500 outline-none transition-colors">
+                </div>
+                <div>
+                    <label class="block text-[11px] font-black text-slate-500 uppercase tracking-widest mb-2">رقم الهاتف *</label>
+                    <input type="tel" id="cfa-phone" required placeholder="05XXXXXXXX" class="w-full px-4 py-3 rounded-2xl border-2 border-slate-200 focus:border-emerald-500 outline-none transition-colors dir-ltr text-left">
+                </div>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div>
+                    <label class="block text-[11px] font-black text-slate-500 uppercase tracking-widest mb-2">السعر لكل ساعة (شيكل)</label>
+                    <input type="number" id="cfa-price" min="0" step="10" placeholder="(من بيانات الملعب افتراضياً)" class="w-full px-4 py-3 rounded-2xl border-2 border-slate-200 focus:border-emerald-500 outline-none transition-colors dir-ltr text-left">
+                </div>
+                <div>
+                    <label class="block text-[11px] font-black text-slate-500 uppercase tracking-widest mb-2">مدة الحجز الافتراضية (دقيقة)</label>
+                    <select id="cfa-duration" class="w-full px-4 py-3 rounded-2xl border-2 border-slate-200 focus:border-emerald-500 outline-none transition-colors font-semibold">
+                        <option value="60">60 دقيقة (ساعة واحدة)</option>
+                        <option value="90">90 دقيقة</option>
+                        <option value="120" selected>120 دقيقة (ساعتان - الافتراضي)</option>
+                        <option value="180">3 ساعات</option>
+                    </select>
+                </div>
+            </div>
+            <div class="flex gap-3 pt-3">
+                <button type="button" onclick="window.closeFieldAdminCreateModal()" class="flex-1 px-6 py-3 rounded-2xl bg-slate-100 text-slate-700 font-bold hover:bg-slate-200 transition-all">إلغاء</button>
+                <button type="submit" id="cfa-submit-btn" class="flex-[2] px-6 py-3 rounded-2xl bg-emerald-600 text-white font-black hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-200">
+                    <i class="fa-solid fa-key ml-2"></i> إنشاء الحساب وعرض بيانات الدخول
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Credentials Reveal Modal (SHOWN ONCE only) -->
+<div id="credentials-reveal-modal" class="hidden fixed inset-0 bg-black/70 z-[90] flex items-center justify-center p-4 animate-fade-in">
+    <div class="bg-white rounded-3xl shadow-3xl w-full max-w-lg p-8 relative animate-scale-in-up border-t-4 border-amber-500">
+        <div class="flex items-center gap-3 mb-5">
+            <div class="w-14 h-14 rounded-2xl bg-amber-50 flex items-center justify-center text-2xl text-amber-500 animate-pulse"><i class="fa-solid fa-shield-halved"></i></div>
+            <div>
+                <h3 class="text-2xl font-black text-slate-800">بيانات الدخول — أظهرت لمرة واحدة فقط</h3>
+                <p class="text-slate-500 text-sm">أغلق هذه النافذة بعد نسخ بيانات الدخول وسحبها على مسؤول الملعب. لن تستطيع عرضها مجدداً.</p>
+            </div>
+        </div>
+        <div class="bg-gradient-to-br from-amber-50 via-yellow-50 to-orange-50 border-2 border-dashed border-amber-200 rounded-2xl p-6 space-y-4 mb-6">
+            <div>
+                <p class="text-[11px] font-black uppercase tracking-widest text-amber-700 mb-1">اسم المستخدم</p>
+                <div class="flex items-center gap-2">
+                    <div id="reveal-username" class="font-mono flex-1 bg-white px-4 py-3 rounded-xl text-slate-900 font-black text-lg border border-amber-200 select-all"></div>
+                    <button onclick="window.copyRevealField('reveal-username')" class="w-12 h-12 rounded-xl bg-amber-500 hover:bg-amber-600 text-white transition-all" title="نسخ"><i class="fa-regular fa-copy text-lg"></i></button>
+                </div>
+            </div>
+            <div>
+                <p class="text-[11px] font-black uppercase tracking-widest text-amber-700 mb-1">كلمة المرور المؤقتة</p>
+                <div class="flex items-center gap-2">
+                    <div id="reveal-password" class="font-mono flex-1 bg-white px-4 py-3 rounded-xl text-rose-600 font-black text-lg border border-amber-200 select-all tracking-widest"></div>
+                    <button onclick="window.copyRevealField('reveal-password')" class="w-12 h-12 rounded-xl bg-amber-500 hover:bg-amber-600 text-white transition-all" title="نسخ"><i class="fa-regular fa-copy text-lg"></i></button>
+                </div>
+            </div>
+        </div>
+        <div class="bg-rose-50 text-rose-700 rounded-2xl p-4 flex items-start gap-3 mb-6">
+            <i class="fa-solid fa-triangle-exclamation text-xl mt-0.5 text-rose-500"></i>
+            <div class="text-sm font-semibold">
+                <p class="mb-1">عند تسجيل الدخول لأول مرة، سيُطلب من المسؤول تغيير كلمة المرور فوراً.</p>
+                <p>يمكنك إعادة تعيين كلمة المرور لاحقاً من زر "إعادة تعيين" في الجدول، وسيتم إنشاء كلمة مؤقتة جديدة تعرض بهذا الشكل أيضاً.</p>
+            </div>
+        </div>
+        <button onclick="window.closeCredentialsRevealModal()" class="w-full py-3.5 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-black transition-all shadow-lg shadow-slate-300">
+            لقد قمت بنسخ البيانات — أغلق النافذة
+        </button>
+    </div>
+</div>
+
+<!-- Edit Field Admin Modal -->
+<div id="edit-field-admin-modal" class="hidden fixed inset-0 bg-black/60 z-[80] flex items-center justify-center p-4 animate-fade-in">
+    <div class="bg-white rounded-3xl shadow-3xl w-full max-w-2xl p-8 relative animate-scale-in-up border-t-4 border-blue-500">
+        <button onclick="window.closeEditFieldAdminModal()" class="absolute top-4 left-4 w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 transition-all"><i class="fa-solid fa-xmark"></i></button>
+        <h3 class="text-2xl font-black text-slate-800 mb-7 flex items-center gap-3">
+            <div class="w-11 h-11 rounded-2xl bg-blue-50 flex items-center justify-center"><i class="fa-solid fa-pen-to-square text-blue-600 text-xl"></i></div>
+            تعديل بيانات مسؤول الملعب
+        </h3>
+        <form id="edit-field-admin-form" onsubmit="window.submitEditFieldAdmin(event)" class="space-y-5">
+            <input type="hidden" id="efa-id">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div>
+                    <label class="block text-[11px] font-black text-slate-500 uppercase tracking-widest mb-2">اسم المسؤول الكامل</label>
+                    <input type="text" id="efa-full-name" class="w-full px-4 py-3 rounded-2xl border-2 border-slate-200 focus:border-blue-500 outline-none transition-colors">
+                </div>
+                <div>
+                    <label class="block text-[11px] font-black text-slate-500 uppercase tracking-widest mb-2">رقم الهاتف</label>
+                    <input type="tel" id="efa-phone" class="w-full px-4 py-3 rounded-2xl border-2 border-slate-200 focus:border-blue-500 outline-none transition-colors dir-ltr text-left">
+                </div>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div>
+                    <label class="block text-[11px] font-black text-slate-500 uppercase tracking-widest mb-2">السعر لكل ساعة (شيكل)</label>
+                    <input type="number" id="efa-price" min="0" step="10" class="w-full px-4 py-3 rounded-2xl border-2 border-slate-200 focus:border-blue-500 outline-none transition-colors dir-ltr text-left">
+                </div>
+                <div>
+                    <label class="block text-[11px] font-black text-slate-500 uppercase tracking-widest mb-2">مدة الحجز الافتراضية (دقيقة)</label>
+                    <select id="efa-duration" class="w-full px-4 py-3 rounded-2xl border-2 border-slate-200 focus:border-blue-500 outline-none transition-colors font-semibold">
+                        <option value="60">60 دقيقة</option>
+                        <option value="90">90 دقيقة</option>
+                        <option value="120">120 دقيقة (ساعتان)</option>
+                        <option value="180">180 دقيقة (3 ساعات)</option>
+                    </select>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div>
+                    <label class="block text-[11px] font-black text-slate-500 uppercase tracking-widest mb-2">بداية الدوام</label>
+                    <input type="time" id="efa-oper-start" class="w-full px-4 py-3 rounded-2xl border-2 border-slate-200 focus:border-blue-500 outline-none transition-colors dir-ltr text-left">
+                </div>
+                <div>
+                    <label class="block text-[11px] font-black text-slate-500 uppercase tracking-widest mb-2">نهاية الدوام</label>
+                    <input type="time" id="efa-oper-end" class="w-full px-4 py-3 rounded-2xl border-2 border-slate-200 focus:border-blue-500 outline-none transition-colors dir-ltr text-left">
+                </div>
+            </div>
+            <div class="flex items-center gap-3 bg-slate-50 rounded-2xl p-4 border border-slate-100">
+                <label class="flex-grow">
+                    <span class="text-sm font-bold text-slate-700 block mb-1">الحساب نشط</span>
+                    <span class="text-xs text-slate-500">إيقاف التفعيل يمنع مسؤول الملعب من تسجيل الدخول مؤقتاً (تعليق).</span>
+                </label>
+                <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" id="efa-is-active" class="sr-only peer" checked>
+                    <div class="w-14 h-8 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-0.5 after:right-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-7 after:w-7 after:transition-all peer-checked:bg-emerald-500"></div>
+                </label>
+            </div>
+            <div class="flex gap-3 pt-3">
+                <button type="button" onclick="window.closeEditFieldAdminModal()" class="flex-1 px-6 py-3 rounded-2xl bg-slate-100 text-slate-700 font-bold hover:bg-slate-200 transition-all">إلغاء</button>
+                <button type="submit" class="flex-[2] px-6 py-3 rounded-2xl bg-blue-600 text-white font-black hover:bg-blue-700 transition-all shadow-lg shadow-blue-200"><i class="fa-solid fa-check ml-2"></i> حفظ التعديلات</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+(function(){
+    window.faAdminCache = [];
+    let initialized = false;
+
+    function isActiveBadge(active) {
+        return active
+            ? `<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-[11px] font-black whitespace-nowrap"><span class="w-2 h-2 rounded-full bg-emerald-500"></span> نشط</span>`
+            : `<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-100 text-rose-800 text-[11px] font-black whitespace-nowrap"><span class="w-2 h-2 rounded-full bg-rose-500"></span> معلق</span>`;
+    }
+
+    function formatDateTime(val) {
+        if (!val) return `<span class="text-slate-300 text-[11px] font-bold">—</span>`;
+        const d = new Date(val);
+        const s = d.toISOString();
+        return `<div class="text-[11px] font-black text-slate-700 whitespace-nowrap">${s.slice(0,10)}</div><div class="text-[10px] font-bold text-slate-400">${s.slice(11,16)}</div>`;
+    }
+
+    function contactLink(phone) {
+        if (!phone) return `<span class="text-slate-300 text-xs">—</span>`;
+        const digits = phone.replace(/\D/g,'');
+        const wa = digits.startsWith('97') || digits.startsWith('00') ? digits : (digits.startsWith('05') ? '972' + digits.slice(1) : digits);
+        return `<a href="https://wa.me/${wa}" target="_blank" class="flex items-center gap-1.5 font-bold text-slate-700 hover:text-green-600 transition-colors text-sm whitespace-nowrap"><i class="fa-brands fa-whatsapp text-green-500"></i>${phone}</a>`;
+    }
+
+    function renderEmptyState(tbody) {
+        tbody.innerHTML = `
+            <tr data-empty-row="1">
+                <td colspan="8" class="py-20">
+                    <div class="text-center max-w-md mx-auto">
+                        <div class="w-20 h-20 mx-auto rounded-3xl bg-slate-50 text-slate-300 flex items-center justify-center mb-5 border-2 border-dashed border-slate-100">
+                            <i class="fa-solid fa-user-shield text-3xl"></i>
+                        </div>
+                        <h3 class="font-black text-slate-700 text-lg mb-2">لا يوجد مسؤولي ملاعب مسجلين حالياً</h3>
+                        <p class="text-slate-400 text-sm font-semibold mb-6">انقر على زر <span class="inline-block bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-lg font-black text-xs">«إضافة مسؤول ملعب جديد»</span> في أعلى الصفحة لإنشاء الحساب الأول.</p>
+                    </div>
+                </td>
+            </tr>`;
+        tbody.setAttribute('data-state', 'empty');
+    }
+
+    function renderErrorState(tbody, msg) {
+        tbody.innerHTML = `
+            <tr data-error-row="1">
+                <td colspan="8" class="py-16">
+                    <div class="text-center max-w-md mx-auto">
+                        <div class="w-16 h-16 mx-auto rounded-3xl bg-rose-50 text-rose-400 flex items-center justify-center mb-4">
+                            <i class="fa-solid fa-triangle-exclamation text-2xl"></i>
+                        </div>
+                        <h3 class="font-black text-rose-700 mb-2">تعذّر تحميل قائمة مسؤولي الملاعب</h3>
+                        <p class="text-rose-500 text-xs font-semibold mb-5">${msg || 'خطأ غير معروف'}</p>
+                        <button onclick="window.fetchFieldAdminsList()" class="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-black text-sm shadow-md shadow-rose-200 transition-colors">
+                            <i class="fa-solid fa-rotate-right ml-1.5"></i> إعادة المحاولة
+                        </button>
+                    </div>
+                </td>
+            </tr>`;
+        tbody.setAttribute('data-state', 'error');
+    }
+
+    window.renderFieldAdminsTable = function(list) {
+        window.faAdminCache = list || [];
+        const tbody = document.getElementById('field-admins-tbody');
+        if (!tbody) return;
+        if (!list || list.length === 0) {
+            renderEmptyState(tbody);
+            return;
+        }
+        tbody.setAttribute('data-state', 'ready');
+        tbody.innerHTML = list.map(fa => `
+            <tr class="border-b border-slate-100 hover:bg-slate-50/50 transition-colors group">
+                <td class="py-5 px-3">
+                    <div class="flex items-center gap-3 min-w-0">
+                        <div class="w-10 h-10 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-600 shrink-0"><i class="fa-solid fa-futbol"></i></div>
+                        <div class="min-w-0">
+                            <div class="font-black text-slate-800 text-sm truncate">${fa.field_name || '—'}</div>
+                            <div class="text-[10px] text-slate-400 font-bold truncate">#${fa.field_id || '-'}</div>
+                        </div>
+                    </div>
+                </td>
+                <td class="py-5 px-3 font-bold text-slate-800 text-sm whitespace-nowrap">${fa.full_name || '—'}</td>
+                <td class="py-5 px-3"><span class="font-mono text-[11px] font-bold bg-slate-100 text-slate-700 px-2.5 py-1 rounded-lg whitespace-nowrap">${fa.username || '—'}</span></td>
+                <td class="py-5 px-3">${contactLink(fa.phone)}</td>
+                <td class="py-5 px-3"><span class="font-black text-slate-800 text-sm whitespace-nowrap">${fa.price_per_hour || 0} ₪</span></td>
+                <td class="py-5 px-3">${formatDateTime(fa.last_login_at)}</td>
+                <td class="py-5 px-3">${isActiveBadge(fa.is_active)} ${fa.password_changed_at == null ? `<span class="inline-block mt-1 mr-1 text-[10px] font-black px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">لم يغيّر كلمة المرور</span>` : ''}</td>
+                <td class="py-5 px-3">
+                    <div class="flex items-center gap-2 justify-end">
+                        <button onclick="window.openEditFieldAdminModal(${fa.id})" class="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center" title="تعديل"><i class="fa-solid fa-pen"></i></button>
+                        <button onclick="window.resetFieldAdminPassword(${fa.id}, '${(fa.full_name||'').replace(/'/g,'')}')" class="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 hover:bg-amber-600 hover:text-white transition-all flex items-center justify-center" title="إعادة تعيين كلمة المرور"><i class="fa-solid fa-key"></i></button>
+                        <button onclick="window.toggleFieldAdminActive(${fa.id}, ${fa.is_active ? 'false' : 'true'}, '${(fa.full_name||'').replace(/'/g,'')}')" class="w-9 h-9 rounded-xl ${fa.is_active ? 'bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white' : 'bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white'} transition-all flex items-center justify-center" title="${fa.is_active ? 'تعليق الحساب' : 'إعادة التفعيل'}"><i class="fa-solid ${fa.is_active ? 'fa-ban' : 'fa-play'}"></i></button>
+                    </div>
+                </td>
+            </tr>
+        `).join('');
+    };
+
+    window.fetchFieldAdminsList = async function() {
+        const tbody = document.getElementById('field-admins-tbody');
+        if (!tbody) return;
+        tbody.setAttribute('data-state', 'loading');
+        tbody.innerHTML = `<tr><td colspan="8" class="py-12 text-center"><i class="fa-solid fa-spinner fa-spin text-2xl text-slate-400"></i><div class="mt-3 text-slate-500 text-sm font-bold">جاري تحميل الحسابات...</div></td></tr>`;
+
+        // Safety 8s timeout to clear skeleton forever
+        const failTimer = setTimeout(() => {
+            const cur = document.getElementById('field-admins-tbody');
+            if (cur && cur.getAttribute('data-state') === 'loading') {
+                renderErrorState(cur, 'انتهت مهلة التحميل — تحقق من تشغيل الخادم ثم أعد المحاولة.');
+            }
+        }, 8000);
+
+        try {
+            const r = await fetch('/api/admin/field-admins', { credentials: 'include' });
+            if (!r.ok) throw new Error('HTTP ' + r.status + ' (' + (r.statusText||'') + ')');
+            const d = await r.json();
+            clearTimeout(failTimer);
+            window.renderFieldAdminsTable(d.fieldAdmins || []);
+        } catch (e) {
+            console.error(e);
+            clearTimeout(failTimer);
+            renderErrorState(tbody, e.message || e.toString());
+        }
+    };
+
+    // ---- Create Modal ----
+    window.openCreateFieldAdminModal = async function() {
+        const modal = document.getElementById('create-field-admin-modal');
+        const sel = document.getElementById('cfa-field-id');
+        if (!modal || !sel) return;
+        sel.innerHTML = `<option value="">-- جاري تحميل الملاعب المتاحة --</option>`;
+        modal.classList.remove('hidden');
+        try {
+            const r = await fetch('/api/admin/field-admins/available-fields', { credentials: 'include' });
+            const d = await r.json();
+            const fields = d.fields || [];
+            sel.innerHTML = fields.length === 0
+                ? `<option value="">-- لا توجد ملاعب متاحة حالياً (جميعها مرتبطة بمسؤولين) --</option>`
+                : `<option value="">-- اختر ملعباً من القائمة --</option>` + fields.map(f => `<option value="${f.id}" data-price="${f.price_per_hour || 0}">${f.name} — ${f.location || ''} (السعر: ${f.price_per_hour || 0}₪/ساعة)</option>`).join('');
+        } catch (e) {
+            sel.innerHTML = `<option value="">-- فشل تحميل الملاعب: ${e.message} --</option>`;
+        }
+        document.getElementById('cfa-full-name').value = '';
+        document.getElementById('cfa-phone').value = '';
+        document.getElementById('cfa-price').value = '';
+        document.getElementById('cfa-duration').value = '120';
+    };
+    window.closeFieldAdminCreateModal = function(){ document.getElementById('create-field-admin-modal').classList.add('hidden'); };
+
+    window.submitCreateFieldAdmin = async function(e) {
+        e.preventDefault();
+        const btn = document.getElementById('cfa-submit-btn');
+        const field_id = Number(document.getElementById('cfa-field-id').value);
+        const full_name = document.getElementById('cfa-full-name').value.trim();
+        const phone = document.getElementById('cfa-phone').value.trim();
+        const priceVal = document.getElementById('cfa-price').value;
+        const durationVal = document.getElementById('cfa-duration').value;
+        if (!field_id || !full_name || !phone) { showMessageBox('حقول مطلوبة', 'املأ جميع الحقول الإلزامية.', 'warning'); return; }
+        const body = { field_id, full_name, phone };
+        if (priceVal !== '') body.price_per_hour = Number(priceVal);
+        if (durationVal) body.default_slot_duration = Number(durationVal);
+        btn.disabled = true; btn.classList.add('opacity-60','cursor-not-allowed');
+        try {
+            const r = await fetch('/api/admin/field-admins', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify(body) });
+            const d = await r.json();
+            if (!r.ok) throw new Error(d.error || 'HTTP ' + r.status);
+            window.closeFieldAdminCreateModal();
+            window.openCredentialsRevealModal(d.credentials.username, d.credentials.temporary_password);
+            window.fetchFieldAdminsList();
+        } catch (err) {
+            showMessageBox('فشل الإنشاء', err.message || 'خطأ غير معروف', 'error');
+        } finally {
+            btn.disabled = false; btn.classList.remove('opacity-60','cursor-not-allowed');
+        }
+    };
+
+    // ---- Credentials Reveal (once) ----
+    window.openCredentialsRevealModal = function(username, tempPassword) {
+        document.getElementById('reveal-username').textContent = username || '';
+        document.getElementById('reveal-password').textContent = tempPassword || '';
+        document.getElementById('credentials-reveal-modal').classList.remove('hidden');
+    };
+    window.closeCredentialsRevealModal = function(){
+        document.getElementById('reveal-username').textContent = '';
+        document.getElementById('reveal-password').textContent = '';
+        document.getElementById('credentials-reveal-modal').classList.add('hidden');
+    };
+    window.copyRevealField = function(fieldId) {
+        const el = document.getElementById(fieldId);
+        if (!el) return;
+        const text = el.textContent || '';
+        navigator.clipboard.writeText(text).then(() => {
+            showMessageBox('تم النسخ', 'تم نسخ القيمة إلى الحافظة.', 'success');
+        }).catch(() => showMessageBox('فشل النسخ', text, 'info'));
+    };
+
+    // ---- Edit Modal ----
+    window.openEditFieldAdminModal = function(id) {
+        const fa = window.faAdminCache.find(x => x.id === id);
+        if (!fa) { showMessageBox('غير موجود', 'مسؤول الملعب هذا غير موجود في الذاكرة.', 'warning'); return; }
+        document.getElementById('efa-id').value = fa.id;
+        document.getElementById('efa-full-name').value = fa.full_name || '';
+        document.getElementById('efa-phone').value = fa.phone || '';
+        document.getElementById('efa-price').value = fa.price_per_hour ?? '';
+        document.getElementById('efa-duration').value = fa.default_slot_duration || 120;
+        document.getElementById('efa-oper-start').value = fa.operating_start || '16:00';
+        document.getElementById('efa-oper-end').value = fa.operating_end || '24:00';
+        document.getElementById('efa-is-active').checked = !!fa.is_active;
+        document.getElementById('edit-field-admin-modal').classList.remove('hidden');
+    };
+    window.closeEditFieldAdminModal = function(){ document.getElementById('edit-field-admin-modal').classList.add('hidden'); };
+    window.submitEditFieldAdmin = async function(e) {
+        e.preventDefault();
+        const id = Number(document.getElementById('efa-id').value);
+        const body = {
+            full_name: document.getElementById('efa-full-name').value.trim() || undefined,
+            phone: document.getElementById('efa-phone').value.trim() || undefined,
+            price_per_hour: (document.getElementById('efa-price').value !== '') ? Number(document.getElementById('efa-price').value) : undefined,
+            default_slot_duration: Number(document.getElementById('efa-duration').value) || undefined,
+            operating_start: document.getElementById('efa-oper-start').value || undefined,
+            operating_end: document.getElementById('efa-oper-end').value || undefined,
+            is_active: document.getElementById('efa-is-active').checked
+        };
+        try {
+            const r = await fetch(`/api/admin/field-admins/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify(body) });
+            const d = await r.json();
+            if (!r.ok) throw new Error(d.error || 'HTTP ' + r.status);
+            showMessageBox('تم الحفظ', d.message || 'تم تحديث البيانات بنجاح.', 'success');
+            window.closeEditFieldAdminModal();
+            window.fetchFieldAdminsList();
+        } catch (err) {
+            showMessageBox('فشل الحفظ', err.message || 'خطأ غير معروف', 'error');
+        }
+    };
+
+    // ---- Toggle active / suspend ----
+    window.toggleFieldAdminActive = function(id, newState, name) {
+        showMessageBox(
+            newState ? 'إعادة تفعيل الحساب' : 'تعليق الحساب',
+            newState ? `هل أنت متأكد من إعادة تفعيل حساب ${name}؟` : `هل أنت متأكد من تعليق حساب ${name}؟ لن يستطيع تسجيل الدخول بعد الآن.`,
+            'warning',
+            async () => {
+                try {
+                    const r = await fetch(`/api/admin/field-admins/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify({ is_active: !!newState }) });
+                    const d = await r.json();
+                    if (!r.ok) throw new Error(d.error || 'HTTP ' + r.status);
+                    showMessageBox('تمت العملية', d.message || 'تم تحديث الحالة بنجاح.', 'success');
+                    window.fetchFieldAdminsList();
+                } catch (err) { showMessageBox('فشلت العملية', err.message, 'error'); }
+            },
+            true
+        );
+    };
+
+    // ---- Reset password -> show once again ----
+    window.resetFieldAdminPassword = function(id, name) {
+        showMessageBox(
+            'إعادة تعيين كلمة المرور',
+            `سيتم إنشاء كلمة مرور مؤقتة جديدة لـ ${name} وستظهر لك لمرة واحدة فقط. هل توافق؟`,
+            'warning',
+            async () => {
+                try {
+                    const r = await fetch(`/api/admin/field-admins/${id}/reset-password`, { method: 'POST', credentials: 'include' });
+                    const d = await r.json();
+                    if (!r.ok) throw new Error(d.error || 'HTTP ' + r.status);
+                    window.openCredentialsRevealModal(d.credentials.username, d.credentials.temporary_password);
+                    window.fetchFieldAdminsList();
+                } catch (err) { showMessageBox('فشل التعيين', err.message, 'error'); }
+            },
+            true
+        );
+    };
+
+    // Init only once, with a guard against running before DOM is ready
+    function init(){
+        if (initialized) return;
+        initialized = true;
+        window.fetchFieldAdminsList();
+    }
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        setTimeout(init, 80);
+    }
+})();
+</script>

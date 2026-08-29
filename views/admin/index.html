@@ -45,6 +45,8 @@
             <div id="sponsors-tab-placeholder"></div>
             <div id="birthday-gifts-tab-placeholder"></div>
             <div id="spain-camp-tab-placeholder"></div>
+            <div id="field-admins-tab-placeholder"></div>
+            <div id="field-bookings-tab-placeholder"></div>
         </div>
     </main>
 
@@ -59,7 +61,10 @@
             try {
                 const response = await fetch(path);
                 const html = await response.text();
-                document.getElementById(id).innerHTML = html;
+                const placeholder = document.getElementById(id);
+                placeholder.innerHTML = '';
+                const fragment = document.createRange().createContextualFragment(html);
+                placeholder.appendChild(fragment);
             } catch (error) {
                 console.error(`Failed to load component: ${path}`, error);
             }
@@ -84,7 +89,9 @@
                 loadComponent('gallery-tab-placeholder', '/admin/components/gallery-tab.html'),
                 loadComponent('sponsors-tab-placeholder', '/admin/components/sponsors-tab.html'),
                 loadComponent('birthday-gifts-tab-placeholder', '/admin/components/birthday-gifts-tab.html'),
-                loadComponent('spain-camp-tab-placeholder', '/admin/components/spain-camp-tab.html')
+                loadComponent('spain-camp-tab-placeholder', '/admin/components/spain-camp-tab.html'),
+                loadComponent('field-admins-tab-placeholder', '/admin/components/field-admins-tab.html'),
+                loadComponent('field-bookings-tab-placeholder', '/admin/components/field-bookings-tab.html')
             ]);
 
             // Initialize dashboard logic from dashboard.js
