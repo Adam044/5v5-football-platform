@@ -6,7 +6,7 @@ const { signToken, verifyToken, TOKEN_TTL_SECONDS } = require('../utils/auth');
 const { checkFieldAdmin } = require('../middleware/auth');
 
 const COOKIE_NAME = 'field_admin_token';
-const COOKIE_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
+const COOKIE_MAX_AGE = 30 * 24 * 60 * 60 * 1000;
 
 const signFaToken = (admin) => signToken({
     id: admin.id,
@@ -271,6 +271,7 @@ router.get('/slots', checkFieldAdmin, async (req, res) => {
                     vs.amount = b.amount;
                     vs.payment_status = b.payment_status;
                     vs.booking_status = b.status;
+                    vs.notes = b.notes;
                 }
             });
             allSlots.push(...daySlots);

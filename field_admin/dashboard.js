@@ -42,9 +42,16 @@ async function api(method, path, body) {
 
 function toast(msg, type='success') {
   const t = $('#toast');
-  $('#toastMsg').innerText = msg;
+  const msgEl = $('#toastMsg');
+  if (msgEl) msgEl.innerText = msg;
+  
   const icon = $('#toastIcon');
-  icon.className = type === 'success' ? 'fa-solid fa-circle-check text-green-400' : 'fa-solid fa-circle-xmark text-red-400';
+  if (icon) {
+    if (type === 'success') icon.className = 'fa-solid fa-circle-check text-green-400 text-lg';
+    else if (type === 'info') icon.className = 'fa-solid fa-circle-info text-blue-400 text-lg';
+    else icon.className = 'fa-solid fa-circle-xmark text-red-400 text-lg';
+  }
+  
   t.classList.remove('hidden');
   setTimeout(() => t.classList.add('hidden'), 2800);
 }
@@ -224,8 +231,8 @@ const app = {
       
       let cardClass = 'bg-white border-slate-100';
       let statusText = 'متاح';
-      let icon = '<i class="fa-solid fa-plus text-green-600/30"></i>';
-      let colorClass = 'text-green-600';
+      let icon = '<i class="fa-solid fa-plus text-blue-600/30"></i>';
+      let colorClass = 'text-blue-600';
       let dotColor = '#f1f5f9';
       
       if (isPast) {
@@ -236,10 +243,10 @@ const app = {
         dotColor = '#cbd5e1';
       } else if (booked) {
         if (paid) {
-          cardClass = 'bg-green-50/50 border-green-100 shadow-sm shadow-green-600/5';
-          colorClass = 'text-green-700';
-          dotColor = '#16a34a';
-          icon = '<i class="fa-solid fa-circle-check text-green-600"></i>';
+          cardClass = 'bg-blue-50/50 border-blue-100 shadow-sm shadow-blue-600/5';
+          colorClass = 'text-blue-700';
+          dotColor = '#2563eb';
+          icon = '<i class="fa-solid fa-circle-check text-blue-600"></i>';
         } else {
           cardClass = 'bg-amber-50/50 border-amber-100 shadow-sm shadow-amber-600/5';
           colorClass = 'text-amber-700';
@@ -247,7 +254,7 @@ const app = {
           icon = '<i class="fa-solid fa-circle-exclamation text-amber-500"></i>';
         }
       } else {
-        cardClass = 'bg-white border-slate-100 hover:border-green-200 hover:bg-green-50/10';
+        cardClass = 'bg-white border-slate-100 hover:border-blue-200 hover:bg-blue-50/10';
         dotColor = '#f1f5f9';
       }
 
@@ -267,7 +274,7 @@ const app = {
                 ${booked ? `
                   <div class="text-left">
                     <p class="font-black text-slate-900">${Math.round(s.amount)} ₪</p>
-                    <p class="text-[9px] font-black uppercase tracking-widest ${paid ? 'text-green-600' : 'text-amber-600'}">${paid ? 'مدفوع' : 'غير مدفوع'}</p>
+                    <p class="text-[9px] font-black uppercase tracking-widest ${paid ? 'text-blue-700' : 'text-amber-600'}">${paid ? 'مدفوع' : 'غير مدفوع'}</p>
                   </div>
                 ` : ''}
                 ${icon}
@@ -286,6 +293,14 @@ const app = {
     else this.openCreateBooking(s);
   },
 
+  onWeekSlotClick(s) {
+    if (s.is_booked === 1 && s.booking_status === 'confirmed') {
+      this.openEditBooking(s);
+    } else {
+      toast('هذا الموعد متاح وغير محجوز بعد', 'info');
+    }
+  },
+
   openCreateBooking(s) {
     this._bookingCtx = { mode: 'create', date: s.slot_date, start_time: s.start_time, duration: s.duration_minutes };
     $('#bs-title').innerText = 'حجز جديد';
@@ -294,19 +309,55 @@ const app = {
     $('#bs-phone').value = '';
     $('#bs-price').value = Math.round(this.admin.price_per_hour * (s.duration_minutes / 60));
     $('#bs-pay').value = 'unpaid';
-    $('#bs-cancel').classList.add('hidden');
+    
+    $('#bookingForm').classList.remove('hidden');
+    $('#bookingDetails').classList.add('hidden');
     this.toggleSheet(true);
   },
 
   openEditBooking(s) {
     this._bookingCtx = { mode: 'edit', slot: s, bookingId: s.booking_id };
-    $('#bs-title').innerText = s.customer_name;
+    $('#bs-title').innerText = 'تفاصيل الحجز';
     $('#bs-time').innerText = `${to12(s.start_time)} – ${to12(s.end_time)}`;
-    $('#bs-name').value = s.customer_name;
-    $('#bs-phone').value = s.customer_phone || '';
-    $('#bs-price').value = Math.round(s.amount);
-    $('#bs-pay').value = s.payment_status;
-    $('#bs-cancel').classList.remove('hidden');
+    
+    // Populate Details View
+    $('#bd-name').innerText = s.customer_name;
+    $('#bd-phone').innerText = s.customer_phone || 'لا يوجد رقم';
+    $('#bd-amount').innerText = Math.round(s.amount);
+    
+    // Add notes if they exist in the slot object
+    const notesEl = $('#bd-notes');
+    if (notesEl) {
+        notesEl.innerText = s.notes || 'لا توجد ملاحظات';
+    }
+    
+    const statusEl = $('#bd-status');
+    if (s.payment_status === 'paid') {
+      statusEl.innerText = 'مدفوع';
+      statusEl.className = 'inline-flex px-3 py-1 rounded-lg font-black text-xs mt-1 bg-blue-100 text-blue-700';
+    } else {
+      statusEl.innerText = 'غير مدفوع';
+      statusEl.className = 'inline-flex px-3 py-1 rounded-lg font-black text-xs mt-1 bg-amber-100 text-amber-700';
+    }
+
+    const wa = $('#bd-whatsapp');
+    const call = $('#bd-call');
+    if (s.customer_phone) {
+      const cleanPhone = s.customer_phone.replace(/\D/g, '');
+      wa.href = `https://wa.me/${cleanPhone}`;
+      call.href = `tel:${cleanPhone}`;
+      wa.parentElement.classList.remove('hidden');
+    } else {
+      wa.parentElement.classList.add('hidden');
+    }
+
+    const markPaidBtn = $('#bd-mark-paid');
+    if (markPaidBtn) {
+      markPaidBtn.classList.toggle('hidden', s.payment_status === 'paid');
+    }
+
+    $('#bookingForm').classList.add('hidden');
+    $('#bookingDetails').classList.remove('hidden');
     this.toggleSheet(true);
   },
 
@@ -322,6 +373,17 @@ const app = {
     if (!ok) return;
     const r = await api('PUT', `/bookings/${this._bookingCtx.bookingId}`, { status: 'cancelled' });
     if (r.status === 200) { toast('تم إلغاء الحجز'); this.closeBooking(); this.refreshSlots(); }
+  },
+
+  async markAsPaid() {
+    const r = await api('PUT', `/bookings/${this._bookingCtx.bookingId}`, { payment_status: 'paid' });
+    if (r.status === 200) {
+      toast('تم تأكيد الدفع بنجاح');
+      this.closeBooking();
+      this.refreshSlots();
+    } else {
+      toast('فشل تحديث حالة الدفع', 'error');
+    }
   },
 
   async saveSettings() {
@@ -392,7 +454,7 @@ const app = {
       const iso = fmtDate(d);
       days.push(iso);
       const th = document.createElement('th');
-      th.className = `px-4 py-4 border-b border-slate-100 ${iso === fmtDate(new Date()) ? 'text-green-600' : ''}`;
+      th.className = `px-4 py-4 border-b border-slate-100 ${iso === fmtDate(new Date()) ? 'text-blue-600' : ''}`;
       th.innerHTML = `<div>${dayHeaders[i]}</div><div class="text-[9px] opacity-60">${d.getDate()}/${d.getMonth()+1}</div>`;
       head.firstChild.appendChild(th);
     }
@@ -421,10 +483,12 @@ const app = {
           const booked = s.is_booked === 1 && s.booking_status === 'confirmed';
           const isPast = new Date(s.slot_date + 'T' + s.end_time) < new Date();
           let dotColor = 'bg-slate-100';
-          if (booked) dotColor = 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.4)]';
-          else if (isPast) dotColor = 'bg-slate-200 opacity-40';
+          if (booked) {
+            dotColor = s.payment_status === 'paid' ? 'bg-blue-600' : 'bg-amber-500';
+            dotColor += ' shadow-[0_0_8px_rgba(37,99,235,0.3)]';
+          } else if (isPast) dotColor = 'bg-slate-200 opacity-40';
           
-          td.innerHTML = `<button onclick="app.setDate('${s.slot_date}'); app.setView('today'); app.onSlotClick('${s.id}')" class="w-full h-8 rounded-lg ${dotColor} transition-transform active:scale-90"></button>`;
+          td.innerHTML = `<button onclick='app.onWeekSlotClick(${JSON.stringify(s).replace(/'/g, "&apos;")})' class="w-full h-8 rounded-lg ${dotColor} transition-transform active:scale-90"></button>`;
         }
         tr.appendChild(td);
       });
@@ -457,7 +521,7 @@ const app = {
         </td>
         <td class="px-6 py-4 font-black text-slate-800 text-right">${Math.round(b.amount)} ₪</td>
         <td class="px-6 py-4 text-center">
-          <span class="px-2 py-1 rounded-md text-[10px] font-black ${b.payment_status === 'paid' ? 'bg-green-50 text-green-600' : 'bg-amber-50 text-amber-600'}">
+          <span class="px-2 py-1 rounded-md text-[10px] font-black ${b.payment_status === 'paid' ? 'bg-blue-50 text-blue-600' : 'bg-amber-50 text-amber-600'}">
             ${b.payment_status === 'paid' ? 'مدفوع' : 'غير مدفوع'}
           </span>
         </td>

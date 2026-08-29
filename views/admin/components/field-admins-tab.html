@@ -1,10 +1,10 @@
 <section id="field-admins-tab" class="tab-pane hidden">
     <div class="mb-8 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
         <div>
-            <h2 class="text-3xl font-black text-slate-800 mb-2">مسؤولي الملاعب (خدمة B2B)</h2>
+            <h2 class="text-3xl font-black text-slate-800 mb-2">مسؤولي الملاعب</h2>
             <p class="text-slate-500 font-medium">إدارة حسابات ملاك الملاعب المستقلين. بياناتهم في جداول منفصلة تماماً عن خدمات 5v5.</p>
         </div>
-        <button onclick="window.openCreateFieldAdminModal()" class="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-black px-6 py-3 rounded-2xl shadow-lg shadow-emerald-200 transition-all">
+        <button onclick="window.openCreateFieldAdminModal()" class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-black px-6 py-3 rounded-2xl shadow-lg shadow-blue-200 transition-all">
             <i class="fa-solid fa-user-plus"></i>
             إضافة مسؤول ملعب جديد
         </button>
@@ -35,10 +35,10 @@
 
 <!-- Create Field Admin Modal -->
 <div id="create-field-admin-modal" class="hidden fixed inset-0 bg-black/60 z-[80] flex items-center justify-center p-4 animate-fade-in">
-    <div class="bg-white rounded-3xl shadow-3xl w-full max-w-xl p-8 relative animate-scale-in-up border-t-4 border-emerald-500">
+    <div class="bg-white rounded-3xl shadow-3xl w-full max-w-xl p-8 relative animate-scale-in-up border-t-4 border-blue-600">
         <button onclick="window.closeFieldAdminCreateModal()" class="absolute top-4 left-4 w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 transition-all"><i class="fa-solid fa-xmark"></i></button>
         <h3 class="text-2xl font-black text-slate-800 mb-2 flex items-center gap-3">
-            <div class="w-11 h-11 rounded-2xl bg-emerald-50 flex items-center justify-center"><i class="fa-solid fa-user-plus text-emerald-600 text-xl"></i></div>
+            <div class="w-11 h-11 rounded-2xl bg-blue-50 flex items-center justify-center"><i class="fa-solid fa-user-plus text-blue-600 text-xl"></i></div>
             إنشاء حساب مسؤول ملعب
         </h3>
         <p class="text-slate-500 text-sm mb-7">سيتم عرض بيانات الدخول (اسم المستخدم وكلمة المرور المؤقتة) مرة واحدة فقط بعد الإنشاء — انسخها فوراً.</p>
@@ -46,7 +46,7 @@
         <form id="create-field-admin-form" onsubmit="window.submitCreateFieldAdmin(event)" class="space-y-5">
             <div>
                 <label class="block text-[11px] font-black text-slate-500 uppercase tracking-widest mb-2">الملعب *</label>
-                <select id="cfa-field-id" required class="w-full px-4 py-3 rounded-2xl border-2 border-slate-200 focus:border-emerald-500 outline-none transition-colors text-slate-800 font-semibold">
+                <select id="cfa-field-id" required class="w-full px-4 py-3 rounded-2xl border-2 border-slate-200 focus:border-blue-600 outline-none transition-colors text-slate-800 font-semibold">
                     <option value="">-- اختر ملعباً من القائمة --</option>
                 </select>
                 <p class="text-[11px] text-slate-400 mt-1">تظهر فقط الملاعب التي لا تملك مسؤولاً بعد.</p>
@@ -54,21 +54,21 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div>
                     <label class="block text-[11px] font-black text-slate-500 uppercase tracking-widest mb-2">اسم المسؤول الكامل *</label>
-                    <input type="text" id="cfa-full-name" required placeholder="مثال: أحمد محمود" class="w-full px-4 py-3 rounded-2xl border-2 border-slate-200 focus:border-emerald-500 outline-none transition-colors">
+                    <input type="text" id="cfa-full-name" required placeholder="مثال: أحمد محمود" class="w-full px-4 py-3 rounded-2xl border-2 border-slate-200 focus:border-blue-600 outline-none transition-colors">
                 </div>
                 <div>
                     <label class="block text-[11px] font-black text-slate-500 uppercase tracking-widest mb-2">رقم الهاتف *</label>
-                    <input type="tel" id="cfa-phone" required placeholder="05XXXXXXXX" class="w-full px-4 py-3 rounded-2xl border-2 border-slate-200 focus:border-emerald-500 outline-none transition-colors dir-ltr text-left">
+                    <input type="tel" id="cfa-phone" required placeholder="05XXXXXXXX" class="w-full px-4 py-3 rounded-2xl border-2 border-slate-200 focus:border-blue-600 outline-none transition-colors dir-ltr text-left">
                 </div>
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div>
                     <label class="block text-[11px] font-black text-slate-500 uppercase tracking-widest mb-2">السعر لكل ساعة (شيكل)</label>
-                    <input type="number" id="cfa-price" min="0" step="10" placeholder="(من بيانات الملعب افتراضياً)" class="w-full px-4 py-3 rounded-2xl border-2 border-slate-200 focus:border-emerald-500 outline-none transition-colors dir-ltr text-left">
+                    <input type="number" id="cfa-price" min="0" step="10" placeholder="(من بيانات الملعب افتراضياً)" class="w-full px-4 py-3 rounded-2xl border-2 border-slate-200 focus:border-blue-600 outline-none transition-colors dir-ltr text-left">
                 </div>
                 <div>
                     <label class="block text-[11px] font-black text-slate-500 uppercase tracking-widest mb-2">مدة الحجز الافتراضية (دقيقة)</label>
-                    <select id="cfa-duration" class="w-full px-4 py-3 rounded-2xl border-2 border-slate-200 focus:border-emerald-500 outline-none transition-colors font-semibold">
+                    <select id="cfa-duration" class="w-full px-4 py-3 rounded-2xl border-2 border-slate-200 focus:border-blue-600 outline-none transition-colors font-semibold">
                         <option value="60">60 دقيقة (ساعة واحدة)</option>
                         <option value="90">90 دقيقة</option>
                         <option value="120" selected>120 دقيقة (ساعتان - الافتراضي)</option>
@@ -78,7 +78,7 @@
             </div>
             <div class="flex gap-3 pt-3">
                 <button type="button" onclick="window.closeFieldAdminCreateModal()" class="flex-1 px-6 py-3 rounded-2xl bg-slate-100 text-slate-700 font-bold hover:bg-slate-200 transition-all">إلغاء</button>
-                <button type="submit" id="cfa-submit-btn" class="flex-[2] px-6 py-3 rounded-2xl bg-emerald-600 text-white font-black hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-200">
+                <button type="submit" id="cfa-submit-btn" class="flex-[2] px-6 py-3 rounded-2xl bg-blue-600 text-white font-black hover:bg-blue-700 transition-all shadow-lg shadow-blue-200">
                     <i class="fa-solid fa-key ml-2"></i> إنشاء الحساب وعرض بيانات الدخول
                 </button>
             </div>
@@ -177,7 +177,7 @@
                 </label>
                 <label class="relative inline-flex items-center cursor-pointer">
                     <input type="checkbox" id="efa-is-active" class="sr-only peer" checked>
-                    <div class="w-14 h-8 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-0.5 after:right-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-7 after:w-7 after:transition-all peer-checked:bg-emerald-500"></div>
+                    <div class="w-14 h-8 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-0.5 after:right-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-7 after:w-7 after:transition-all peer-checked:bg-blue-600"></div>
                 </label>
             </div>
             <div class="flex gap-3 pt-3">
@@ -195,8 +195,8 @@
 
     function isActiveBadge(active) {
         return active
-            ? `<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-[11px] font-black whitespace-nowrap"><span class="w-2 h-2 rounded-full bg-emerald-500"></span> نشط</span>`
-            : `<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-100 text-rose-800 text-[11px] font-black whitespace-nowrap"><span class="w-2 h-2 rounded-full bg-rose-500"></span> معلق</span>`;
+            ? `<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-[11px] font-black whitespace-nowrap"><span class="w-2 h-2 rounded-full bg-blue-500"></span> نشط</span>`
+            : `<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-50 text-rose-700 text-[11px] font-black whitespace-nowrap"><span class="w-2 h-2 rounded-full bg-rose-500"></span> معلق</span>`;
     }
 
     function formatDateTime(val) {
@@ -210,7 +210,7 @@
         if (!phone) return `<span class="text-slate-300 text-xs">—</span>`;
         const digits = phone.replace(/\D/g,'');
         const wa = digits.startsWith('97') || digits.startsWith('00') ? digits : (digits.startsWith('05') ? '972' + digits.slice(1) : digits);
-        return `<a href="https://wa.me/${wa}" target="_blank" class="flex items-center gap-1.5 font-bold text-slate-700 hover:text-green-600 transition-colors text-sm whitespace-nowrap"><i class="fa-brands fa-whatsapp text-green-500"></i>${phone}</a>`;
+        return `<a href="https://wa.me/${wa}" target="_blank" class="flex items-center gap-1.5 font-bold text-slate-700 hover:text-blue-600 transition-colors text-sm whitespace-nowrap"><i class="fa-brands fa-whatsapp text-blue-500"></i>${phone}</a>`;
     }
 
     function renderEmptyState(tbody) {
@@ -222,7 +222,7 @@
                             <i class="fa-solid fa-user-shield text-3xl"></i>
                         </div>
                         <h3 class="font-black text-slate-700 text-lg mb-2">لا يوجد مسؤولي ملاعب مسجلين حالياً</h3>
-                        <p class="text-slate-400 text-sm font-semibold mb-6">انقر على زر <span class="inline-block bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-lg font-black text-xs">«إضافة مسؤول ملعب جديد»</span> في أعلى الصفحة لإنشاء الحساب الأول.</p>
+                        <p class="text-slate-400 text-sm font-semibold mb-6">انقر على زر <span class="inline-block bg-blue-50 text-blue-700 px-2 py-0.5 rounded-lg font-black text-xs">«إضافة مسؤول ملعب جديد»</span> في أعلى الصفحة لإنشاء الحساب الأول.</p>
                     </div>
                 </td>
             </tr>`;
@@ -261,7 +261,7 @@
             <tr class="border-b border-slate-100 hover:bg-slate-50/50 transition-colors group">
                 <td class="py-5 px-3">
                     <div class="flex items-center gap-3 min-w-0">
-                        <div class="w-10 h-10 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-600 shrink-0"><i class="fa-solid fa-futbol"></i></div>
+                        <div class="w-10 h-10 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-600 shrink-0"><i class="fa-solid fa-futbol"></i></div>
                         <div class="min-w-0">
                             <div class="font-black text-slate-800 text-sm truncate">${fa.field_name || '—'}</div>
                             <div class="text-[10px] text-slate-400 font-bold truncate">#${fa.field_id || '-'}</div>
@@ -273,12 +273,12 @@
                 <td class="py-5 px-3">${contactLink(fa.phone)}</td>
                 <td class="py-5 px-3"><span class="font-black text-slate-800 text-sm whitespace-nowrap">${fa.price_per_hour || 0} ₪</span></td>
                 <td class="py-5 px-3">${formatDateTime(fa.last_login_at)}</td>
-                <td class="py-5 px-3">${isActiveBadge(fa.is_active)} ${fa.password_changed_at == null ? `<span class="inline-block mt-1 mr-1 text-[10px] font-black px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">لم يغيّر كلمة المرور</span>` : ''}</td>
+                <td class="py-5 px-3">${isActiveBadge(fa.is_active)} ${fa.password_changed_at == null ? `<span class="inline-block mt-1 mr-1 text-[10px] font-black px-2 py-0.5 rounded-full bg-blue-100 text-blue-800">لم يغيّر كلمة المرور</span>` : ''}</td>
                 <td class="py-5 px-3">
                     <div class="flex items-center gap-2 justify-end">
                         <button onclick="window.openEditFieldAdminModal(${fa.id})" class="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center" title="تعديل"><i class="fa-solid fa-pen"></i></button>
                         <button onclick="window.resetFieldAdminPassword(${fa.id}, '${(fa.full_name||'').replace(/'/g,'')}')" class="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 hover:bg-amber-600 hover:text-white transition-all flex items-center justify-center" title="إعادة تعيين كلمة المرور"><i class="fa-solid fa-key"></i></button>
-                        <button onclick="window.toggleFieldAdminActive(${fa.id}, ${fa.is_active ? 'false' : 'true'}, '${(fa.full_name||'').replace(/'/g,'')}')" class="w-9 h-9 rounded-xl ${fa.is_active ? 'bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white' : 'bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white'} transition-all flex items-center justify-center" title="${fa.is_active ? 'تعليق الحساب' : 'إعادة التفعيل'}"><i class="fa-solid ${fa.is_active ? 'fa-ban' : 'fa-play'}"></i></button>
+                        <button onclick="window.toggleFieldAdminActive(${fa.id}, ${fa.is_active ? 'false' : 'true'}, '${(fa.full_name||'').replace(/'/g,'')}')" class="w-9 h-9 rounded-xl ${fa.is_active ? 'bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white' : 'bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white'} transition-all flex items-center justify-center" title="${fa.is_active ? 'تعليق الحساب' : 'إعادة التفعيل'}"><i class="fa-solid ${fa.is_active ? 'fa-ban' : 'fa-play'}"></i></button>
                     </div>
                 </td>
             </tr>

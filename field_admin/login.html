@@ -1,16 +1,17 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar" dir="rtl" class="loading">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>تسجيل الدخول · 5v5 B2B</title>
+<title>تسجيل الدخول · 5v5 Field Manager</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
   * { font-family: 'Cairo', sans-serif; }
-  
+  html.loading body { opacity: 0; }
   body {
+    transition: opacity 0.4s ease;
     background-image: url('/images/5v5_field_admin_bg.jpg');
     background-size: cover;
     background-position: center;
@@ -26,7 +27,7 @@
     content: '';
     position: absolute;
     inset: 0;
-    background: linear-gradient(135deg, rgba(15, 23, 42, 0.7) 0%, rgba(22, 101, 52, 0.6) 100%);
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.7) 0%, rgba(37, 99, 235, 0.4) 100%);
     z-index: 1;
   }
 
@@ -76,8 +77,8 @@
     transition: all 0.2s ease;
   }
   .inp:focus {
-    box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.15);
-    border-color: #22c55e;
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+    border-color: #2563eb;
   }
 
   /* Fixed RTL icon spacing to prevent overlap */
@@ -100,6 +101,32 @@
   .spin { animation: spin 1s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
 </style>
+  <script>
+     // Immediate check for existing session
+     (async function() {
+       const urlParams = new URLSearchParams(window.location.search);
+       const isPwChangePage = urlParams.get('pwchange') === '1';
+       
+       try {
+         const res = await fetch('/api/field_admin/me');
+         if (res.ok) {
+           const data = await res.json();
+           if (data.admin) {
+             if (data.must_change_password) {
+               if (!isPwChangePage) {
+                 window.location.href = '/field_admin/login.html?pwchange=1';
+                 return;
+               }
+             } else {
+               window.location.href = '/field_admin/index.html';
+               return;
+             }
+           }
+         }
+       } catch (e) {}
+       document.documentElement.classList.remove('loading');
+     })();
+   </script>
 </head>
 <body class="antialiased">
 
@@ -107,7 +134,7 @@
   <header class="header">
     <div class="max-w-7xl mx-auto flex items-center justify-center">
       <a href="/" class="logo-container flex items-center gap-3 group">
-        <img src="/images/logo.jpg" alt="5v5 Logo" class="w-12 h-12 rounded-xl object-cover shadow-lg border-2 border-white/20 group-hover:border-green-400 transition-all">
+        <img src="/images/logo.jpg" alt="5v5 Logo" class="w-12 h-12 rounded-xl object-cover shadow-lg border-2 border-white/20 group-hover:border-blue-400 transition-all">
         <div class="text-right">
           <span class="block text-white font-black text-2xl leading-none">5v5</span>
         </div>
@@ -125,7 +152,7 @@
           نظام 5v5 المعتمد لإدارة الملاعب
         </div>
         <h1 class="hero-text text-5xl lg:text-7xl font-black text-white leading-[1.15] mb-6">
-          بوابة <span class="text-green-400">إدارة الملاعب</span>
+          بوابة <span class="text-blue-400">إدارة الملاعب</span>
         </h1>
         <p class="text-xl text-slate-200 font-bold mb-12 max-w-xl mx-auto lg:mx-0 leading-relaxed">
           سجّل حجوزات ملعبك، تابع الدفعات، ونظّم مواعيدك اليومية بكل سهولة من مكان واحد.
@@ -148,7 +175,7 @@
               <label class="block text-[11px] font-black uppercase tracking-widest text-slate-400 mr-2">اسم المستخدم</label>
               <div class="relative">
                 <i class="fa-solid fa-user absolute right-4 top-1/2 -translate-y-1/2 text-slate-300"></i>
-                <input id="username" type="text" autocomplete="username" required
+                <input id="username" name="username" type="text" autocomplete="username" required
                   class="inp w-full pr-12 pl-5 py-4 rounded-2xl border-2 border-slate-100 bg-slate-50 font-bold text-slate-700 outline-none"
                   placeholder="اسم المستخدم">
               </div>
@@ -158,11 +185,11 @@
               <label class="block text-[11px] font-black uppercase tracking-widest text-slate-400 mr-2">كلمة المرور</label>
               <div class="relative">
                 <i class="fa-solid fa-lock input-icon absolute text-slate-300"></i>
-                <input id="password" type="password" autocomplete="current-password" required
+                <input id="password" name="password" type="password" autocomplete="current-password" required
                   class="inp password-input w-full rounded-2xl border-2 border-slate-100 bg-slate-50 font-bold text-slate-700 outline-none py-4"
                   placeholder="••••••••">
                 <button type="button" onclick="togglePw('password', this)"
-                  class="toggle-btn absolute top-1/2 -translate-y-1/2 text-slate-400 hover:text-green-600 w-10 h-10 flex items-center justify-center transition-colors">
+                  class="toggle-btn absolute top-1/2 -translate-y-1/2 text-slate-400 hover:text-blue-600 w-10 h-10 flex items-center justify-center transition-colors">
                   <i class="fa-solid fa-eye"></i>
                 </button>
               </div>
@@ -171,7 +198,7 @@
             <div id="err" class="hidden p-4 rounded-2xl bg-rose-50 text-rose-700 text-sm font-bold border border-rose-100 animate-pulse"></div>
 
             <button id="submitBtn" type="submit"
-              class="w-full py-4 rounded-2xl bg-green-600 hover:bg-green-700 active:scale-[0.98] transition-all text-white font-black text-lg shadow-xl shadow-green-600/20 flex items-center justify-center gap-3">
+              class="w-full py-4 rounded-2xl bg-blue-600 hover:bg-blue-700 active:scale-[0.98] transition-all text-white font-black text-lg shadow-xl shadow-blue-600/20 flex items-center justify-center gap-3">
               <span id="btnText">دخول النظام</span>
               <i id="btnIcon" class="fa-solid fa-arrow-left-long"></i>
               <i id="btnSpinner" class="fa-solid fa-circle-notch spin hidden"></i>
@@ -179,7 +206,7 @@
           </form>
 
           <div class="mt-10 pt-8 border-t border-slate-100 text-center">
-            <a href="https://wa.me/970594444403" target="_blank" class="inline-flex items-center gap-3 text-green-600 font-black hover:text-green-700 transition-all">
+            <a href="https://wa.me/970594444403" target="_blank" class="inline-flex items-center gap-3 text-blue-600 font-black hover:text-blue-700 transition-all">
               <i class="fa-brands fa-whatsapp text-2xl"></i>
               <span class="text-sm">هل تواجه مشكلة؟ تواصل مع الدعم الفني</span>
             </a>
@@ -189,7 +216,7 @@
         <!-- Password Change Card -->
         <div id="card-pwchange" class="glass-card p-8 sm:p-12 hidden">
           <div class="text-center mb-8">
-            <div class="w-20 h-20 rounded-3xl bg-emerald-500 text-white flex items-center justify-center mx-auto mb-6 shadow-2xl shadow-emerald-200">
+            <div class="w-20 h-20 rounded-3xl bg-blue-600 text-white flex items-center justify-center mx-auto mb-6 shadow-2xl shadow-blue-200">
               <i class="fa-solid fa-lock-open text-3xl"></i>
             </div>
             <h2 class="text-2xl font-black text-slate-800 mb-2">إنشاء كلمة المرور</h2>
@@ -361,11 +388,11 @@ function validate() {
   if (hasLen && hasNum && hasUp && matches) {
     btn.disabled = false;
     btn.classList.remove('bg-slate-200', 'text-slate-400', 'cursor-not-allowed', 'shadow-none');
-    btn.classList.add('bg-green-600', 'text-white', 'hover:bg-green-700', 'shadow-xl', 'shadow-green-600/20');
+    btn.classList.add('bg-blue-600', 'text-white', 'hover:bg-blue-700', 'shadow-xl', 'shadow-blue-600/20');
   } else {
     btn.disabled = true;
     btn.classList.add('bg-slate-200', 'text-slate-400', 'cursor-not-allowed', 'shadow-none');
-    btn.classList.remove('bg-green-600', 'text-white', 'hover:bg-green-700', 'shadow-xl', 'shadow-green-600/20');
+    btn.classList.remove('bg-blue-600', 'text-white', 'hover:bg-blue-700', 'shadow-xl', 'shadow-blue-600/20');
   }
 }
 
@@ -373,15 +400,21 @@ function updateUI(id, ok) {
   const el = document.getElementById(id);
   if (ok) {
     el.classList.remove('text-slate-400');
-    el.classList.add('text-green-500');
+    el.classList.add('text-blue-500');
   } else {
     el.classList.add('text-slate-400');
-    el.classList.remove('text-green-500');
+    el.classList.remove('text-blue-500');
   }
 }
 
 p1.addEventListener('input', validate);
 p2.addEventListener('input', validate);
+
+// Check if we should show password change card immediately
+if (new URLSearchParams(window.location.search).get('pwchange') === '1') {
+  document.getElementById('card-login').classList.add('hidden');
+  document.getElementById('card-pwchange').classList.remove('hidden');
+}
 </script>
 </body>
 </html>
